@@ -1,3 +1,3 @@
 # another_mine
 
-A minesweeper clone written in dart on flutters
+A minesweeper clone written in dart on flutter.
