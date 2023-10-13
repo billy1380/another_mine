@@ -1,27 +1,24 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:another_mine/model/game.dart';
 import 'package:another_mine/model/gamedifficulty.dart';
 import 'package:another_mine/model/gamestate.dart';
+import 'package:another_mine/services/pref.dart';
 import 'package:another_mine/widgets/digits.dart';
 import 'package:another_mine/widgets/gametimer.dart';
 import 'package:another_mine/widgets/minefield.dart';
 import 'package:flutter/material.dart';
-import 'package:preferences/preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:willshex/willshex.dart';
-import 'package:window_size/window_size.dart';
 
-const String DIFFICULTY_SETTING = "difficulty";
+const String difficultySettingName = "difficulty";
 
 class AnotherMineGamePage extends StatefulWidget {
+  const AnotherMineGamePage({super.key});
+
   @override
-  _AnotherMineGamePageState createState() => _AnotherMineGamePageState();
+  State<AnotherMineGamePage> createState() => _AnotherMineGamePageState();
 }
 
 class _AnotherMineGamePageState extends State<AnotherMineGamePage> {
-  Game _game;
+  Game? _game;
 
   @override
   void didChangeDependencies() {
@@ -38,53 +35,51 @@ class _AnotherMineGamePageState extends State<AnotherMineGamePage> {
           children: <Widget>[
             Container(
                 color: Theme.of(context).secondaryHeaderColor,
-                child: ListTile(
+                child: const ListTile(
                   title: Text("Difficulty"),
                 )),
             ListTile(
-                title: Text("Beginner (${GameDifficulty.BEGINNER.describe()})"),
-                onTap: () => _tap(context, BEGINNER_NAME)),
+                title: Text("Beginner (${GameDifficulty.beginner.describe()})"),
+                onTap: () => _tap(context, beginnerName)),
             ListTile(
                 title: Text(
-                    "Intermediate (${GameDifficulty.INTERMEDIATE.describe()})"),
-                onTap: () => _tap(context, INTERMEDIATE_NAME)),
+                    "Intermediate (${GameDifficulty.intermediate.describe()})"),
+                onTap: () => _tap(context, intermediateName)),
             ListTile(
-                title: Text("Expert (${GameDifficulty.EXPERT.describe()})"),
-                onTap: () => _tap(context, EXPERT_NAME))
+                title: Text("Expert (${GameDifficulty.expert.describe()})"),
+                onTap: () => _tap(context, expertName))
           ],
         ),
       ),
       appBar: AppBar(
         elevation: 0,
-        title: Container(
-          child: ChangeNotifierProvider.value(
-            value: _game,
-            child: Consumer<Game>(builder: (context, game, _) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Digits(name: "Mines", value: game.minesMarked),
-                  Tooltip(
-                    message: "Start new game",
-                    child: MaterialButton(
-                      onPressed: _newGame,
-                      child: Image.asset(
-                        _image(game.state),
-                        height: 45,
-                      ),
+        title: ChangeNotifierProvider.value(
+          value: _game,
+          child: Consumer<Game>(builder: (context, game, _) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Digits(name: "Mines", value: game.minesMarked),
+                Tooltip(
+                  message: "Start new game",
+                  child: MaterialButton(
+                    onPressed: _newGame,
+                    child: Image.asset(
+                      _image(game.state),
+                      height: 45,
                     ),
                   ),
-                  GameTimer(),
-                ],
-              );
-            }),
-          ),
+                ),
+                const GameTimer(),
+              ],
+            );
+          }),
         ),
       ),
       body: ChangeNotifierProvider.value(
         value: _game,
         child: Consumer<Game>(builder: (context, game, _) {
-          return Minefield();
+          return const Minefield();
         }),
       ),
     );
@@ -93,13 +88,13 @@ class _AnotherMineGamePageState extends State<AnotherMineGamePage> {
   String _image(GameState state) {
     String image = "well";
     switch (state) {
-      case GameState.Lost:
+      case GameState.lost:
         image = "restin";
         break;
-      case GameState.Won:
+      case GameState.won:
         image = "cool";
         break;
-      case GameState.Thinking:
+      case GameState.thinking:
         image = "thinking";
         break;
       default:
@@ -110,9 +105,9 @@ class _AnotherMineGamePageState extends State<AnotherMineGamePage> {
   }
 
   void _tap(BuildContext context, String difficultyName) {
-    final String name = PrefService.getString(DIFFICULTY_SETTING);
+    final String? name = Pref.service.getString(difficultySettingName);
     if (name != difficultyName) {
-      PrefService.setString(DIFFICULTY_SETTING, difficultyName);
+      Pref.service.setString(difficultySettingName, difficultyName);
       _newGame();
     }
 
@@ -120,7 +115,8 @@ class _AnotherMineGamePageState extends State<AnotherMineGamePage> {
   }
 
   void _newGame() {
-    final String name = PrefService.getString(DIFFICULTY_SETTING);
+    final String name =
+        Pref.service.getString(difficultySettingName) ?? "beginner";
     GameDifficulty difficulty = GameDifficulty.fromString(name);
 
     setState(() {
@@ -130,16 +126,16 @@ class _AnotherMineGamePageState extends State<AnotherMineGamePage> {
         ..start();
     });
 
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      getWindowInfo().then((value) {
-        setWindowTitle(
-            StringUtils.upperCaseFirstLetter(name == null ? "beginner" : name));
-        setWindowFrame(Rect.fromLTRB(
-            value.frame.left,
-            value.frame.top,
-            value.frame.left + _game.difficulty.width * 40,
-            value.frame.top + _game.difficulty.height * 40 + 78));
-      });
-    }
+    // TODO: resize the window
+    // if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    //   getWindowInfo().then((value) {
+    //     setWindowTitle(StringUtils.upperCaseFirstLetter(name));
+    //     setWindowFrame(Rect.fromLTRB(
+    //         value.frame.left,
+    //         value.frame.top,
+    //         value.frame.left + _game!.difficulty.width * 40,
+    //         value.frame.top + _game!.difficulty.height * 40 + 78));
+    //   });
+    // }
   }
 }

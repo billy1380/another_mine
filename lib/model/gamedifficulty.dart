@@ -1,29 +1,29 @@
-const BEGINNER_FIELD_WIDTH = 9;
-const int BEGINNER_FIELD_HEIGHT = 9;
-const int BEGINNER_MINES = 10;
+const beginnerFieldWidth = 9;
+const int beginnerFieldHeight = 9;
+const int beginnerMines = 10;
 
-const String BEGINNER_NAME = "beginner";
+const String beginnerName = "beginner";
 
-const int INTERMEDIATE_FIELD_WIDTH = 16;
-const int INTERMEDIATE_FIELD_HEIGHT = 16;
-const int INTERMEDIATE_MINES = 40;
+const int intermediateFieldWidth = 16;
+const int intermediateFieldHeight = 16;
+const int intermediateMines = 40;
 
-const String INTERMEDIATE_NAME = "intermediate";
+const String intermediateName = "intermediate";
 
-const int EXPERT_FIELD_WIDTH = 30;
-const int EXPERT_FIELD_HEIGHT = 16;
-const int EXPERT_MINES = 99;
-const String EXPERT_NAME = "expert";
+const int expertFieldWidth = 30;
+const int expertFieldHeight = 16;
+const int expertMines = 99;
+const String expertName = "expert";
 
 class GameDifficulty {
   final int width, height, mines;
 
-  static const GameDifficulty BEGINNER = GameDifficulty(
-      BEGINNER_FIELD_WIDTH, BEGINNER_FIELD_HEIGHT, BEGINNER_MINES);
-  static const GameDifficulty INTERMEDIATE = GameDifficulty(
-      INTERMEDIATE_FIELD_WIDTH, INTERMEDIATE_FIELD_HEIGHT, INTERMEDIATE_MINES);
-  static const GameDifficulty EXPERT =
-      GameDifficulty(EXPERT_FIELD_WIDTH, EXPERT_FIELD_HEIGHT, EXPERT_MINES);
+  static const GameDifficulty beginner =
+      GameDifficulty(beginnerFieldWidth, beginnerFieldHeight, beginnerMines);
+  static const GameDifficulty intermediate = GameDifficulty(
+      intermediateFieldWidth, intermediateFieldHeight, intermediateMines);
+  static const GameDifficulty expert =
+      GameDifficulty(expertFieldWidth, expertFieldHeight, expertMines);
 
   const GameDifficulty(this.width, this.height, this.mines);
 
@@ -44,13 +44,14 @@ class GameDifficulty {
   int get hashCode => "$width:$height:$mines".hashCode;
 
   @override
-  bool operator ==(Object obj) {
-    bool equal = super == obj;
+  bool operator ==(Object other) {
+    bool equal = super == other;
 
     if (!equal) {
-      if (obj is GameDifficulty) {
-        equal =
-            width == obj.width && height == obj.height && mines == obj.mines;
+      if (other is GameDifficulty) {
+        equal = width == other.width &&
+            height == other.height &&
+            mines == other.mines;
       }
     }
 
@@ -65,15 +66,15 @@ class GameDifficulty {
     GameDifficulty difficulty;
 
     switch (s) {
-      case INTERMEDIATE_NAME:
-        difficulty = GameDifficulty.INTERMEDIATE;
+      case intermediateName:
+        difficulty = GameDifficulty.intermediate;
         break;
-      case EXPERT_NAME:
-        difficulty = GameDifficulty.EXPERT;
+      case expertName:
+        difficulty = GameDifficulty.expert;
         break;
-      case BEGINNER_NAME:
+      case beginnerName:
       default:
-        difficulty = GameDifficulty.BEGINNER;
+        difficulty = GameDifficulty.beginner;
         break;
     }
 

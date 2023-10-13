@@ -6,24 +6,24 @@ import 'package:another_mine/model/tilemodel.dart';
 import 'package:another_mine/model/tilestate.dart';
 import 'package:flutter/material.dart';
 
-const Color DEFAULT_BACKGROUND = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
+const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 
 class Game extends ChangeNotifier {
   static final Random r = Random();
 
-  GameDifficulty _difficulty;
-  GameState _state = GameState.NotStarted;
+  GameDifficulty _difficulty = GameDifficulty.beginner;
+  GameState _state = GameState.notStarted;
   final List<TileModel> _tiles = <TileModel>[];
-  DateTime _start, _end;
-  GameState _previousState;
-  int _minesMarked;
-  int _revealedTiles;
-  Color colour = DEFAULT_BACKGROUND;
+  DateTime? _start, _end;
+  GameState _previousState = GameState.notStarted;
+  int _minesMarked = 0;
+  int _revealedTiles = 0;
+  Color colour = defaultBackgroundColour;
 
   void start() {
     _start = null;
     _end = null;
-    _state = GameState.NotStarted;
+    _state = GameState.notStarted;
     _minesMarked = 0;
     _revealedTiles = 0;
 
@@ -38,7 +38,7 @@ class Game extends ChangeNotifier {
     int difference = tileSize - GameDifficulty.difficultyArea(_difficulty);
     if (difference > 0) {
       for (int i = 0; i < difference; i++) {
-        _tiles.remove(_tiles.length - 1);
+        _tiles.removeAt(_tiles.length - 1);
       }
     } else if (difference < 0) {
       difference = 0 - difference;
@@ -60,7 +60,7 @@ class Game extends ChangeNotifier {
             ..colour = c
             // ..difficulty = difficulty
             ..index = i
-            ..state = TileState.NotPressed
+            ..state = TileState.notPressed
             ..clearNeighbours()
           //					.state(TileState.values()[(int) (Math.random()
           //							* TileState.values().length)])
@@ -69,7 +69,7 @@ class Game extends ChangeNotifier {
 
     int k, allocatedMines = 0;
     bool newPosition;
-    List<int> mineLocations = List<int>(tileCount);
+    List<int> mineLocations = List<int>.filled(tileCount, 0);
 
     while (allocatedMines < difficulty.mines) {
       newPosition = true;
@@ -92,14 +92,14 @@ class Game extends ChangeNotifier {
   }
 
   void mightPlay() {
-    if (state != GameState.Lost && state != GameState.Won) {
+    if (state != GameState.lost && state != GameState.won) {
       _previousState = _state;
-      _state = GameState.Thinking;
+      _state = GameState.thinking;
     }
   }
 
   void donePlay() {
-    if (state == GameState.Thinking) {
+    if (state == GameState.thinking) {
       _state = _previousState;
     }
   }
@@ -136,65 +136,65 @@ class Game extends ChangeNotifier {
     }
   }
 
-  void probe(TileModel tile) {
-    int area = GameDifficulty.difficultyArea(_difficulty);
+  void probe(TileModel? tile) {
+    if (tile != null) {
+      int area = GameDifficulty.difficultyArea(_difficulty);
 
-    if (tile.hasMine && _start == null) {
-      _relocateMine(tile);
-      probe(tile);
-    } else {
-      if (_start == null) {
-        _start = DateTime.now();
-        _state = GameState.Started;
-      }
-
-      if (tile.probe()) {
-        _revealedTiles++;
-      }
-
-      if (tile.state == TileState.DetenateBomb) {
-        _state = GameState.Lost;
-        _end = DateTime.now();
-        _revealAll();
-      } else if (_revealedTiles + difficulty.mines == area) {
-        _state = GameState.Won;
-        _end = DateTime.now();
-        _revealAll();
+      if (tile.hasMine && _start == null) {
+        _relocateMine(tile);
+        probe(tile);
       } else {
-        int marked = 0;
-        for (int i = 0; i < tile.neighbours.length; i++) {
-          if (tile.neighbours[i] != null) {
-            final TileModel neighbour = tile.neighbours[i];
+        if (_start == null) {
+          _start = DateTime.now();
+          _state = GameState.started;
+        }
 
-            if (neighbour.state == TileState.PredictedBombCorrect) {
+        if (tile.probe()) {
+          _revealedTiles++;
+        }
+
+        if (tile.state == TileState.detenateBomb) {
+          _state = GameState.lost;
+          _end = DateTime.now();
+          _revealAll();
+        } else if (_revealedTiles + difficulty.mines == area) {
+          _state = GameState.won;
+          _end = DateTime.now();
+          _revealAll();
+        } else {
+          int marked = 0;
+          for (int i = 0; i < tile.neighbours.length; i++) {
+            final TileModel? neighbour = tile.neighbours[i];
+
+            if (neighbour != null &&
+                neighbour.state == TileState.predictedBombCorrect) {
               marked++;
             }
           }
-        }
 
-        if (tile.neigbouringMine == marked) {
-          for (int i = 0; i < tile.neighbours.length; i++) {
-            if (tile.neighbours[i] != null) {
-              final TileModel neighbour = tile.neighbours[i];
-              if (neighbour.state == TileState.NotPressed ||
-                  neighbour.state == TileState.Unsure) {
+          if (tile.neigbouringMine == marked) {
+            for (int i = 0; i < tile.neighbours.length; i++) {
+              final TileModel? neighbour = tile.neighbours[i];
+              if (neighbour != null &&
+                  (neighbour.state == TileState.notPressed ||
+                      neighbour.state == TileState.unsure)) {
                 probe(neighbour);
               }
             }
           }
         }
       }
-    }
 
-    notifyListeners();
+      notifyListeners();
+    }
   }
 
   void _revealAll() {
     for (TileModel tile in _tiles) {
       tile.reveal();
 
-      if (tile.state == TileState.RevealedBomb && _state == GameState.Won) {
-        tile.state = TileState.PredictedBombCorrect;
+      if (tile.state == TileState.revealedBomb && _state == GameState.won) {
+        tile.state = TileState.predictedBombCorrect;
       }
     }
   }
@@ -221,9 +221,9 @@ class Game extends ChangeNotifier {
         ? 0
         : ((_end == null
                     ? DateTime.now().millisecondsSinceEpoch -
-                        _start.millisecondsSinceEpoch
-                    : _end.millisecondsSinceEpoch -
-                        _start.millisecondsSinceEpoch) *
+                        _start!.millisecondsSinceEpoch
+                    : _end!.millisecondsSinceEpoch -
+                        _start!.millisecondsSinceEpoch) *
                 .001)
             .toInt();
   }
@@ -232,9 +232,9 @@ class Game extends ChangeNotifier {
     return List.unmodifiable(_tiles);
   }
 
-  TileModel tileAt(int x, int y) {
-    TileModel tile;
-    if (state != GameState.Lost && state != GameState.Won) {
+  TileModel? tileAt(int x, int y) {
+    TileModel? tile;
+    if (state != GameState.lost && state != GameState.won) {
       tile = _tiles[(y * difficulty.width) + x];
     }
 
@@ -242,35 +242,33 @@ class Game extends ChangeNotifier {
   }
 
   bool probeAt(int x, int y) {
-    final TileModel tile = tileAt(x, y);
+    final TileModel? tile = tileAt(x, y);
 
-    if (tile != null) {
-      probe(tile);
-    }
+    probe(tile);
 
     return tile != null;
   }
 
   bool speculateAt(int x, int y) {
-    final TileModel tile = tileAt(x, y);
+    final TileModel? tile = tileAt(x, y);
 
-    if (tile != null) {
-      speculate(tile);
-    }
+    speculate(tile);
 
     return tile != null;
   }
 
-  void speculate(TileModel tile) {
-    tile.speculate();
+  void speculate(TileModel? tile) {
+    if (tile != null) {
+      tile.speculate();
 
-    if (tile.state == TileState.PredictedBombCorrect) {
-      _minesMarked++;
-    } else if (tile.state == TileState.Unsure) {
-      _minesMarked--;
+      if (tile.state == TileState.predictedBombCorrect) {
+        _minesMarked++;
+      } else if (tile.state == TileState.unsure) {
+        _minesMarked--;
+      }
+
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   void _relocateMine(TileModel tile) {
@@ -287,6 +285,6 @@ class Game extends ChangeNotifier {
   }
 
   bool get isFinished {
-    return _state == GameState.Won || _state == GameState.Lost;
+    return _state == GameState.won || _state == GameState.lost;
   }
 }

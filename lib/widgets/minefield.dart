@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class Minefield extends StatelessWidget {
+  const Minefield({super.key});
+
+  @override
   Widget build(BuildContext context) {
     Game game = Provider.of<Game>(context);
-    return Container(
-      child: GridView.count(
-        crossAxisCount: game.difficulty.width,
-        children: _tiles(game),
-      ),
+    return GridView.count(
+      crossAxisCount: game.difficulty.width,
+      children: _tiles(game),
     );
   }
 

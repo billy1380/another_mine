@@ -7,19 +7,19 @@ import 'package:provider/provider.dart';
 
 class GameTimer extends StatefulWidget {
   const GameTimer({
-    Key key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  _GameTimerState createState() => _GameTimerState();
+  State<GameTimer> createState() => _GameTimerState();
 }
 
 class _GameTimerState extends State<GameTimer> {
-  StreamSubscription _subscription;
+  late StreamSubscription _subscription;
 
   @override
   void initState() {
-    _subscription = Stream.periodic(Duration(seconds: 1)).listen((event) {
+    _subscription = Stream.periodic(const Duration(seconds: 1)).listen((event) {
       setState(() {});
     });
     super.initState();

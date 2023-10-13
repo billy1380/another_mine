@@ -1,47 +1,47 @@
 enum TileState {
-  NotPressed,
-  One,
-  Two,
-  Three,
-  Four,
-  Five,
-  Six,
-  Seven,
-  Eight,
-  PredictedBombCorrect,
-  PredictedBombIncorrect,
-  RevealedBomb,
-  DetenateBomb,
-  RevealedSafe,
-  Unsure
+  notPressed,
+  one,
+  two,
+  three,
+  four,
+  five,
+  six,
+  seven,
+  eight,
+  predictedBombCorrect,
+  predictedBombIncorrect,
+  revealedBomb,
+  detenateBomb,
+  revealedSafe,
+  unsure
 }
 
 TileState convertToTileState(int value) {
-    TileState found = TileState.NotPressed;
+    TileState found = TileState.notPressed;
     switch (value) {
       case 1:
-        found = TileState.One;
+        found = TileState.one;
         break;
       case 2:
-        found = TileState.Two;
+        found = TileState.two;
         break;
       case 3:
-        found = TileState.Three;
+        found = TileState.three;
         break;
       case 4:
-        found = TileState.Four;
+        found = TileState.four;
         break;
       case 5:
-        found = TileState.Five;
+        found = TileState.five;
         break;
       case 6:
-        found = TileState.Six;
+        found = TileState.six;
         break;
       case 7:
-        found = TileState.Seven;
+        found = TileState.seven;
         break;
       case 8:
-        found = TileState.Eight;
+        found = TileState.eight;
         break;
     }
 

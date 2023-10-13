@@ -6,89 +6,82 @@ import 'package:provider/provider.dart';
 
 class Tile extends StatefulWidget {
   final TileModel model;
-  Tile(Key key, this.model) : super(key: key);
+  const Tile(Key key, this.model) : super(key: key);
 
   @override
-  _TileState createState() => _TileState(model);
+  State<Tile> createState() => _TileState();
 }
 
 class _TileState extends State<Tile> {
-  final TileModel _model;
-
-  _TileState(this._model);
-
   @override
   Widget build(BuildContext context) {
-    String image = _image(_model.state);
+    String? image = _image(widget.model.state);
     Game game = Provider.of<Game>(context, listen: false);
 
-    return Container(
-      child: GestureDetector(
-        onSecondaryTapUp: (d) {
+    return GestureDetector(
+      onSecondaryTapUp: (d) {
+        if (!game.isFinished) {
+          game.speculate(widget.model);
+        }
+      },
+      child: TextButton(
+        // TODO: color: _model.state == TileState.NotPressed ? _model.colour : null,
+        onPressed: () {
           if (!game.isFinished) {
-            game.speculate(_model);
+            game.probe(widget.model);
           }
         },
-        child: FlatButton(
-          padding: EdgeInsets.all(0),
-          color: _model.state == TileState.NotPressed ? _model.colour : null,
-          onPressed: () {
-            if (!game.isFinished) {
-              game.probe(_model);
-            }
-          },
-          onLongPress: () {
-            if (!game.isFinished) {
-              game.speculate(_model);
-            }
-          },
-          child: image == null ? null : Image.asset(image),
-        ),
+        onLongPress: () {
+          if (!game.isFinished) {
+            game.speculate(widget.model);
+          }
+        },
+        child: image == null ? Container() : Image.asset(image),
       ),
     );
   }
 
-  String _image(TileState state) {
-    String image;
+  String? _image(TileState state) {
+    String? image;
 
     switch (state) {
-      case TileState.DetenateBomb:
+      case TileState.detenateBomb:
         image = "dead";
         break;
-      case TileState.Eight:
+      case TileState.eight:
         image = "eight";
         break;
-      case TileState.Five:
+      case TileState.five:
         image = "five";
         break;
-      case TileState.Four:
+      case TileState.four:
         image = "four";
         break;
-      case TileState.One:
+      case TileState.one:
         image = "one";
         break;
-      case TileState.PredictedBombCorrect:
+      case TileState.predictedBombCorrect:
         image = "found";
         break;
-      case TileState.PredictedBombIncorrect:
+      case TileState.predictedBombIncorrect:
         image = "not";
         break;
-      case TileState.RevealedBomb:
+      case TileState.revealedBomb:
         image = "hidden";
         break;
-      case TileState.Seven:
+      case TileState.seven:
         image = "seven";
         break;
-      case TileState.Six:
+      case TileState.six:
         image = "six";
         break;
-      case TileState.Three:
+      case TileState.three:
         image = "three";
         break;
-      case TileState.Two:
+      case TileState.two:
         image = "two";
         break;
-      case TileState.Unsure:
+      case TileState.unsure:
         image = "dunno";
         break;
       default:

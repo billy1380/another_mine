@@ -1,8 +1,8 @@
 enum GameState {
-  NotStarted,
-  Started,
-  Won,
-  Lost,
-  Paused,
-  Thinking,
+  notStarted,
+  started,
+  won,
+  lost,
+  paused,
+  thinking,
 }
