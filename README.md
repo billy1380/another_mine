@@ -1,3 +1,5 @@
-# another_mine
+# Another Mine
 
-A minesweeper clone written in dart on flutter.
+A minesweeper clone written in dart using flutter.
+
+![Screenshot](screenshot.png)
