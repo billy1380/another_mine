@@ -1,28 +1,27 @@
-import 'package:another_mine/model/game.dart';
-import 'package:another_mine/model/tilemodel.dart';
+import 'package:another_mine/bloc/game/game_bloc.dart';
 import 'package:another_mine/widgets/tile.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Minefield extends StatelessWidget {
   const Minefield({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Game game = Provider.of<Game>(context);
-    return GridView.count(
-      crossAxisCount: game.difficulty.width,
-      children: _tiles(game),
+    return BlocBuilder<GameBloc, GameState>(
+      builder: (context, state) {
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return Tile(UniqueKey(), state.tiles[index]);
+          },
+          itemCount: state.tiles.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: state.difficulty.width,
+            childAspectRatio: 1.0,
+          ),
+        );
+      },
     );
-  }
-
-  List<Widget> _tiles(Game game) {
-    List<Widget> tiles = <Widget>[];
-
-    for (TileModel tile in game.tiles) {
-      tiles.add(Tile(UniqueKey(), tile));
-    }
-
-    return tiles;
   }
 }

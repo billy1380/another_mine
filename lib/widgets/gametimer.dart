@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:another_mine/model/game.dart';
+import 'package:another_mine/bloc/game/game_bloc.dart';
 import 'package:another_mine/widgets/digits.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GameTimer extends StatefulWidget {
   const GameTimer({
@@ -19,17 +19,18 @@ class _GameTimerState extends State<GameTimer> {
 
   @override
   void initState() {
+    super.initState();
+
     _subscription = Stream.periodic(const Duration(seconds: 1)).listen((event) {
       setState(() {});
     });
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Digits(
       name: "Time",
-      value: Provider.of<Game>(context).seconds,
+      value: BlocProvider.of<GameBloc>(context).state.seconds,
       digits: 3,
     );
   }

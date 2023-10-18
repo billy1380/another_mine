@@ -1,8 +1,8 @@
-import 'package:another_mine/model/game.dart';
+import 'package:another_mine/bloc/game/game_bloc.dart';
 import 'package:another_mine/model/tilemodel.dart';
-import 'package:another_mine/model/tilestate.dart';
+import 'package:another_mine/model/tile_state_type.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Tile extends StatefulWidget {
   final TileModel model;
@@ -16,72 +16,102 @@ class _TileState extends State<Tile> {
   @override
   Widget build(BuildContext context) {
     String? image = _image(widget.model.state);
-    Game game = Provider.of<Game>(context, listen: false);
 
-    return GestureDetector(
-      onSecondaryTapUp: (d) {
-        if (!game.isFinished) {
-          game.speculate(widget.model);
-        }
+    return BlocBuilder<GameBloc, GameState>(
+      builder: (context, state) {
+        return GestureDetector(
+          onSecondaryTap: () {
+            if (!state.isFinished) {
+              BlocProvider.of<GameBloc>(context)
+                  .add(Speculate(model: widget.model));
+            }
+          },
+          onTapDown: (d) {
+            if (!state.isFinished) {
+              BlocProvider.of<GameBloc>(context)
+                  .add(MightPlay(model: widget.model));
+            }
+          },
+          onTapUp: (d) {
+            if (!state.isFinished) {
+              BlocProvider.of<GameBloc>(context).add(const DonePlaying());
+            }
+          },
+          onTap: () {
+            if (!state.isFinished) {
+              BlocProvider.of<GameBloc>(context)
+                  .add(Probe(model: widget.model));
+            }
+          },
+          onLongPress: () {
+            if (!state.isFinished) {
+              BlocProvider.of<GameBloc>(context)
+                  .add(Speculate(model: widget.model));
+            }
+          },
+          child: image == null
+              ? widget.model.state == TileStateType.revealedSafe
+                  ? Container()
+                  : Container(
+                      decoration: BoxDecoration(
+                          color: widget.model.colour,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5))),
+                    )
+              : Container(
+                  decoration: BoxDecoration(
+                      color: widget.model.state == TileStateType.detenateBomb
+                          ? Colors.red
+                          : null,
+                      borderRadius: const BorderRadius.all(Radius.circular(5))),
+                  child: Image.asset(image),
+                ),
+        );
       },
-      child: TextButton(
-        // TODO: color: _model.state == TileState.NotPressed ? _model.colour : null,
-        onPressed: () {
-          if (!game.isFinished) {
-            game.probe(widget.model);
-          }
-        },
-        onLongPress: () {
-          if (!game.isFinished) {
-            game.speculate(widget.model);
-          }
-        },
-        child: image == null ? Container() : Image.asset(image),
-      ),
     );
   }
 
-  String? _image(TileState state) {
+  String? _image(TileStateType state) {
     String? image;
 
     switch (state) {
-      case TileState.detenateBomb:
+      case TileStateType.detenateBomb:
         image = "dead";
         break;
-      case TileState.eight:
+      case TileStateType.eight:
         image = "eight";
         break;
-      case TileState.five:
+      case TileStateType.five:
         image = "five";
         break;
-      case TileState.four:
+      case TileStateType.four:
         image = "four";
         break;
-      case TileState.one:
+      case TileStateType.one:
         image = "one";
         break;
-      case TileState.predictedBombCorrect:
+      case TileStateType.predictedBombCorrect:
         image = "found";
         break;
-      case TileState.predictedBombIncorrect:
+      case TileStateType.predictedBombIncorrect:
         image = "not";
         break;
-      case TileState.revealedBomb:
+      case TileStateType.revealedBomb:
         image = "hidden";
         break;
-      case TileState.seven:
+      case TileStateType.seven:
         image = "seven";
         break;
-      case TileState.six:
+      case TileStateType.six:
         image = "six";
         break;
-      case TileState.three:
+      case TileStateType.three:
         image = "three";
         break;
-      case TileState.two:
+      case TileStateType.two:
         image = "two";
         break;
-      case TileState.unsure:
+      case TileStateType.unsure:
         image = "dunno";
         break;
       default:

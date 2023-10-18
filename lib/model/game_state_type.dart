@@ -1,4 +1,4 @@
-enum GameState {
+enum GameStateType {
   notStarted,
   started,
   won,

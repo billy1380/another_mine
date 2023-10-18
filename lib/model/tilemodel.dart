@@ -1,8 +1,8 @@
-import 'package:another_mine/model/tilestate.dart';
+import 'package:another_mine/model/tile_state_type.dart';
 import 'package:flutter/material.dart';
 
 class TileModel {
-  late TileState state;
+  late TileStateType state;
   late bool hasMine;
   late Color colour;
   late int index;
@@ -19,38 +19,38 @@ class TileModel {
   }
 
   bool probe() {
-    TileState before = state;
+    TileStateType before = state;
 
-    if (state != TileState.predictedBombCorrect) {
+    if (state != TileStateType.predictedBombCorrect) {
       if (hasMine) {
-        state = TileState.detenateBomb;
+        state = TileStateType.detenateBomb;
       } else {
-        state = TileState.revealedSafe;
+        state = TileStateType.revealedSafe;
 
         switch (neigbouringMine) {
           case 1:
-            state = TileState.one;
+            state = TileStateType.one;
             break;
           case 2:
-            state = TileState.two;
+            state = TileStateType.two;
             break;
           case 3:
-            state = TileState.three;
+            state = TileStateType.three;
             break;
           case 4:
-            state = TileState.four;
+            state = TileStateType.four;
             break;
           case 5:
-            state = TileState.five;
+            state = TileStateType.five;
             break;
           case 6:
-            state = TileState.six;
+            state = TileStateType.six;
             break;
           case 7:
-            state = TileState.seven;
+            state = TileStateType.seven;
             break;
           case 8:
-            state = TileState.eight;
+            state = TileStateType.eight;
             break;
         }
       }
@@ -61,14 +61,14 @@ class TileModel {
 
   void speculate() {
     switch (state) {
-      case TileState.predictedBombCorrect:
-        state = TileState.unsure;
+      case TileStateType.predictedBombCorrect:
+        state = TileStateType.unsure;
         break;
-      case TileState.unsure:
-        state = TileState.notPressed;
+      case TileStateType.unsure:
+        state = TileStateType.notPressed;
         break;
-      case TileState.notPressed:
-        state = TileState.predictedBombCorrect;
+      case TileStateType.notPressed:
+        state = TileStateType.predictedBombCorrect;
         break;
       default:
         break;
@@ -77,15 +77,15 @@ class TileModel {
 
   void reveal() {
     switch (state) {
-      case TileState.predictedBombCorrect:
+      case TileStateType.predictedBombCorrect:
         if (!hasMine) {
-          state = TileState.predictedBombIncorrect;
+          state = TileStateType.predictedBombIncorrect;
         }
         break;
-      case TileState.unsure:
-      case TileState.notPressed:
+      case TileStateType.unsure:
+      case TileStateType.notPressed:
         if (hasMine) {
-          state = TileState.revealedBomb;
+          state = TileStateType.revealedBomb;
         } else {
           probe();
         }
