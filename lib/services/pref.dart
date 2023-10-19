@@ -25,21 +25,28 @@ class Pref {
 
   String? getString(String name) => _sharedPreferences.getString(_key(name));
 
-  void setString(String name, String? value) {
+  Future<bool> setString(String name, String? value) async {
+    bool done = false;
     if (value == null) {
-      _sharedPreferences.remove(_key(name));
+      done = await _sharedPreferences.remove(_key(name));
     } else {
-      _sharedPreferences.setString(_key(name), value);
+      done = await _sharedPreferences.setString(_key(name), value);
     }
+
+    return done;
   }
 
-  bool? getBool(String name) => _sharedPreferences.getBool(_key(name));
-  void setBool(String name, bool? value) {
+  bool? getBool(String name) =>
+      _sharedPreferences.getString(_key(name)) == true.toString();
+  Future<bool> setBool(String name, bool? value) async {
+    bool done = false;
     if (value == null) {
-      _sharedPreferences.remove(_key(name));
+      done = await _sharedPreferences.remove(_key(name));
     } else {
-      _sharedPreferences.setBool(_key(name), value);
+      done = await _sharedPreferences.setString(_key(name), value.toString());
     }
+
+    return done;
   }
 
   String _key(String name) => "$_prefix$name";

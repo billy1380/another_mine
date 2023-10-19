@@ -10,6 +10,7 @@ import 'package:another_mine/services/pref.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:main_thread_processor/main_thread_processor.dart';
 
 part 'game_event.dart';
@@ -27,6 +28,7 @@ int random(int scale) {
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   late Guesser guesser;
+  static final Logger _log = Logger("GameBloc");
 
   GameBloc()
       : super(GameState.initial(
@@ -71,7 +73,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Future<void> _newGame(NewGame event, Emitter<GameState> emit) async {
     GameDifficultyType difficulty = event.difficulty;
 
-    Pref.service.setString(autoSolverSettingName, difficulty.name);
+    await Pref.service.setString(autoSolverSettingName, difficulty.name);
 
     String colourValue = Pref.service.getString(colourSettingName) ??
         defaultBackgroundColour.value.toString();
@@ -92,17 +94,21 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     try {
       status = Pref.service.getBool(autoSolverSettingName) ?? false;
     } catch (e) {
-      // do nothing
+      _log.warning(
+          "Could not get setting $autoSolverSettingName defaulting to false");
     }
 
     status = !status;
 
-    Pref.service.setBool(autoSolverSettingName, status);
+    await Pref.service.setBool(autoSolverSettingName, status);
 
     emit(state.copyWith(autoSolverEnabled: status));
 
     if (status) {
       add(const AutoSolverNextMove());
+    } else {
+      Processor.shared.removeAllTasks();
+      stream.drain();
     }
   }
 
