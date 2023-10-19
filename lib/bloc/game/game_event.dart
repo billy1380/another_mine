@@ -81,3 +81,7 @@ class DonePlaying extends GameEvent {
 class RevealAll extends GameEvent {
   const RevealAll();
 }
+
+class AutoSolverNextMove extends GameEvent {
+  const AutoSolverNextMove();
+}

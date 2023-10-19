@@ -172,9 +172,8 @@ final class GameState extends Equatable {
         refresh,
       ];
 
-  bool get isFinished {
-    return status == GameStateType.won || status == GameStateType.lost;
-  }
+  bool get isFinished => status == GameStateType.won || status == GameStateType.lost;
+  bool get isNotFinished => !isFinished;
 
   int get seconds {
     return start == null

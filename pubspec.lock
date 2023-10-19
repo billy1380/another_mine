@@ -232,6 +232,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  main_thread_processor:
+    dependency: "direct main"
+    description:
+      path: "../main_thread_processor"
+      relative: true
+    source: path
+    version: "1.0.0"
   matcher:
     dependency: transitive
     description:

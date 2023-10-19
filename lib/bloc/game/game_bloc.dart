@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:another_mine/ai/guesser.dart';
 import 'package:another_mine/model/game_difficulty_type.dart';
 import 'package:another_mine/model/game_state_type.dart';
 import 'package:another_mine/model/tile_state_type.dart';
@@ -9,6 +10,7 @@ import 'package:another_mine/services/pref.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:main_thread_processor/main_thread_processor.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';
@@ -19,7 +21,13 @@ const String difficultySettingName = "difficulty";
 const String autoSolverSettingName = "auto_solver";
 const String colourSettingName = "colour";
 
+int random(int scale) {
+  return (r.nextDouble() * scale).toInt();
+}
+
 class GameBloc extends Bloc<GameEvent, GameState> {
+  late Guesser guesser;
+
   GameBloc()
       : super(GameState.initial(
             GameDifficultyType.beginner, defaultBackgroundColour)) {
@@ -30,6 +38,34 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<Probe>(_probe);
     on<ToggleAutoSolver>(_toggleAutoSolver);
     on<NewGame>(_newGame);
+    on<AutoSolverNextMove>(_autoSolverNextMove);
+
+    guesser = Guesser(this);
+  }
+
+  Future<void> _autoSolverNextMove(
+      AutoSolverNextMove event, Emitter<GameState> emit) async {
+    if (state.isFinished) {
+      if (state.status == GameStateType.won) {
+        add(const ToggleAutoSolver());
+      } else if (state.status == GameStateType.lost) {
+        // wait for some time before starting a new game
+        await Future.delayed(const Duration(
+          seconds: 2,
+        ));
+
+        if (!guesser.pause) {
+          add(NewGame(
+            difficulty: state.difficulty,
+          ));
+        }
+      }
+    } else {
+      if (!guesser.pause) {
+        Processor.shared.addTask(
+            ProcessRunnables()..addRunnable("guesser move", guesser.makeAMove));
+      }
+    }
   }
 
   Future<void> _newGame(NewGame event, Emitter<GameState> emit) async {
@@ -41,7 +77,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         defaultBackgroundColour.value.toString();
     int colour = int.parse(colourValue);
 
-    emit(GameState.initial(difficulty, Color(colour)));
+    emit(GameState.initial(difficulty, Color(colour)).copyWith(
+      autoSolverEnabled: state.autoSolverEnabled,
+    ));
+
+    if (state.autoSolverEnabled) {
+      add(const AutoSolverNextMove());
+    }
   }
 
   Future<void> _toggleAutoSolver(
@@ -58,87 +100,101 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Pref.service.setBool(autoSolverSettingName, status);
 
     emit(state.copyWith(autoSolverEnabled: status));
+
+    if (status) {
+      add(const AutoSolverNextMove());
+    }
   }
 
   Future<void> _probe(Probe event, Emitter<GameState> emit) async {
-    TileModel tile = event.model;
+    if (state.isNotFinished) {
+      TileModel tile = event.model;
 
-    int area = GameDifficultyType.difficultyArea(state.difficulty);
+      int area = GameDifficultyType.difficultyArea(state.difficulty);
 
-    if (tile.hasMine && state.start == null) {
-      _relocateMine(tile);
+      if (tile.hasMine && state.start == null) {
+        _relocateMine(tile);
 
-      add(Probe(model: event.model));
-    } else {
-      GameState newState = state;
-
-      if (state.start == null) {
-        emit(newState = newState.copyWith(
-          start: DateTime.now(),
-          status: GameStateType.started,
-        ));
-      }
-
-      if (tile.probe()) {
-        emit(newState = newState.copyWith(
-          revealedTiles: state.revealedTiles + 1,
-        ));
-      }
-
-      if (tile.state == TileStateType.detenateBomb) {
-        emit(newState = newState.copyWith(
-          end: DateTime.now(),
-          status: GameStateType.lost,
-        ));
-
-        add(const RevealAll());
-      } else if (state.revealedTiles + state.difficulty.mines == area) {
-        emit(newState = newState.copyWith(
-          end: DateTime.now(),
-          status: GameStateType.won,
-        ));
-
-        add(const RevealAll());
+        add(Probe(model: event.model));
       } else {
-        int marked = 0;
+        GameState newState = state;
 
-        for (int i = 0; i < tile.neighbours.length; i++) {
-          final TileModel? neighbour = tile.neighbours[i];
-
-          if (neighbour != null &&
-              neighbour.state == TileStateType.predictedBombCorrect) {
-            marked++;
-          }
+        if (state.start == null) {
+          emit(newState = newState.copyWith(
+            start: DateTime.now(),
+            status: GameStateType.started,
+          ));
         }
 
-        if (tile.neigbouringMine == marked) {
+        if (tile.probe()) {
+          emit(newState = newState.copyWith(
+            revealedTiles: state.revealedTiles + 1,
+          ));
+        }
+
+        if (tile.state == TileStateType.detenateBomb) {
+          emit(newState = newState.copyWith(
+            end: DateTime.now(),
+            status: GameStateType.lost,
+          ));
+
+          add(const RevealAll());
+        } else if (state.revealedTiles + state.difficulty.mines == area) {
+          emit(newState = newState.copyWith(
+            end: DateTime.now(),
+            status: GameStateType.won,
+          ));
+
+          add(const RevealAll());
+        } else {
+          int marked = 0;
+
           for (int i = 0; i < tile.neighbours.length; i++) {
             final TileModel? neighbour = tile.neighbours[i];
 
             if (neighbour != null &&
-                (neighbour.state == TileStateType.notPressed ||
-                    neighbour.state == TileStateType.unsure)) {
-              add(Probe(model: neighbour));
+                neighbour.state == TileStateType.predictedBombCorrect) {
+              marked++;
+            }
+          }
+
+          if (tile.neigbouringMine == marked) {
+            for (int i = 0; i < tile.neighbours.length; i++) {
+              final TileModel? neighbour = tile.neighbours[i];
+
+              if (neighbour != null &&
+                  (neighbour.state == TileStateType.notPressed ||
+                      neighbour.state == TileStateType.unsure)) {
+                add(Probe(model: neighbour));
+              }
             }
           }
         }
+      }
+
+      if (state.autoSolverEnabled) {
+        add(const AutoSolverNextMove());
       }
     }
   }
 
   Future<void> _speculate(Speculate event, Emitter<GameState> emit) async {
-    TileModel tile = event.model..speculate();
+    if (state.isNotFinished) {
+      TileModel tile = event.model..speculate();
 
-    if (tile.state == TileStateType.predictedBombCorrect) {
-      emit(state.copyWith(
-        minesMarked: state.minesMarked + 1,
-      ));
-    } else if (tile.state == TileStateType.unsure) {
-      emit(state.copyWith(
-        minesMarked: state.minesMarked - 1,
-      ));
-    } else {
-      emit(state.copyWith(refresh: state.refresh + 1));
+      if (tile.state == TileStateType.predictedBombCorrect) {
+        emit(state.copyWith(
+          minesMarked: state.minesMarked + 1,
+        ));
+      } else if (tile.state == TileStateType.unsure) {
+        emit(state.copyWith(
+          minesMarked: state.minesMarked - 1,
+        ));
+      } else {
+        emit(state.copyWith(refresh: state.refresh + 1));
+      }
+
+      add(const AutoSolverNextMove());
     }
   }
 

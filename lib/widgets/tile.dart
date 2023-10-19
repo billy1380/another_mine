@@ -22,29 +22,29 @@ class _TileState extends State<Tile> {
       builder: (context, state) {
         return GestureDetector(
           onSecondaryTap: () {
-            if (!state.isFinished) {
+            if (state.isNotFinished) {
               bloc.add(Speculate(model: widget.model));
             }
           },
           onTapDown: (d) {
-            if (!state.isFinished) {
+            if (state.isNotFinished) {
               bloc.add(MightPlay(model: widget.model));
             }
           },
           onTapCancel: () {
-            if (!state.isFinished) {
+            if (state.isNotFinished) {
               bloc.add(const DonePlaying());
             }
           },
           onTap: () {
-            if (!state.isFinished) {
+            if (state.isNotFinished) {
               bloc
                 ..add(Probe(model: widget.model))
                 ..add(const DonePlaying());
             }
           },
           onLongPress: () {
-            if (!state.isFinished) {
+            if (state.isNotFinished) {
               bloc.add(Speculate(model: widget.model));
             }
           },

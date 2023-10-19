@@ -37,6 +37,8 @@ class AppDrawer extends StatelessWidget {
                     onChanged: (bool? value) {
                       BlocProvider.of<GameBloc>(context)
                           .add(const ToggleAutoSolver());
+
+                      Navigator.pop(context);
                     },
                   );
                 },
@@ -44,6 +46,8 @@ class AppDrawer extends StatelessWidget {
               onTap: () {
                 BlocProvider.of<GameBloc>(context)
                     .add(const ToggleAutoSolver());
+                    
+                Navigator.pop(context);
               }),
           ListTile(
             title: const Text("Scores"),
