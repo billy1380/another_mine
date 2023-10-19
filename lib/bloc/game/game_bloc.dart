@@ -41,8 +41,35 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<ToggleAutoSolver>(_toggleAutoSolver);
     on<NewGame>(_newGame);
     on<AutoSolverNextMove>(_autoSolverNextMove);
+    on<PauseAutoSolver>(_pauseAutoSolver);
+    on<ResumeAutoSolver>(_resumeAutoSolver);
 
     guesser = Guesser(this);
+  }
+
+  Future<void> _pauseAutoSolver(
+      PauseAutoSolver event, Emitter<GameState> emit) async {
+    if (state.autoSolverEnabled) {
+      Processor.shared.pause();
+      emit(state.copyWith(
+        autoSolverPaused: true,
+      ));
+    }
+  }
+
+  Future<void> _resumeAutoSolver(
+      ResumeAutoSolver event, Emitter<GameState> emit) async {
+    if (state.autoSolverEnabled) {
+      if (state.isFinished) {
+        add(NewGame(difficulty: state.difficulty));
+      } else {
+        Processor.shared.resume();
+      }
+
+      emit(state.copyWith(
+        autoSolverPaused: false,
+      ));
+    }
   }
 
   Future<void> _autoSolverNextMove(
@@ -56,14 +83,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           seconds: 2,
         ));
 
-        if (!guesser.pause) {
+        if (!state.autoSolverPaused) {
           add(NewGame(
             difficulty: state.difficulty,
           ));
         }
       }
     } else {
-      if (!guesser.pause) {
+      if (!state.autoSolverPaused) {
         Processor.shared.addTask(
             ProcessRunnables()..addRunnable("guesser move", guesser.makeAMove));
       }
@@ -200,7 +227,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         emit(state.copyWith(refresh: state.refresh + 1));
       }
 
-      add(const AutoSolverNextMove());
+      if (state.autoSolverEnabled) {
+        add(const AutoSolverNextMove());
+      }
     }
   }
 
@@ -214,6 +243,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     }
 
+    Processor.shared.removeAllTasks();
     emit(state.copyWith(refresh: state.refresh + 1));
   }
 

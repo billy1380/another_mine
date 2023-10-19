@@ -15,59 +15,65 @@ class Tile extends StatefulWidget {
 class _TileState extends State<Tile> {
   @override
   Widget build(BuildContext context) {
-    String? image = _image(widget.model.state);
     final GameBloc bloc = BlocProvider.of<GameBloc>(context);
 
     return BlocBuilder<GameBloc, GameState>(
       builder: (context, state) {
-        return GestureDetector(
-          onSecondaryTap: () {
-            if (state.isNotFinished) {
-              bloc.add(Speculate(model: widget.model));
-            }
-          },
-          onTapDown: (d) {
-            if (state.isNotFinished) {
-              bloc.add(MightPlay(model: widget.model));
-            }
-          },
-          onTapCancel: () {
-            if (state.isNotFinished) {
-              bloc.add(const DonePlaying());
-            }
-          },
-          onTap: () {
-            if (state.isNotFinished) {
-              bloc
-                ..add(Probe(model: widget.model))
-                ..add(const DonePlaying());
-            }
-          },
-          onLongPress: () {
-            if (state.isNotFinished) {
-              bloc.add(Speculate(model: widget.model));
-            }
-          },
-          child: image == null
-              ? widget.model.state == TileStateType.revealedSafe
-                  ? Container()
-                  : Container(
-                      decoration: BoxDecoration(
-                          color: widget.model.colour,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(5))),
-                    )
-              : Container(
-                  decoration: BoxDecoration(
-                      color: widget.model.state == TileStateType.detenateBomb
-                          ? const Color.fromARGB(0xFF, 0xE2, 0x41, 0x00)
-                          : null,
-                      borderRadius: const BorderRadius.all(Radius.circular(5))),
-                  child: Image.asset(image),
-                ),
-        );
+        return state.autoSolverEnabled && !state.autoSolverPaused
+            ? _tile()
+            : GestureDetector(
+                onSecondaryTap: () {
+                  if (state.isNotFinished) {
+                    bloc.add(Speculate(model: widget.model));
+                  }
+                },
+                onTapDown: (d) {
+                  if (state.isNotFinished) {
+                    bloc.add(MightPlay(model: widget.model));
+                  }
+                },
+                onTapCancel: () {
+                  if (state.isNotFinished) {
+                    bloc.add(const DonePlaying());
+                  }
+                },
+                onTap: () {
+                  if (state.isNotFinished) {
+                    bloc
+                      ..add(Probe(model: widget.model))
+                      ..add(const DonePlaying());
+                  }
+                },
+                onLongPress: () {
+                  if (state.isNotFinished) {
+                    bloc.add(Speculate(model: widget.model));
+                  }
+                },
+                child: _tile(),
+              );
       },
     );
+  }
+
+  Widget _tile() {
+    String? image = _image(widget.model.state);
+
+    return image == null
+        ? widget.model.state == TileStateType.revealedSafe
+            ? Container()
+            : Container(
+                decoration: BoxDecoration(
+                    color: widget.model.colour,
+                    borderRadius: const BorderRadius.all(Radius.circular(5))),
+              )
+        : Container(
+            decoration: BoxDecoration(
+                color: widget.model.state == TileStateType.detenateBomb
+                    ? const Color.fromARGB(0xFF, 0xE2, 0x41, 0x00)
+                    : null,
+                borderRadius: const BorderRadius.all(Radius.circular(5))),
+            child: Image.asset(image),
+          );
   }
 
   String? _image(TileStateType state) {

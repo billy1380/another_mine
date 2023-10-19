@@ -4,7 +4,6 @@ import 'package:another_mine/model/tilemodel.dart';
 
 class Guesser {
   final GameBloc game;
-  bool pause = false;
 
   Guesser(this.game);
 

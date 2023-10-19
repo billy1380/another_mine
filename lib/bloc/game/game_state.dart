@@ -12,6 +12,7 @@ final class GameState extends Equatable {
   final Color colour;
   final bool autoSolverEnabled;
   final int refresh;
+  final bool autoSolverPaused;
 
   const GameState._({
     required this.difficulty,
@@ -25,6 +26,7 @@ final class GameState extends Equatable {
     required this.colour,
     required this.autoSolverEnabled,
     required this.refresh,
+    required this.autoSolverPaused,
   });
 
   static List<TileModel> _createMineMap(
@@ -125,6 +127,7 @@ final class GameState extends Equatable {
         colour,
       ),
       refresh: 0,
+      autoSolverPaused: false,
     );
   }
 
@@ -142,6 +145,7 @@ final class GameState extends Equatable {
     Color? colour,
     bool? autoSolverEnabled,
     int? refresh,
+    bool? autoSolverPaused,
   }) =>
       GameState._(
         difficulty: difficulty ?? this.difficulty,
@@ -155,6 +159,7 @@ final class GameState extends Equatable {
         colour: colour ?? this.colour,
         autoSolverEnabled: autoSolverEnabled ?? this.autoSolverEnabled,
         refresh: refresh ?? this.refresh,
+        autoSolverPaused: autoSolverPaused ?? this.autoSolverPaused,
       );
 
   @override
@@ -170,9 +175,11 @@ final class GameState extends Equatable {
         colour,
         autoSolverEnabled,
         refresh,
+        autoSolverPaused,
       ];
 
-  bool get isFinished => status == GameStateType.won || status == GameStateType.lost;
+  bool get isFinished =>
+      status == GameStateType.won || status == GameStateType.lost;
   bool get isNotFinished => !isFinished;
 
   int get seconds {

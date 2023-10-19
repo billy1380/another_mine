@@ -85,3 +85,11 @@ class RevealAll extends GameEvent {
 class AutoSolverNextMove extends GameEvent {
   const AutoSolverNextMove();
 }
+
+class PauseAutoSolver extends GameEvent {
+  const PauseAutoSolver();
+}
+
+class ResumeAutoSolver extends GameEvent {
+  const ResumeAutoSolver();
+}
