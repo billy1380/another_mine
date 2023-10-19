@@ -6,7 +6,6 @@ class TileModel {
   late bool hasMine;
   late Color colour;
   late int index;
-  // GameDifficulty difficulty;
   List<TileModel?> neighbours = List<TileModel?>.filled(8, null);
   late int neigbouringMine;
 

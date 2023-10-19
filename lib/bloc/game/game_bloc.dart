@@ -137,6 +137,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       emit(state.copyWith(
         minesMarked: state.minesMarked - 1,
       ));
+    } else {
+      emit(state.copyWith(refresh: state.refresh + 1));
     }
   }
 
@@ -150,12 +152,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     }
 
-    emit(state.copyWith());
+    emit(state.copyWith(refresh: state.refresh + 1));
   }
 
   Future<void> _mightPlay(MightPlay event, Emitter<GameState> emit) async {
     if (state.status != GameStateType.lost &&
-        state.status != GameStateType.won) {
+        state.status != GameStateType.won &&
+        state.status != GameStateType.thinking) {
       emit(state.copyWith(
         previousStatus: state.status,
         status: GameStateType.thinking,

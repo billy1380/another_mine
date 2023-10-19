@@ -16,37 +16,36 @@ class _TileState extends State<Tile> {
   @override
   Widget build(BuildContext context) {
     String? image = _image(widget.model.state);
+    final GameBloc bloc = BlocProvider.of<GameBloc>(context);
 
     return BlocBuilder<GameBloc, GameState>(
       builder: (context, state) {
         return GestureDetector(
           onSecondaryTap: () {
             if (!state.isFinished) {
-              BlocProvider.of<GameBloc>(context)
-                  .add(Speculate(model: widget.model));
+              bloc.add(Speculate(model: widget.model));
             }
           },
           onTapDown: (d) {
             if (!state.isFinished) {
-              BlocProvider.of<GameBloc>(context)
-                  .add(MightPlay(model: widget.model));
+              bloc.add(MightPlay(model: widget.model));
             }
           },
-          onTapUp: (d) {
+          onTapCancel: () {
             if (!state.isFinished) {
-              BlocProvider.of<GameBloc>(context).add(const DonePlaying());
+              bloc.add(const DonePlaying());
             }
           },
           onTap: () {
             if (!state.isFinished) {
-              BlocProvider.of<GameBloc>(context)
-                  .add(Probe(model: widget.model));
+              bloc
+                ..add(Probe(model: widget.model))
+                ..add(const DonePlaying());
             }
           },
           onLongPress: () {
             if (!state.isFinished) {
-              BlocProvider.of<GameBloc>(context)
-                  .add(Speculate(model: widget.model));
+              bloc.add(Speculate(model: widget.model));
             }
           },
           child: image == null
@@ -61,7 +60,7 @@ class _TileState extends State<Tile> {
               : Container(
                   decoration: BoxDecoration(
                       color: widget.model.state == TileStateType.detenateBomb
-                          ? Colors.red
+                          ? const Color.fromARGB(0xFF, 0xE2, 0x41, 0x00)
                           : null,
                       borderRadius: const BorderRadius.all(Radius.circular(5))),
                   child: Image.asset(image),
