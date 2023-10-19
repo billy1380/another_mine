@@ -36,14 +36,13 @@ class Pref {
     return done;
   }
 
-  bool? getBool(String name) =>
-      _sharedPreferences.getString(_key(name)) == true.toString();
+  bool? getBool(String name) => _sharedPreferences.getBool(_key(name));
   Future<bool> setBool(String name, bool? value) async {
     bool done = false;
     if (value == null) {
       done = await _sharedPreferences.remove(_key(name));
     } else {
-      done = await _sharedPreferences.setString(_key(name), value.toString());
+      done = await _sharedPreferences.setBool(_key(name), value);
     }
 
     return done;

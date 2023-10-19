@@ -48,10 +48,8 @@ class _GamePageState extends State<GamePage> {
             title: Column(
               children: [
                 Text(
-                  "${StringUtils.upperCaseFirstLetter(widget.difficulty.name)} - ${StringUtils.upperCaseFirstLetter(widget.difficulty.description)}",
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary),
-                ),
+                    "${StringUtils.upperCaseFirstLetter(widget.difficulty.name)} - ${StringUtils.upperCaseFirstLetter(widget.difficulty.description)}",
+                    style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(
                   height: 8,
                 ),

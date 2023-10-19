@@ -100,7 +100,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Future<void> _newGame(NewGame event, Emitter<GameState> emit) async {
     GameDifficultyType difficulty = event.difficulty;
 
-    await Pref.service.setString(autoSolverSettingName, difficulty.name);
+    await Pref.service.setString(difficultySettingName, difficulty.name);
 
     String colourValue = Pref.service.getString(colourSettingName) ??
         defaultBackgroundColour.value.toString();

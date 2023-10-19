@@ -15,6 +15,7 @@ class App extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
             seedColor: defaultBackgroundColour,
           ),
+          useMaterial3: true,
         ),
         debugShowCheckedModeBanner: false,
         title: "Another Mine",

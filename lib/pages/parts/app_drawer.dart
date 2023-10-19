@@ -16,14 +16,12 @@ class AppDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         children: <Widget>[
-          Container(
-              color: Theme.of(context).secondaryHeaderColor,
-              child: ListTile(
-                title: Text(
-                  "Difficulty",
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              )),
+          ListTile(
+            title: Text(
+              "Difficulty",
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
           _gameDifficultyTile(context, GameDifficultyType.beginner),
           _gameDifficultyTile(context, GameDifficultyType.intermediate),
           _gameDifficultyTile(context, GameDifficultyType.expert),
@@ -46,7 +44,7 @@ class AppDrawer extends StatelessWidget {
               onTap: () {
                 BlocProvider.of<GameBloc>(context)
                     .add(const ToggleAutoSolver());
-                    
+
                 Navigator.pop(context);
               }),
           ListTile(
