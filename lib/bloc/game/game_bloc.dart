@@ -12,6 +12,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:main_thread_processor/main_thread_processor.dart';
+import 'package:window_manager/window_manager.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';
@@ -21,6 +22,8 @@ const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 const String difficultySettingName = "difficulty";
 const String autoSolverSettingName = "auto_solver";
 const String colourSettingName = "colour";
+const double appBarHeight = 100;
+const double mineDim = 40;
 
 int random(int scale) {
   return (r.nextDouble() * scale).toInt();
@@ -109,6 +112,23 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(GameState.initial(difficulty, Color(colour)).copyWith(
       autoSolverEnabled: state.autoSolverEnabled,
     ));
+
+    Size size = Size(
+      state.difficulty.width * mineDim,
+      (state.difficulty.height * mineDim) + appBarHeight,
+    );
+    WindowOptions windowOptions = WindowOptions(
+      size: size,
+      backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+      maximumSize: size,
+      minimumSize: size,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
 
     if (state.autoSolverEnabled) {
       add(const AutoSolverNextMove());

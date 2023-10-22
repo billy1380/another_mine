@@ -14,54 +14,57 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        children: <Widget>[
-          ListTile(
-            title: Text(
-              "Difficulty",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ),
-          _gameDifficultyTile(context, GameDifficultyType.beginner),
-          _gameDifficultyTile(context, GameDifficultyType.intermediate),
-          _gameDifficultyTile(context, GameDifficultyType.expert),
-          const Divider(),
-          ListTile(
-              title: const Text("Auto solve"),
-              trailing: BlocBuilder<GameBloc, GameState>(
-                builder: (context, state) {
-                  return Checkbox(
-                    value: state.autoSolverEnabled,
-                    onChanged: (bool? value) {
-                      BlocProvider.of<GameBloc>(context)
-                          .add(const ToggleAutoSolver());
-
-                      Navigator.pop(context);
-                    },
-                  );
-                },
+      child: Padding(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: ListView(
+          children: <Widget>[
+            ListTile(
+              title: Text(
+                "Difficulty",
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              onTap: () {
-                BlocProvider.of<GameBloc>(context)
-                    .add(const ToggleAutoSolver());
+            ),
+            _gameDifficultyTile(context, GameDifficultyType.beginner),
+            _gameDifficultyTile(context, GameDifficultyType.intermediate),
+            _gameDifficultyTile(context, GameDifficultyType.expert),
+            const Divider(),
+            ListTile(
+                title: const Text("Auto solve"),
+                trailing: BlocBuilder<GameBloc, GameState>(
+                  builder: (context, state) {
+                    return Checkbox(
+                      value: state.autoSolverEnabled,
+                      onChanged: (bool? value) {
+                        BlocProvider.of<GameBloc>(context)
+                            .add(const ToggleAutoSolver());
 
-                Navigator.pop(context);
-              }),
-          ListTile(
-            title: const Text("Scores"),
-            onTap: () => GoRouter.of(context).go(ScoresPage.routePath),
-          ),
-          const Divider(),
-          ListTile(
-            title: const Text("Settings"),
-            onTap: () => _showSettings(context),
-          ),
-          const Divider(),
-          ListTile(
-            title: const Text("About"),
-            onTap: () => _showAbout(context),
-          ),
-        ],
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+                onTap: () {
+                  BlocProvider.of<GameBloc>(context)
+                      .add(const ToggleAutoSolver());
+
+                  Navigator.pop(context);
+                }),
+            ListTile(
+              title: const Text("Scores"),
+              onTap: () => GoRouter.of(context).go(ScoresPage.routePath),
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text("Settings"),
+              onTap: () => _showSettings(context),
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text("About"),
+              onTap: () => _showAbout(context),
+            ),
+          ],
+        ),
       ),
     );
   }
