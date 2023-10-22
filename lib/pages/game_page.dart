@@ -43,7 +43,7 @@ class _GamePageState extends State<GamePage> {
         return Scaffold(
           drawer: const AppDrawer(),
           appBar: AppBar(
-            toolbarHeight: 100,
+            toolbarHeight: appBarHeight,
             elevation: 0,
             title: Column(
               children: [
