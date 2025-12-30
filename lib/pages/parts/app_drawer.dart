@@ -39,11 +39,6 @@ class AppDrawer extends StatelessWidget {
               title: const Text("Settings"),
               onTap: () => _showSettings(context),
             ),
-            const Divider(),
-            ListTile(
-              title: const Text("About"),
-              onTap: () => _showAbout(context),
-            ),
           ],
         ),
       ),
@@ -145,12 +140,6 @@ class AppDrawer extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _showAbout(BuildContext context) {
-    Navigator.pop(context);
-
-    showAboutDialog(context: context);
   }
 
   void _showSettings(BuildContext context) {
