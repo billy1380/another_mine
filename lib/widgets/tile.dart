@@ -13,6 +13,8 @@ class Tile extends StatefulWidget {
 }
 
 class _TileState extends State<Tile> {
+  bool _isValidTap = false;
+
   @override
   Widget build(BuildContext context) {
     final GameBloc bloc = BlocProvider.of<GameBloc>(context);
@@ -23,10 +25,17 @@ class _TileState extends State<Tile> {
             ? _tile()
             : GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onSecondaryTap: () {
-                  if (state.isNotFinished) {
+                onSecondaryTapDown: (d) {
+                  _isValidTap = true;
+                },
+                onSecondaryTapUp: (d) {
+                  if (_isValidTap && state.isNotFinished) {
                     bloc.add(Speculate(model: widget.model));
                   }
+                  _isValidTap = false;
+                },
+                onSecondaryTapCancel: () {
+                  _isValidTap = false;
                 },
                 onTapDown: (d) {
                   if (state.isNotFinished) {
