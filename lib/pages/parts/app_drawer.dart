@@ -1,5 +1,6 @@
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/pages/game_page.dart";
+import "package:another_mine/pages/parts/rag_indicator.dart";
 import "package:another_mine/pages/scores_page.dart";
 import "package:another_mine/pages/settings_page.dart";
 import "package:another_mine/services/pref.dart";
@@ -88,7 +89,28 @@ class AppDrawer extends StatelessWidget {
             }
 
             return AlertDialog(
-              title: const Text("Custom Game"),
+              title: Row(children: [
+                const Text("Custom Game"),
+                const Spacer(),
+                Builder(builder: (context) {
+                  double currentFactor = mines / (width * height);
+                  double bFactor = GameDifficulty.beginner.mines /
+                      GameDifficulty.beginner.area;
+                  double iFactor = GameDifficulty.intermediate.mines /
+                      GameDifficulty.intermediate.area;
+                  double eFactor =
+                      GameDifficulty.expert.mines / GameDifficulty.expert.area;
+
+                  double biMid = bFactor + ((iFactor - bFactor) / 2);
+                  double ieMid = iFactor + ((eFactor - iFactor) / 2);
+
+                  return RagIndicator(
+                    value: currentFactor,
+                    thresholdToAmber: biMid,
+                    thresholdToRed: ieMid,
+                  );
+                }),
+              ]),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
