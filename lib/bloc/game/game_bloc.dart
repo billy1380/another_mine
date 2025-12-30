@@ -161,97 +161,111 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final DateTime now = DateTime.now();
 
     if (state.isNotFinished) {
-      if (event.model.hasMine && state.start == null) {
-        _relocateMine(event.model);
+      if (_handleFirstMoveProtection(event)) return;
 
-        add(Probe(model: event.model));
+      GameState runningState = _ensureGameStarted(state, now);
 
-        return;
+      GameState finalState = _processFloodFill(runningState, event.model, now);
+
+      emit(finalState);
+
+      if (state.autoSolverEnabled &&
+          finalState.status != GameStateType.won &&
+          finalState.status != GameStateType.lost) {
+        add(const AutoSolverNextMove());
+      }
+    }
+  }
+
+  bool _handleFirstMoveProtection(Probe event) {
+    if (event.model.hasMine && state.start == null) {
+      _relocateMine(event.model);
+      add(Probe(model: event.model));
+      return true;
+    }
+    return false;
+  }
+
+  GameState _ensureGameStarted(GameState currentState, DateTime now) {
+    if (currentState.start == null) {
+      return currentState.copyWith(
+        start: now,
+        lastActiveTime: now,
+        status: GameStateType.started,
+      );
+    }
+    return currentState;
+  }
+
+  GameState _processFloodFill(
+      GameState currentState, TileModel startTile, DateTime now) {
+    int newRevealedCount = currentState.revealedTiles;
+    GameStateType newStatus = currentState.status;
+    DateTime? newEnd = currentState.end;
+    Duration newAccumulated = currentState.accumulatedDuration;
+    bool newClearLastActive = false;
+
+    List<TileModel> queue = [startTile];
+    Set<int> processed = {};
+
+    while (queue.isNotEmpty) {
+      TileModel tile = queue.removeAt(0);
+
+      if (processed.contains(tile.index)) continue;
+      processed.add(tile.index);
+
+      if (tile.probe()) {
+        newRevealedCount++;
       }
 
-      GameState newState = state;
-      if (state.start == null) {
-        newState = newState.copyWith(
-          start: now,
-          lastActiveTime: now,
-          status: GameStateType.started,
-        );
-      }
-
-      int newRevealedCount = newState.revealedTiles;
-      GameStateType newStatus = newState.status;
-      DateTime? newEnd = newState.end;
-      Duration newAccumulated = newState.accumulatedDuration;
-      bool newClearLastActive = false;
-
-      List<TileModel> queue = [event.model];
-      Set<int> processed = {};
-
-      while (queue.isNotEmpty) {
-        TileModel tile = queue.removeAt(0);
-
-        if (processed.contains(tile.index)) continue;
-        processed.add(tile.index);
-
-        if (tile.probe()) {
-          newRevealedCount++;
+      if (tile.state == TileStateType.detenateBomb) {
+        newEnd = now;
+        newAccumulated += now.difference(currentState.lastActiveTime ?? now);
+        newClearLastActive = true;
+        newStatus = GameStateType.lost;
+        _log.info("Game Lost");
+        add(const RevealAll());
+        break;
+      } else if (newRevealedCount + currentState.difficulty.mines ==
+          currentState.difficulty.area) {
+        newEnd = now;
+        newAccumulated += now.difference(currentState.lastActiveTime ?? now);
+        newClearLastActive = true;
+        newStatus = GameStateType.won;
+        _log.info("Game Won at $newEnd");
+        add(const RevealAll());
+        break;
+      } else {
+        int marked = 0;
+        for (var neighbour in tile.neighbours) {
+          if (neighbour != null &&
+              neighbour.state == TileStateType.predictedBombCorrect) {
+            marked++;
+          }
         }
 
-        if (tile.state == TileStateType.detenateBomb) {
-          newEnd = now;
-          newAccumulated += now.difference(state.lastActiveTime ?? now);
-          newClearLastActive = true;
-          newStatus = GameStateType.lost;
-          _log.info("Game Lost");
-          add(const RevealAll());
-          break;
-        } else if (newRevealedCount + state.difficulty.mines ==
-            state.difficulty.area) {
-          newEnd = now;
-          newAccumulated += now.difference(state.lastActiveTime ?? now);
-          newClearLastActive = true;
-          newStatus = GameStateType.won;
-          _log.info("Game Won at $newEnd");
-          add(const RevealAll());
-          break;
-        } else {
-          int marked = 0;
+        if (tile.neigbouringMine == marked) {
           for (var neighbour in tile.neighbours) {
             if (neighbour != null &&
-                neighbour.state == TileStateType.predictedBombCorrect) {
-              marked++;
-            }
-          }
-
-          if (tile.neigbouringMine == marked) {
-            for (var neighbour in tile.neighbours) {
-              if (neighbour != null &&
-                  (neighbour.state == TileStateType.notPressed ||
-                      neighbour.state == TileStateType.unsure)) {
-                if (!processed.contains(neighbour.index)) {
-                  queue.add(neighbour);
-                }
+                (neighbour.state == TileStateType.notPressed ||
+                    neighbour.state == TileStateType.unsure)) {
+              if (!processed.contains(neighbour.index)) {
+                queue.add(neighbour);
               }
             }
           }
         }
       }
-
-      emit(newState.copyWith(
-        revealedTiles: newRevealedCount,
-        status: newStatus,
-        end: newEnd,
-        accumulatedDuration: newAccumulated,
-        clearLastActiveTime: newClearLastActive,
-        lastInteractedIndex: event.model.index,
-      ));
-
-      if (state.autoSolverEnabled &&
-          newStatus != GameStateType.won &&
-          newStatus != GameStateType.lost) {
-        add(const AutoSolverNextMove());
-      }
     }
+
+    return currentState.copyWith(
+      revealedTiles: newRevealedCount,
+      status: newStatus,
+      end: newEnd,
+      accumulatedDuration: newAccumulated,
+      clearLastActiveTime: newClearLastActive,
+      lastInteractedIndex: startTile.index,
+    );
   }
 
   Future<void> _speculate(Speculate event, Emitter<GameState> emit) async {
