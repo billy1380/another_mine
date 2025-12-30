@@ -14,6 +14,8 @@ final class GameState extends Equatable {
   final int refresh;
   final bool autoSolverPaused;
   final Size gameSize;
+  final Duration accumulatedDuration;
+  final DateTime? lastActiveTime;
 
   const GameState._({
     required this.difficulty,
@@ -29,6 +31,8 @@ final class GameState extends Equatable {
     required this.refresh,
     required this.autoSolverPaused,
     required this.gameSize,
+    required this.accumulatedDuration,
+    required this.lastActiveTime,
   });
 
   static List<TileModel> _createMineMap(
@@ -138,6 +142,8 @@ final class GameState extends Equatable {
       ),
       refresh: 0,
       autoSolverPaused: false,
+      accumulatedDuration: Duration.zero,
+      lastActiveTime: null,
     );
   }
 
@@ -157,6 +163,9 @@ final class GameState extends Equatable {
     int? refresh,
     bool? autoSolverPaused,
     Size? gameSize,
+    Duration? accumulatedDuration,
+    DateTime? lastActiveTime,
+    bool clearLastActiveTime = false,
   }) =>
       GameState._(
         difficulty: difficulty ?? this.difficulty,
@@ -172,6 +181,9 @@ final class GameState extends Equatable {
         refresh: refresh ?? this.refresh,
         autoSolverPaused: autoSolverPaused ?? this.autoSolverPaused,
         gameSize: gameSize ?? this.gameSize,
+        accumulatedDuration: accumulatedDuration ?? this.accumulatedDuration,
+        lastActiveTime:
+            clearLastActiveTime ? null : lastActiveTime ?? this.lastActiveTime,
       );
 
   @override
@@ -188,6 +200,8 @@ final class GameState extends Equatable {
         autoSolverEnabled,
         refresh,
         autoSolverPaused,
+        accumulatedDuration,
+        lastActiveTime,
       ];
 
   bool get isFinished =>
@@ -195,15 +209,17 @@ final class GameState extends Equatable {
   bool get isNotFinished => !isFinished;
 
   int get seconds {
-    return start == null
-        ? 0
-        : ((end == null
-                    ? DateTime.now().millisecondsSinceEpoch -
-                        start!.millisecondsSinceEpoch
-                    : end!.millisecondsSinceEpoch -
-                        start!.millisecondsSinceEpoch) *
-                .001)
-            .toInt();
+    if (isFinished) {
+      return accumulatedDuration.inSeconds;
+    }
+
+    int duration = accumulatedDuration.inSeconds;
+
+    if (lastActiveTime != null) {
+      duration += DateTime.now().difference(lastActiveTime!).inSeconds;
+    }
+
+    return duration;
   }
 
   TileModel? tileAt(int x, int y) =>

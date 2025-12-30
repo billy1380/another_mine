@@ -3,6 +3,7 @@ import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/pages/parts/app_drawer.dart";
 import "package:another_mine/widgets/game_action_bar.dart";
 import "package:another_mine/widgets/mine_field.dart";
+import "package:another_mine/routes.dart";
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
@@ -55,15 +56,80 @@ class GamePage extends StatefulWidget {
   State<GamePage> createState() => _GamePageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class _GamePageState extends State<GamePage>
+    with RouteAware, WidgetsBindingObserver {
   final ScrollController _horizontal = ScrollController();
   final ScrollController _vertical = ScrollController();
+  bool _pausedBySystem = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    _pauseGame();
+  }
+
+  @override
+  void didPopNext() {
+    _resumeGame();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _pauseGame();
+    } else if (state == AppLifecycleState.resumed) {
+      _resumeGame();
+    }
+  }
+
+  void _pauseGame() {
+    final GameBloc bloc = BlocProvider.of<GameBloc>(context);
+    final GameState state = bloc.state;
+
+    if (state.lastActiveTime != null) {
+      _pausedBySystem = true;
+      bloc.add(const PauseGame());
+    }
+  }
+
+  void _resumeGame() {
+    if (_pausedBySystem) {
+      final GameBloc bloc = BlocProvider.of<GameBloc>(context);
+      _pausedBySystem = false;
+      bloc.add(const ResumeGame());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<GameBloc, GameState>(
       builder: (context, state) {
         return Scaffold(
+          onDrawerChanged: (isOpened) {
+            if (isOpened) {
+              _pauseGame();
+            } else {
+              _resumeGame();
+            }
+          },
           drawer: const AppDrawer(),
           appBar: AppBar(
             title: Text(

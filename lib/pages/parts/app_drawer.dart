@@ -47,7 +47,6 @@ class AppDrawer extends StatelessWidget {
 
   void _tap(BuildContext context, GameDifficulty? difficultyType) {
     if (difficultyType == null) {
-      Navigator.pop(context);
       _showCustomDifficultyDialog(context);
     } else {
       Navigator.pop(context);
@@ -140,6 +139,10 @@ class AppDrawer extends StatelessWidget {
         );
       },
     );
+
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _showSettings(BuildContext context) {

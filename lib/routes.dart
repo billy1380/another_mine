@@ -3,10 +3,15 @@ import "package:another_mine/pages/scores_page.dart";
 import "package:another_mine/pages/settings_page.dart";
 import "package:another_mine/pages/startup_page.dart";
 import "package:another_mine/services/pref.dart";
+import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
+
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 final GoRouter router = GoRouter(
   initialLocation: StartupPage.routerPath,
+  observers: [routeObserver],
   routes: [
     GoRoute(
       name: "StartupPage",

@@ -20,6 +20,7 @@ const String autoSolverSettingName = "auto_solver";
 const String colourSettingName = "colour";
 const double gameTopBarHeight = 100;
 const double mineDim = 40;
+const int lostGameAutoSolverPause = 2;
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   static final Logger _log = Logger("GameBloc");
@@ -39,6 +40,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<AutoSolverNextMove>(_autoSolverNextMove);
     on<PauseAutoSolver>(_pauseAutoSolver);
     on<ResumeAutoSolver>(_resumeAutoSolver);
+    on<PauseGame>(_pauseGame);
+    on<ResumeGame>(_resumeGame);
 
     guesser = Guesser(this);
   }
@@ -47,8 +50,17 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       PauseAutoSolver event, Emitter<GameState> emit) async {
     if (state.autoSolverEnabled) {
       Processor.shared.pause();
+
+      final DateTime now = DateTime.now();
+      Duration accumulated = state.accumulatedDuration;
+      if (state.lastActiveTime != null) {
+        accumulated += now.difference(state.lastActiveTime!);
+      }
+
       emit(state.copyWith(
         autoSolverPaused: true,
+        accumulatedDuration: accumulated,
+        clearLastActiveTime: true,
       ));
     }
   }
@@ -62,8 +74,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         Processor.shared.resume();
       }
 
+      final DateTime now = DateTime.now();
       emit(state.copyWith(
         autoSolverPaused: false,
+        lastActiveTime: state.isNotFinished && state.start != null ? now : null,
       ));
     }
   }
@@ -74,9 +88,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       if (state.status == GameStateType.won) {
         add(const ToggleAutoSolver());
       } else if (state.status == GameStateType.lost) {
-        // wait for some time before starting a new game
         await Future.delayed(const Duration(
-          seconds: 2,
+          seconds: lostGameAutoSolverPause,
         ));
 
         if (!state.autoSolverPaused) {
@@ -86,7 +99,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         }
       }
     } else {
-      if (!state.autoSolverPaused) {
+      if (state.autoSolverEnabled && !state.autoSolverPaused) {
         _log.info("Auto solver is managing next move");
         Processor.shared.addTask(
             ProcessRunnables.single("guesser move", guesser.makeAMove));
@@ -142,6 +155,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   Future<void> _probe(Probe event, Emitter<GameState> emit) async {
+    final DateTime now = DateTime.now();
+
     if (state.isNotFinished) {
       TileModel tile = event.model;
 
@@ -156,7 +171,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         if (state.start == null) {
           emit(newState = newState.copyWith(
-            start: DateTime.now(),
+            start: now,
+            lastActiveTime: now,
             status: GameStateType.started,
           ));
         }
@@ -169,7 +185,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         if (tile.state == TileStateType.detenateBomb) {
           emit(newState = newState.copyWith(
-            end: DateTime.now(),
+            end: now,
+            accumulatedDuration: state.accumulatedDuration +
+                now.difference(state.lastActiveTime!),
+            clearLastActiveTime: true,
             status: GameStateType.lost,
           ));
           _log.info("Game Lost");
@@ -177,10 +196,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           add(const RevealAll());
         } else if (state.revealedTiles + state.difficulty.mines == area) {
           emit(newState = newState.copyWith(
-            end: DateTime.now(),
+            end: now,
+            accumulatedDuration: state.accumulatedDuration +
+                now.difference(state.lastActiveTime!),
+            clearLastActiveTime: true,
             status: GameStateType.won,
           ));
-          _log.info("Game Won");
+
+          _log.info("Game Won at ${state.end}");
 
           add(const RevealAll());
         } else {
@@ -282,5 +305,37 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
 
     GameState._updateMineCountAndNeighbours(state.difficulty, state.tiles);
+  }
+
+  Future<void> _pauseGame(PauseGame event, Emitter<GameState> emit) async {
+    final DateTime now = DateTime.now();
+
+    if (state.autoSolverEnabled) {
+      Processor.shared.pause();
+    }
+
+    Duration accumulated = state.accumulatedDuration;
+    if (state.lastActiveTime != null) {
+      accumulated += now.difference(state.lastActiveTime!);
+    }
+
+    emit(state.copyWith(
+      accumulatedDuration: accumulated,
+      clearLastActiveTime: true,
+      autoSolverPaused: true,
+    ));
+  }
+
+  Future<void> _resumeGame(ResumeGame event, Emitter<GameState> emit) async {
+    final DateTime now = DateTime.now();
+
+    if (state.autoSolverEnabled) {
+      Processor.shared.resume();
+    }
+
+    emit(state.copyWith(
+      lastActiveTime: state.isNotFinished && state.start != null ? now : null,
+      autoSolverPaused: false,
+    ));
   }
 }

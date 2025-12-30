@@ -19,7 +19,7 @@ class _TileState extends State<Tile> {
 
     return BlocBuilder<GameBloc, GameState>(
       builder: (context, state) {
-        return state.autoSolverEnabled && !state.autoSolverPaused
+        return state.autoSolverEnabled
             ? _tile()
             : GestureDetector(
                 behavior: HitTestBehavior.opaque,

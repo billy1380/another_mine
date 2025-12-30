@@ -93,3 +93,11 @@ class PauseAutoSolver extends GameEvent {
 class ResumeAutoSolver extends GameEvent {
   const ResumeAutoSolver();
 }
+
+class PauseGame extends GameEvent {
+  const PauseGame();
+}
+
+class ResumeGame extends GameEvent {
+  const ResumeGame();
+}
