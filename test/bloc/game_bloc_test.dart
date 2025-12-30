@@ -1,9 +1,8 @@
 import "package:another_mine/bloc/game/game_bloc.dart";
-import "package:another_mine/services/pref.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
-import "package:another_mine/model/tile_model.dart";
 import "package:another_mine/model/tile_state_type.dart";
+import "package:another_mine/services/pref.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
