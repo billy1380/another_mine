@@ -5,6 +5,7 @@ import "package:another_mine/widgets/game_action_bar.dart";
 import "package:another_mine/widgets/mine_field.dart";
 import "package:another_mine/routes.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 import "package:willshex/willshex.dart";
@@ -63,11 +64,17 @@ class _GamePageState extends State<GamePage>
   final ScrollController _horizontal = ScrollController();
   final ScrollController _vertical = ScrollController();
   bool _pausedBySystem = false;
+  bool _isFocusMode = false;
+  final ValueNotifier<int?> _focusIndexNotifier = ValueNotifier<int?>(null);
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
@@ -80,6 +87,8 @@ class _GamePageState extends State<GamePage>
   void dispose() {
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
+    _focusNode.dispose();
+    _focusIndexNotifier.dispose();
     super.dispose();
   }
 
@@ -132,94 +141,123 @@ class _GamePageState extends State<GamePage>
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          onDrawerChanged: (isOpened) {
-            if (isOpened) {
-              _pauseGame();
-            } else {
-              _resumeGame();
+        // Disable focus mode if autosolver becomes active
+        if (state.autoSolverEnabled && _isFocusMode) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _isFocusMode = false;
+              });
             }
+          });
+        }
+
+        return Focus(
+          focusNode: _focusNode,
+          onKeyEvent: (node, event) {
+            // Don't allow overlay toggle when autosolver is active
+            if (event.logicalKey == LogicalKeyboardKey.space &&
+                event is KeyDownEvent &&
+                !state.autoSolverEnabled) {
+              setState(() {
+                _isFocusMode = !_isFocusMode;
+              });
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
           },
-          drawer: const AppDrawer(),
-          appBar: AppBar(
-            title: Text(
-                "${StringUtils.upperCaseFirstLetter(state.difficulty.name)} - ${StringUtils.upperCaseFirstLetter(state.difficulty.description)}",
-                style: Theme.of(context).textTheme.bodyLarge),
-            actions: [
-              IconButton(
-                tooltip: "Toggle Auto Solver",
-                icon: Icon(state.autoSolverEnabled
-                    ? Icons.smart_toy
-                    : Icons.smart_toy_outlined),
-                onPressed: state.isFinished
-                    ? null
-                    : () => BlocProvider.of<GameBloc>(context)
-                        .add(const ToggleAutoSolver()),
-              ),
-            ],
-          ),
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: state.gameSize.width,
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: GameActionBar(),
+          child: Scaffold(
+            onDrawerChanged: (isOpened) {
+              if (isOpened) {
+                _pauseGame();
+              } else {
+                _resumeGame();
+              }
+            },
+            drawer: const AppDrawer(),
+            appBar: AppBar(
+              title: Text(
+                  "${StringUtils.upperCaseFirstLetter(state.difficulty.name)} - ${StringUtils.upperCaseFirstLetter(state.difficulty.description)}",
+                  style: Theme.of(context).textTheme.bodyLarge),
+              actions: [
+                IconButton(
+                  tooltip: "Toggle Auto Solver",
+                  icon: Icon(state.autoSolverEnabled
+                      ? Icons.smart_toy
+                      : Icons.smart_toy_outlined),
+                  onPressed: state.isFinished
+                      ? null
+                      : () => BlocProvider.of<GameBloc>(context)
+                          .add(const ToggleAutoSolver()),
+                ),
+              ],
+            ),
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: state.gameSize.width,
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: GameActionBar(),
+                    ),
                   ),
                 ),
-              ),
-              Flexible(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Scrollbar(
-                      controller: _horizontal,
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
+                Flexible(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Scrollbar(
                         controller: _horizontal,
-                        scrollDirection: Axis.horizontal,
-                        child: Scrollbar(
-                          controller: _vertical,
-                          thumbVisibility: true,
-                          child: SingleChildScrollView(
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          controller: _horizontal,
+                          scrollDirection: Axis.horizontal,
+                          child: Scrollbar(
                             controller: _vertical,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minWidth: constraints.maxWidth,
-                              ),
-                              child: Center(
-                                child: SizedBox(
-                                  width: state.gameSize.width,
-                                  height: state.gameSize.height,
-                                  child: const Minefield(),
+                            thumbVisibility: true,
+                            child: SingleChildScrollView(
+                              controller: _vertical,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: constraints.maxWidth,
+                                ),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: state.gameSize.width,
+                                    height: state.gameSize.height,
+                                    child: Minefield(
+                                      isFocusMode: _isFocusMode,
+                                      focusIndexNotifier: _focusIndexNotifier,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+            floatingActionButton: state.autoSolverEnabled
+                ? FloatingActionButton(
+                    onPressed: () {
+                      BlocProvider.of<GameBloc>(context).add(
+                          state.autoSolverPaused
+                              ? const ResumeAutoSolver()
+                              : const PauseAutoSolver());
+                    },
+                    child: state.autoSolverPaused
+                        ? const Icon(Icons.play_arrow)
+                        : const Icon(Icons.pause),
+                  )
+                : null,
           ),
-          floatingActionButton: state.autoSolverEnabled
-              ? FloatingActionButton(
-                  onPressed: () {
-                    BlocProvider.of<GameBloc>(context).add(
-                        state.autoSolverPaused
-                            ? const ResumeAutoSolver()
-                            : const PauseAutoSolver());
-                  },
-                  child: state.autoSolverPaused
-                      ? const Icon(Icons.play_arrow)
-                      : const Icon(Icons.pause),
-                )
-              : null,
         );
       },
     );
