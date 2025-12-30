@@ -9,7 +9,7 @@ class RagIndicator extends StatelessWidget {
   final RagOrientation orientation;
 
   const RagIndicator({
-    this.orientation = RagOrientation.column,
+    this.orientation = RagOrientation.row,
     required this.value,
     required this.thresholdToAmber,
     required this.thresholdToRed,
