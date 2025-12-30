@@ -119,8 +119,8 @@ final class GameState extends Equatable {
   ) {
     return GameState._(
       gameSize: Size(
-        max(difficulty.width * mineDim, 300),
-        (difficulty.height * mineDim) + gameTopBarHeight,
+        difficulty.width * mineDim,
+        difficulty.height * mineDim,
       ),
       autoSolverEnabled: false,
       difficulty: difficulty,

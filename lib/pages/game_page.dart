@@ -34,6 +34,9 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
+  final ScrollController _horizontal = ScrollController();
+  final ScrollController _vertical = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<GameBloc, GameState>(
@@ -44,20 +47,65 @@ class _GamePageState extends State<GamePage> {
             title: Text(
                 "${StringUtils.upperCaseFirstLetter(state.difficulty.name)} - ${StringUtils.upperCaseFirstLetter(state.difficulty.description)}",
                 style: Theme.of(context).textTheme.bodyLarge),
+            actions: [
+              IconButton(
+                tooltip: "Toggle Auto Solver",
+                icon: Icon(state.autoSolverEnabled
+                    ? Icons.smart_toy
+                    : Icons.smart_toy_outlined),
+                onPressed: () => BlocProvider.of<GameBloc>(context)
+                    .add(const ToggleAutoSolver()),
+              ),
+            ],
           ),
-          body: Center(
-            child: SingleChildScrollView(
-              child: SizedBox(
-                width: state.gameSize.width,
-                height: state.gameSize.height,
-                child: Column(
-                  children: [
-                    const GameActionBar(),
-                    const Expanded(child: Minefield()),
-                  ],
+          body: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: state.gameSize.width,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: GameActionBar(),
+                  ),
                 ),
               ),
-            ),
+              Flexible(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Scrollbar(
+                      controller: _horizontal,
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        controller: _horizontal,
+                        scrollDirection: Axis.horizontal,
+                        child: Scrollbar(
+                          controller: _vertical,
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            controller: _vertical,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: constraints.maxWidth,
+                              ),
+                              child: Center(
+                                child: SizedBox(
+                                  width: state.gameSize.width,
+                                  height: state.gameSize.height,
+                                  child: const Minefield(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
           floatingActionButton: state.autoSolverEnabled
               ? FloatingActionButton(

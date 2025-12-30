@@ -116,7 +116,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     Size size = Size(
       state.difficulty.width * mineDim,
-      (state.difficulty.height * mineDim) + gameTopBarHeight,
+      state.difficulty.height * mineDim,
     );
 
     emit(state.copyWith(gameSize: size));

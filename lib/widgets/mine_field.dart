@@ -13,7 +13,7 @@ class Minefield extends StatelessWidget {
         return GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
-            return Tile(UniqueKey(), state.tiles[index]);
+            return Tile(ValueKey(state.tiles[index].index), state.tiles[index]);
           },
           itemCount: state.tiles.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

@@ -22,6 +22,7 @@ class _TileState extends State<Tile> {
         return state.autoSolverEnabled && !state.autoSolverPaused
             ? _tile()
             : GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onSecondaryTap: () {
                   if (state.isNotFinished) {
                     bloc.add(Speculate(model: widget.model));

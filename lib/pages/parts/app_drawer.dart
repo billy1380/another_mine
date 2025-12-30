@@ -1,10 +1,8 @@
-import 'package:another_mine/bloc/game/game_bloc.dart';
 import 'package:another_mine/model/game_difficulty_type.dart';
 import 'package:another_mine/pages/game_page.dart';
 import 'package:another_mine/pages/scores_page.dart';
 import 'package:another_mine/pages/settings_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:willshex/willshex.dart';
 
@@ -28,27 +26,6 @@ class AppDrawer extends StatelessWidget {
             _gameDifficultyTile(context, GameDifficultyType.intermediate),
             _gameDifficultyTile(context, GameDifficultyType.expert),
             const Divider(),
-            ListTile(
-                title: const Text("Auto solve"),
-                trailing: BlocBuilder<GameBloc, GameState>(
-                  builder: (context, state) {
-                    return Checkbox(
-                      value: state.autoSolverEnabled,
-                      onChanged: (bool? value) {
-                        BlocProvider.of<GameBloc>(context)
-                            .add(const ToggleAutoSolver());
-
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
-                onTap: () {
-                  BlocProvider.of<GameBloc>(context)
-                      .add(const ToggleAutoSolver());
-
-                  Navigator.pop(context);
-                }),
             ListTile(
               title: const Text("Scores"),
               onTap: () => GoRouter.of(context).go(ScoresPage.routePath),
