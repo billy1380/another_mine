@@ -1,22 +1,21 @@
-import 'dart:async';
+import "dart:async";
 
-import 'package:another_mine/ai/guesser.dart';
-import 'package:another_mine/model/game_difficulty_type.dart';
-import 'package:another_mine/model/game_state_type.dart';
-import 'package:another_mine/model/tile_model.dart';
-import 'package:another_mine/model/tile_state_type.dart';
-import 'package:another_mine/services/pref.dart';
-import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
-import 'package:main_thread_processor/main_thread_processor.dart';
+import "package:another_mine/ai/guesser.dart";
+import "package:another_mine/model/game_difficulty.dart";
+import "package:another_mine/model/game_state_type.dart";
+import "package:another_mine/model/tile_model.dart";
+import "package:another_mine/model/tile_state_type.dart";
+import "package:another_mine/services/pref.dart";
+import "package:bloc/bloc.dart";
+import "package:equatable/equatable.dart";
+import "package:flutter/material.dart";
+import "package:logging/logging.dart";
+import "package:main_thread_processor/main_thread_processor.dart";
 
-part 'game_event.dart';
-part 'game_state.dart';
+part "game_event.dart";
+part "game_state.dart";
 
 const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
-const String difficultySettingName = "difficulty";
 const String autoSolverSettingName = "auto_solver";
 const String colourSettingName = "colour";
 const double gameTopBarHeight = 100;
@@ -29,7 +28,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   GameBloc()
       : super(GameState.initial(
-            GameDifficultyType.beginner, defaultBackgroundColour)) {
+            GameDifficulty.beginner, defaultBackgroundColour)) {
     on<RevealAll>(_revealAll);
     on<MightPlay>(_mightPlay);
     on<DonePlaying>(_donePlaying);
@@ -96,22 +95,27 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   Future<void> _newGame(NewGame event, Emitter<GameState> emit) async {
-    GameDifficultyType difficulty = event.difficulty;
+    GameDifficulty difficulty = event.difficulty;
     _log.info("Starting new game: ${difficulty.name}");
 
-    await Pref.service.setString(difficultySettingName, difficulty.name);
+    await Pref.service.setInt("width", difficulty.width);
+    await Pref.service.setInt("height", difficulty.height);
+    await Pref.service.setInt("mines", difficulty.mines);
 
     String colourValue = Pref.service.getString(colourSettingName) ??
         defaultBackgroundColour.toARGB32().toString();
     int colour = int.parse(colourValue);
 
-    emit(GameState.initial(difficulty, Color(colour)).copyWith(
+    emit(GameState.initial(
+      difficulty,
+      Color(colour),
+    ).copyWith(
       autoSolverEnabled: state.autoSolverEnabled,
     ));
 
     Size size = Size(
-      state.difficulty.width * mineDim,
-      state.difficulty.height * mineDim,
+      difficulty.width * mineDim,
+      difficulty.height * mineDim,
     );
 
     emit(state.copyWith(gameSize: size));
@@ -141,7 +145,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state.isNotFinished) {
       TileModel tile = event.model;
 
-      int area = GameDifficultyType.difficultyArea(state.difficulty);
+      int area = state.difficulty.area;
 
       if (tile.hasMine && state.start == null) {
         _relocateMine(tile);

@@ -1,9 +1,9 @@
-import 'package:another_mine/bloc/game/game_bloc.dart';
-import 'package:another_mine/model/game_state_type.dart';
-import 'package:another_mine/widgets/digits.dart';
-import 'package:another_mine/widgets/game_timer.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import "package:another_mine/bloc/game/game_bloc.dart";
+import "package:another_mine/model/game_state_type.dart";
+import "package:another_mine/widgets/digits.dart";
+import "package:another_mine/widgets/game_timer.dart";
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 
 class GameActionBar extends StatelessWidget {
   const GameActionBar({super.key});

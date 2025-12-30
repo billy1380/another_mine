@@ -1,9 +1,9 @@
-import 'dart:async';
+import "dart:async";
 
-import 'package:another_mine/bloc/game/game_bloc.dart';
-import 'package:another_mine/widgets/digits.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import "package:another_mine/bloc/game/game_bloc.dart";
+import "package:another_mine/widgets/digits.dart";
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 
 class GameTimer extends StatefulWidget {
   const GameTimer({

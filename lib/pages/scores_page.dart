@@ -1,6 +1,6 @@
-import 'package:another_mine/pages/parts/app_drawer.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import "package:another_mine/pages/parts/app_drawer.dart";
+import "package:flutter/material.dart";
+import "package:go_router/go_router.dart";
 
 class ScoresPage extends StatefulWidget {
   static const String routePath = "/scores";

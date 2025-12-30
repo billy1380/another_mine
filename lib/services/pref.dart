@@ -1,5 +1,5 @@
-import 'package:logging/logging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import "package:logging/logging.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
 class Pref {
   static final Logger _log = Logger("Perf");
@@ -43,6 +43,18 @@ class Pref {
       done = await _sharedPreferences.remove(_key(name));
     } else {
       done = await _sharedPreferences.setBool(_key(name), value);
+    }
+
+    return done;
+  }
+
+  int? getInt(String name) => _sharedPreferences.getInt(_key(name));
+  Future<bool> setInt(String name, int? value) async {
+    bool done = false;
+    if (value == null) {
+      done = await _sharedPreferences.remove(_key(name));
+    } else {
+      done = await _sharedPreferences.setInt(_key(name), value);
     }
 
     return done;

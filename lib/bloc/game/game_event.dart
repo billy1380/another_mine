@@ -1,4 +1,4 @@
-part of 'game_bloc.dart';
+part of "game_bloc.dart";
 
 @immutable
 sealed class GameEvent extends Equatable {
@@ -15,7 +15,7 @@ class ToggleAutoSolver extends GameEvent {
 
 @immutable
 class NewGame extends GameEvent {
-  final GameDifficultyType difficulty;
+  final GameDifficulty difficulty;
 
   const NewGame({
     required this.difficulty,

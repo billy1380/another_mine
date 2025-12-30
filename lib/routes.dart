@@ -1,8 +1,8 @@
-import 'package:another_mine/pages/game_page.dart';
-import 'package:another_mine/pages/scores_page.dart';
-import 'package:another_mine/pages/settings_page.dart';
-import 'package:another_mine/pages/startup_page.dart';
-import 'package:go_router/go_router.dart';
+import "package:another_mine/pages/game_page.dart";
+import "package:another_mine/pages/scores_page.dart";
+import "package:another_mine/pages/settings_page.dart";
+import "package:another_mine/pages/startup_page.dart";
+import "package:go_router/go_router.dart";
 
 final GoRouter router = GoRouter(
   initialLocation: StartupPage.routerPath,

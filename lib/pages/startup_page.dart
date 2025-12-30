@@ -1,8 +1,9 @@
-import 'package:another_mine/pages/game_page.dart';
-import 'package:another_mine/services/pref.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:go_router/go_router.dart';
+import "package:another_mine/model/game_difficulty.dart";
+import "package:another_mine/pages/game_page.dart";
+import "package:another_mine/services/pref.dart";
+import "package:flutter/material.dart";
+import "package:flutter/scheduler.dart";
+import "package:go_router/go_router.dart";
 
 class StartupPage extends StatelessWidget {
   static const String routerPath = "/startup";
@@ -20,8 +21,9 @@ class StartupPage extends StatelessWidget {
         initialData: null,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            SchedulerBinding.instance.addPostFrameCallback(
-                (timeStamp) => GoRouter.of(context).go(GamePage.buildRoute()));
+            SchedulerBinding.instance.addPostFrameCallback((timeStamp) =>
+                GoRouter.of(context)
+                    .go(GamePage.buildRoute(GameDifficulty.beginner)));
           }
 
           return const Center(child: CircularProgressIndicator());

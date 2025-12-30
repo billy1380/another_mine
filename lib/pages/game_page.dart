@@ -1,33 +1,55 @@
-import 'package:another_mine/bloc/game/game_bloc.dart';
-import 'package:another_mine/model/game_difficulty_type.dart';
-import 'package:another_mine/pages/parts/app_drawer.dart';
-import 'package:another_mine/widgets/game_action_bar.dart';
-import 'package:another_mine/widgets/mine_field.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:willshex/willshex.dart';
+import "package:another_mine/bloc/game/game_bloc.dart";
+import "package:another_mine/model/game_difficulty.dart";
+import "package:another_mine/pages/parts/app_drawer.dart";
+import "package:another_mine/widgets/game_action_bar.dart";
+import "package:another_mine/widgets/mine_field.dart";
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:go_router/go_router.dart";
+import "package:willshex/willshex.dart";
 
 class GamePage extends StatefulWidget {
-  static const routePath = "/game/:difficulty";
+  static const widthParamName = "width";
+  static const widthParam = ":$widthParamName";
+  static const heightParamName = "height";
+  static const heightParam = ":$heightParamName";
+  static const minesParamName = "mines";
+  static const minesParam = ":$minesParamName";
+
+  static const routePath = "/game/$widthParam/$heightParam/$minesParam";
+
   static GoRouterWidgetBuilder builder = (context, state) {
-    final String? difficultyParam = state.pathParameters["difficulty"];
-    GameDifficultyType difficulty = GameDifficultyType.values.firstWhere(
-        (e) => e.name == difficultyParam,
-        orElse: () => GameDifficultyType.beginner);
+    final String? widthParamValue = state.pathParameters[widthParamName];
+    final String? heightParamValue = state.pathParameters[heightParamName];
+    final String? minesParamValue = state.pathParameters[minesParamName];
+
+    final int width = widthParamValue == null
+        ? GameDifficulty.beginner.width
+        : int.tryParse(widthParamValue) ?? GameDifficulty.beginner.width;
+    final int height = heightParamValue == null
+        ? GameDifficulty.beginner.height
+        : int.tryParse(heightParamValue) ?? GameDifficulty.beginner.height;
+    final int mines = minesParamValue == null
+        ? GameDifficulty.beginner.mines
+        : int.tryParse(minesParamValue) ?? GameDifficulty.beginner.mines;
+
+    GameDifficulty difficulty = GameDifficulty.values.firstWhere(
+      (e) => e.sameAs(width, height, mines),
+      orElse: () =>
+          GameDifficulty.custom(width: width, height: height, mines: mines),
+    );
 
     BlocProvider.of<GameBloc>(context).add(NewGame(difficulty: difficulty));
 
-    return GamePage._(difficulty);
+    return GamePage._(key: ValueKey(difficulty.description));
   };
 
-  static String buildRoute([
-    GameDifficultyType difficulty = GameDifficultyType.beginner,
-  ]) =>
-      routePath.replaceAll(":difficulty", difficulty.name);
+  static String buildRoute(GameDifficulty difficulty) => routePath
+      .replaceAll(":$widthParamName", difficulty.width.toString())
+      .replaceAll(":$heightParamName", difficulty.height.toString())
+      .replaceAll(":$minesParamName", difficulty.mines.toString());
 
-  final GameDifficultyType difficulty;
-  const GamePage._(this.difficulty);
+  const GamePage._({super.key});
 
   @override
   State<GamePage> createState() => _GamePageState();

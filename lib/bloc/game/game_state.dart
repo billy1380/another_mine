@@ -1,8 +1,8 @@
-part of 'game_bloc.dart';
+part of "game_bloc.dart";
 
 @immutable
 final class GameState extends Equatable {
-  final GameDifficultyType difficulty;
+  final GameDifficulty difficulty;
   final GameStateType status;
   final GameStateType previousStatus;
   final List<TileModel> tiles;
@@ -32,10 +32,10 @@ final class GameState extends Equatable {
   });
 
   static List<TileModel> _createMineMap(
-    GameDifficultyType difficulty,
+    GameDifficulty difficulty,
     Color colour,
   ) {
-    int tileCount = GameDifficultyType.difficultyArea(difficulty);
+    int tileCount = difficulty.area;
     List<TileModel> tiles = [
       for (int i = 0; i < tileCount; i++)
         TileModel()
@@ -80,12 +80,12 @@ final class GameState extends Equatable {
     return x == 0 && y == 0;
   }
 
-  static bool _outOfBounds(GameDifficultyType difficulty, int x, int y) {
-    return x < 0 || y < 0 || x >= difficulty.width || y >= difficulty.height;
+  static bool _outOfBounds(int width, int height, int x, int y) {
+    return x < 0 || y < 0 || x >= width || y >= height;
   }
 
   static void _updateMineCountAndNeighbours(
-      GameDifficultyType difficulty, List<TileModel> tiles) {
+      GameDifficulty difficulty, List<TileModel> tiles) {
     int index, nIndex, count;
     for (int j = 0; j < difficulty.height; j++) {
       for (int i = 0; i < difficulty.width; i++) {
@@ -94,7 +94,8 @@ final class GameState extends Equatable {
         for (int nj = -1; nj <= 1; nj++) {
           for (int ni = -1; ni <= 1; ni++) {
             if (_isCurrent(ni, nj) ||
-                _outOfBounds(difficulty, i + ni, j + nj)) {
+                _outOfBounds(
+                    difficulty.width, difficulty.height, i + ni, j + nj)) {
               continue;
             }
 
@@ -114,7 +115,7 @@ final class GameState extends Equatable {
   }
 
   factory GameState.initial(
-    GameDifficultyType difficulty,
+    GameDifficulty difficulty,
     Color colour,
   ) {
     return GameState._(
@@ -141,7 +142,7 @@ final class GameState extends Equatable {
   }
 
   GameState copyWith({
-    GameDifficultyType? difficulty,
+    GameDifficulty? difficulty,
     GameStateType? status,
     GameStateType? previousStatus,
     List<TileModel>? tiles,

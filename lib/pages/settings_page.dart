@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import "package:flutter/material.dart";
+import "package:go_router/go_router.dart";
 
 class SettingsPage extends StatefulWidget {
   static const String routePath = "/settings";

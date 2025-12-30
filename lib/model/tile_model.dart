@@ -1,5 +1,5 @@
-import 'package:another_mine/model/tile_state_type.dart';
-import 'package:flutter/material.dart';
+import "package:another_mine/model/tile_state_type.dart";
+import "package:flutter/material.dart";
 
 class TileModel {
   late TileStateType state;
