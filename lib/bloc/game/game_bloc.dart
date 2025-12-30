@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:another_mine/ai/guesser.dart';
 import 'package:another_mine/model/game_difficulty_type.dart';
 import 'package:another_mine/model/game_state_type.dart';
-import 'package:another_mine/model/tile_state_type.dart';
 import 'package:another_mine/model/tile_model.dart';
+import 'package:another_mine/model/tile_state_type.dart';
 import 'package:another_mine/services/pref.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -16,18 +15,12 @@ import 'package:main_thread_processor/main_thread_processor.dart';
 part 'game_event.dart';
 part 'game_state.dart';
 
-final Random r = Random();
-
 const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 const String difficultySettingName = "difficulty";
 const String autoSolverSettingName = "auto_solver";
 const String colourSettingName = "colour";
 const double gameTopBarHeight = 100;
 const double mineDim = 40;
-
-int random(int scale) {
-  return (r.nextDouble() * scale).toInt();
-}
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   static final Logger _log = Logger("GameBloc");
@@ -95,6 +88,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     } else {
       if (!state.autoSolverPaused) {
+        _log.info("Auto solver is managing next move");
         Processor.shared.addTask(
             ProcessRunnables()..addRunnable("guesser move", guesser.makeAMove));
       }
@@ -103,6 +97,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   Future<void> _newGame(NewGame event, Emitter<GameState> emit) async {
     GameDifficultyType difficulty = event.difficulty;
+    _log.info("Starting new game: ${difficulty.name}");
 
     await Pref.service.setString(difficultySettingName, difficulty.name);
 
@@ -128,15 +123,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   Future<void> _toggleAutoSolver(
       ToggleAutoSolver event, Emitter<GameState> emit) async {
-    bool status = false;
-    try {
-      status = Pref.service.getBool(autoSolverSettingName) ?? false;
-    } catch (e) {
-      _log.warning(
-          "Could not get setting $autoSolverSettingName defaulting to false");
-    }
-
-    status = !status;
+    bool status = !state.autoSolverEnabled;
+    _log.info("Toggling auto solver: $status");
 
     await Pref.service.setBool(autoSolverSettingName, status);
 
@@ -146,7 +134,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       add(const AutoSolverNextMove());
     } else {
       Processor.shared.removeAllTasks();
-      stream.drain();
     }
   }
 
@@ -181,6 +168,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
             end: DateTime.now(),
             status: GameStateType.lost,
           ));
+          _log.info("Game Lost");
 
           add(const RevealAll());
         } else if (state.revealedTiles + state.difficulty.mines == area) {
@@ -188,6 +176,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
             end: DateTime.now(),
             status: GameStateType.won,
           ));
+          _log.info("Game Won");
 
           add(const RevealAll());
         } else {

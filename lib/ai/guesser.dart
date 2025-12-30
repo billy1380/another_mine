@@ -1,6 +1,15 @@
+import 'dart:math';
+
 import 'package:another_mine/bloc/game/game_bloc.dart';
+import 'package:another_mine/model/game_state_type.dart';
 import 'package:another_mine/model/tile_state_type.dart';
 import 'package:another_mine/model/tile_model.dart';
+
+final Random r = Random();
+
+int random(int scale) {
+  return (r.nextDouble() * scale).toInt();
+}
 
 class Guesser {
   final GameBloc game;
@@ -62,6 +71,7 @@ class Guesser {
           .where((t) => t.state == TileStateType.notPressed)
           .toList();
       clicked = true;
+
       game.add(Probe(model: remaining[random(remaining.length)]));
     }
   }
