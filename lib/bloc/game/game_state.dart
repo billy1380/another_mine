@@ -17,6 +17,8 @@ final class GameState extends Equatable {
   final Duration accumulatedDuration;
   final DateTime? lastActiveTime;
 
+  final int? lastInteractedIndex;
+
   const GameState._({
     required this.difficulty,
     required this.status,
@@ -33,6 +35,7 @@ final class GameState extends Equatable {
     required this.gameSize,
     required this.accumulatedDuration,
     required this.lastActiveTime,
+    required this.lastInteractedIndex,
   });
 
   static List<TileModel> _createMineMap(
@@ -144,6 +147,7 @@ final class GameState extends Equatable {
       autoSolverPaused: false,
       accumulatedDuration: Duration.zero,
       lastActiveTime: null,
+      lastInteractedIndex: null,
     );
   }
 
@@ -166,6 +170,7 @@ final class GameState extends Equatable {
     Duration? accumulatedDuration,
     DateTime? lastActiveTime,
     bool clearLastActiveTime = false,
+    int? lastInteractedIndex,
   }) =>
       GameState._(
         difficulty: difficulty ?? this.difficulty,
@@ -184,6 +189,7 @@ final class GameState extends Equatable {
         accumulatedDuration: accumulatedDuration ?? this.accumulatedDuration,
         lastActiveTime:
             clearLastActiveTime ? null : lastActiveTime ?? this.lastActiveTime,
+        lastInteractedIndex: lastInteractedIndex ?? this.lastInteractedIndex,
       );
 
   @override
@@ -202,6 +208,7 @@ final class GameState extends Equatable {
         autoSolverPaused,
         accumulatedDuration,
         lastActiveTime,
+        lastInteractedIndex,
       ];
 
   bool get isFinished =>

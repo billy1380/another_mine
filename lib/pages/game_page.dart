@@ -120,7 +120,15 @@ class _GamePageState extends State<GamePage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GameBloc, GameState>(
+    return BlocConsumer<GameBloc, GameState>(
+      listener: (context, state) {
+        if (state.autoSolverEnabled &&
+            !state.autoSolverPaused &&
+            state.lastInteractedIndex != null) {
+          _scrollToIndex(state.lastInteractedIndex!, state.difficulty.width,
+              state.gameSize);
+        }
+      },
       builder: (context, state) {
         return Scaffold(
           onDrawerChanged: (isOpened) {
@@ -211,5 +219,44 @@ class _GamePageState extends State<GamePage>
         );
       },
     );
+  }
+
+  void _scrollToIndex(int index, int width, Size gameSize) {
+    if (!_horizontal.hasClients || !_vertical.hasClients) return;
+
+    // mineDim is 40.0, derived from gameSize / count or constant.
+    // game_bloc defines it as constant. Since we don't have it imported,
+    // we can calculate it or assume it. Since GameState stores gameSize:
+    // width * mineDim = gameSize.width
+    double mineDim = 40.0;
+    if (width > 0) {
+      mineDim = gameSize.width / width;
+    }
+
+    final int row = index ~/ width;
+    final int col = index % width;
+
+    final double targetY = row * mineDim;
+    final double targetX = col * mineDim;
+
+    // Viewport dimensions
+    final double viewportHeight = _vertical.position.viewportDimension;
+    final double viewportWidth = _horizontal.position.viewportDimension;
+
+    // Center the target
+    double scrollToY = targetY - (viewportHeight / 2) + (mineDim / 2);
+    double scrollToX = targetX - (viewportWidth / 2) + (mineDim / 2);
+
+    // Clamp
+    scrollToY = scrollToY.clamp(
+        _vertical.position.minScrollExtent, _vertical.position.maxScrollExtent);
+    scrollToX = scrollToX.clamp(_horizontal.position.minScrollExtent,
+        _horizontal.position.maxScrollExtent);
+
+    // Animate
+    _vertical.animateTo(scrollToY,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _horizontal.animateTo(scrollToX,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 }

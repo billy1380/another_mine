@@ -100,7 +100,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     } else {
       if (state.autoSolverEnabled && !state.autoSolverPaused) {
+        Processor.shared.removeAllTasks();
+
         _log.info("Auto solver is managing next move");
+
         Processor.shared.addTask(
             ProcessRunnables.single("guesser move", guesser.makeAMove));
       }
@@ -158,60 +161,62 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final DateTime now = DateTime.now();
 
     if (state.isNotFinished) {
-      TileModel tile = event.model;
-
-      int area = state.difficulty.area;
-
-      if (tile.hasMine && state.start == null) {
-        _relocateMine(tile);
+      if (event.model.hasMine && state.start == null) {
+        _relocateMine(event.model);
 
         add(Probe(model: event.model));
-      } else {
-        GameState newState = state;
 
-        if (state.start == null) {
-          emit(newState = newState.copyWith(
-            start: now,
-            lastActiveTime: now,
-            status: GameStateType.started,
-          ));
-        }
+        return;
+      }
+
+      GameState newState = state;
+      if (state.start == null) {
+        newState = newState.copyWith(
+          start: now,
+          lastActiveTime: now,
+          status: GameStateType.started,
+        );
+      }
+
+      int newRevealedCount = newState.revealedTiles;
+      GameStateType newStatus = newState.status;
+      DateTime? newEnd = newState.end;
+      Duration newAccumulated = newState.accumulatedDuration;
+      bool newClearLastActive = false;
+
+      List<TileModel> queue = [event.model];
+      Set<int> processed = {};
+
+      while (queue.isNotEmpty) {
+        TileModel tile = queue.removeAt(0);
+
+        if (processed.contains(tile.index)) continue;
+        processed.add(tile.index);
 
         if (tile.probe()) {
-          emit(newState = newState.copyWith(
-            revealedTiles: state.revealedTiles + 1,
-          ));
+          newRevealedCount++;
         }
 
         if (tile.state == TileStateType.detenateBomb) {
-          emit(newState = newState.copyWith(
-            end: now,
-            accumulatedDuration: state.accumulatedDuration +
-                now.difference(state.lastActiveTime!),
-            clearLastActiveTime: true,
-            status: GameStateType.lost,
-          ));
+          newEnd = now;
+          newAccumulated += now.difference(state.lastActiveTime ?? now);
+          newClearLastActive = true;
+          newStatus = GameStateType.lost;
           _log.info("Game Lost");
-
           add(const RevealAll());
-        } else if (state.revealedTiles + state.difficulty.mines == area) {
-          emit(newState = newState.copyWith(
-            end: now,
-            accumulatedDuration: state.accumulatedDuration +
-                now.difference(state.lastActiveTime!),
-            clearLastActiveTime: true,
-            status: GameStateType.won,
-          ));
-
-          _log.info("Game Won at ${state.end}");
-
+          break;
+        } else if (newRevealedCount + state.difficulty.mines ==
+            state.difficulty.area) {
+          newEnd = now;
+          newAccumulated += now.difference(state.lastActiveTime ?? now);
+          newClearLastActive = true;
+          newStatus = GameStateType.won;
+          _log.info("Game Won at $newEnd");
           add(const RevealAll());
+          break;
         } else {
           int marked = 0;
-
-          for (int i = 0; i < tile.neighbours.length; i++) {
-            final TileModel? neighbour = tile.neighbours[i];
-
+          for (var neighbour in tile.neighbours) {
             if (neighbour != null &&
                 neighbour.state == TileStateType.predictedBombCorrect) {
               marked++;
@@ -219,20 +224,31 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           }
 
           if (tile.neigbouringMine == marked) {
-            for (int i = 0; i < tile.neighbours.length; i++) {
-              final TileModel? neighbour = tile.neighbours[i];
-
+            for (var neighbour in tile.neighbours) {
               if (neighbour != null &&
                   (neighbour.state == TileStateType.notPressed ||
                       neighbour.state == TileStateType.unsure)) {
-                add(Probe(model: neighbour));
+                if (!processed.contains(neighbour.index)) {
+                  queue.add(neighbour);
+                }
               }
             }
           }
         }
       }
 
-      if (state.autoSolverEnabled) {
+      emit(newState.copyWith(
+        revealedTiles: newRevealedCount,
+        status: newStatus,
+        end: newEnd,
+        accumulatedDuration: newAccumulated,
+        clearLastActiveTime: newClearLastActive,
+        lastInteractedIndex: event.model.index,
+      ));
+
+      if (state.autoSolverEnabled &&
+          newStatus != GameStateType.won &&
+          newStatus != GameStateType.lost) {
         add(const AutoSolverNextMove());
       }
     }
@@ -245,13 +261,18 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       if (tile.state == TileStateType.predictedBombCorrect) {
         emit(state.copyWith(
           minesMarked: state.minesMarked + 1,
+          lastInteractedIndex: tile.index,
         ));
       } else if (tile.state == TileStateType.unsure) {
         emit(state.copyWith(
           minesMarked: state.minesMarked - 1,
+          lastInteractedIndex: tile.index,
         ));
       } else {
-        emit(state.copyWith(refresh: state.refresh + 1));
+        emit(state.copyWith(
+          refresh: state.refresh + 1,
+          lastInteractedIndex: tile.index,
+        ));
       }
 
       if (state.autoSolverEnabled) {
