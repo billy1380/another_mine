@@ -169,9 +169,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
       emit(finalState);
 
-      if (state.autoSolverEnabled &&
-          finalState.status != GameStateType.won &&
-          finalState.status != GameStateType.lost) {
+      if (state.autoSolverEnabled) {
         add(const AutoSolverNextMove());
       }
     }
