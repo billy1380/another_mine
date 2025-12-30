@@ -90,7 +90,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       if (!state.autoSolverPaused) {
         _log.info("Auto solver is managing next move");
         Processor.shared.addTask(
-            ProcessRunnables()..addRunnable("guesser move", guesser.makeAMove));
+            ProcessRunnables.single("guesser move", guesser.makeAMove));
       }
     }
   }
@@ -244,6 +244,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
 
     Processor.shared.removeAllTasks();
+
     emit(state.copyWith(refresh: state.refresh + 1));
   }
 

@@ -1,9 +1,8 @@
 import 'dart:math';
 
 import 'package:another_mine/bloc/game/game_bloc.dart';
-import 'package:another_mine/model/game_state_type.dart';
-import 'package:another_mine/model/tile_state_type.dart';
 import 'package:another_mine/model/tile_model.dart';
+import 'package:another_mine/model/tile_state_type.dart';
 
 final Random r = Random();
 
