@@ -42,7 +42,9 @@ class GamePage extends StatefulWidget {
 
     BlocProvider.of<GameBloc>(context).add(NewGame(difficulty: difficulty));
 
-    return GamePage._(key: ValueKey(difficulty.description));
+    BlocProvider.of<GameBloc>(context).add(NewGame(difficulty: difficulty));
+
+    return GamePage(key: ValueKey(difficulty.description));
   };
 
   static String buildRoute(GameDifficulty difficulty) => routePath
@@ -50,7 +52,7 @@ class GamePage extends StatefulWidget {
       .replaceAll(":$heightParamName", difficulty.height.toString())
       .replaceAll(":$minesParamName", difficulty.mines.toString());
 
-  const GamePage._({super.key});
+  const GamePage({super.key});
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -149,8 +151,10 @@ class _GamePageState extends State<GamePage>
                 icon: Icon(state.autoSolverEnabled
                     ? Icons.smart_toy
                     : Icons.smart_toy_outlined),
-                onPressed: () => BlocProvider.of<GameBloc>(context)
-                    .add(const ToggleAutoSolver()),
+                onPressed: state.isFinished
+                    ? null
+                    : () => BlocProvider.of<GameBloc>(context)
+                        .add(const ToggleAutoSolver()),
               ),
             ],
           ),
