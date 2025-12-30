@@ -1,17 +1,13 @@
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/pages/game_page.dart";
-import "package:another_mine/pages/parts/rag_indicator.dart";
+import "package:another_mine/pages/parts/custom_game_body.dart";
+import "package:another_mine/pages/parts/custom_game_title.dart";
 import "package:another_mine/pages/scores_page.dart";
 import "package:another_mine/pages/settings_page.dart";
 import "package:another_mine/services/pref.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:willshex/willshex.dart";
-
-const int minWidth = 5;
-const int maxWidth = 50;
-const int minHeight = 5;
-const int maxHeight = 50;
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -89,104 +85,33 @@ class AppDrawer extends StatelessWidget {
             }
 
             return AlertDialog(
-              title: Row(children: [
-                const Text("Custom Game"),
-                const Spacer(),
-                Builder(builder: (context) {
-                  double currentFactor = mines / (width * height);
-                  double bFactor = GameDifficulty.beginner.mines /
-                      GameDifficulty.beginner.area;
-                  double iFactor = GameDifficulty.intermediate.mines /
-                      GameDifficulty.intermediate.area;
-                  double eFactor =
-                      GameDifficulty.expert.mines / GameDifficulty.expert.area;
-
-                  double biMid = bFactor + ((iFactor - bFactor) / 2);
-                  double ieMid = iFactor + ((eFactor - iFactor) / 2);
-
-                  return RagIndicator(
-                    value: currentFactor,
-                    thresholdToAmber: biMid,
-                    thresholdToRed: ieMid,
-                  );
-                }),
-              ]),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("Width"),
-                    Row(
-                      children: [
-                        Text("$minWidth"),
-                        Expanded(
-                          child: Slider(
-                            value: width.toDouble(),
-                            min: minWidth.toDouble(),
-                            max: maxWidth.toDouble(),
-                            divisions: maxWidth - minWidth,
-                            label: width.toString(),
-                            onChanged: (value) {
-                              setState(() {
-                                width = value.toInt();
-                                updateMaxMines();
-                              });
-                            },
-                          ),
-                        ),
-                        Text("$maxWidth"),
-                      ],
-                    ),
-                    Text("Current Width: $width"),
-                    const SizedBox(height: 16),
-                    const Text("Height"),
-                    Row(
-                      children: [
-                        Text("$minHeight"),
-                        Expanded(
-                          child: Slider(
-                            value: height.toDouble(),
-                            min: minHeight.toDouble(),
-                            max: maxHeight.toDouble(),
-                            divisions: maxHeight - minHeight,
-                            label: height.toString(),
-                            onChanged: (value) {
-                              setState(() {
-                                height = value.toInt();
-                                updateMaxMines();
-                              });
-                            },
-                          ),
-                        ),
-                        Text("$maxHeight"),
-                      ],
-                    ),
-                    Text("Current Height: $height"),
-                    const SizedBox(height: 16),
-                    const Text("Mines"),
-                    Row(
-                      children: [
-                        const Text("1"),
-                        Expanded(
-                          child: Slider(
-                            value: mines.toDouble(),
-                            min: 1,
-                            max: maxMines.toDouble(),
-                            divisions: maxMines > 1 ? maxMines - 1 : 1,
-                            label: mines.toString(),
-                            onChanged: (value) {
-                              setState(() {
-                                mines = value.toInt();
-                              });
-                            },
-                          ),
-                        ),
-                        Text("$maxMines"),
-                      ],
-                    ),
-                    Text("Current Mines: $mines"),
-                  ],
-                ),
+              title: CustomGameTitle(
+                width: width,
+                height: height,
+                mines: mines,
+              ),
+              content: CustomGameBody(
+                width: width,
+                height: height,
+                mines: mines,
+                maxMines: maxMines,
+                onWidthChanged: (value) {
+                  setState(() {
+                    width = value;
+                    updateMaxMines();
+                  });
+                },
+                onHeightChanged: (value) {
+                  setState(() {
+                    height = value;
+                    updateMaxMines();
+                  });
+                },
+                onMinesChanged: (value) {
+                  setState(() {
+                    mines = value;
+                  });
+                },
               ),
               actions: [
                 TextButton(
