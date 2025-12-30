@@ -9,8 +9,6 @@ import "package:shared_preferences/shared_preferences.dart";
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // Helper to create a tile
-
   group("GameBloc", () {
     late GameBloc gameBloc;
 
