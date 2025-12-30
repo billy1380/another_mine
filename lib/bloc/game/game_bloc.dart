@@ -5,24 +5,24 @@ import 'package:another_mine/ai/guesser.dart';
 import 'package:another_mine/model/game_difficulty_type.dart';
 import 'package:another_mine/model/game_state_type.dart';
 import 'package:another_mine/model/tile_state_type.dart';
-import 'package:another_mine/model/tilemodel.dart';
+import 'package:another_mine/model/tile_model.dart';
 import 'package:another_mine/services/pref.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:main_thread_processor/main_thread_processor.dart';
-import 'package:window_manager/window_manager.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';
 
 final Random r = Random();
+
 const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 const String difficultySettingName = "difficulty";
 const String autoSolverSettingName = "auto_solver";
 const String colourSettingName = "colour";
-const double appBarHeight = 100;
+const double gameTopBarHeight = 100;
 const double mineDim = 40;
 
 int random(int scale) {
@@ -30,8 +30,9 @@ int random(int scale) {
 }
 
 class GameBloc extends Bloc<GameEvent, GameState> {
-  late Guesser guesser;
   static final Logger _log = Logger("GameBloc");
+
+  late Guesser guesser;
 
   GameBloc()
       : super(GameState.initial(
@@ -106,7 +107,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     await Pref.service.setString(difficultySettingName, difficulty.name);
 
     String colourValue = Pref.service.getString(colourSettingName) ??
-        defaultBackgroundColour.value.toString();
+        defaultBackgroundColour.toARGB32().toString();
     int colour = int.parse(colourValue);
 
     emit(GameState.initial(difficulty, Color(colour)).copyWith(
@@ -115,20 +116,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     Size size = Size(
       state.difficulty.width * mineDim,
-      (state.difficulty.height * mineDim) + appBarHeight,
+      (state.difficulty.height * mineDim) + gameTopBarHeight,
     );
-    WindowOptions windowOptions = WindowOptions(
-      size: size,
-      backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
-      skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.hidden,
-      maximumSize: size,
-      minimumSize: size,
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
+
+    emit(state.copyWith(gameSize: size));
 
     if (state.autoSolverEnabled) {
       add(const AutoSolverNextMove());

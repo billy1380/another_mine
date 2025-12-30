@@ -1,6 +1,6 @@
 import 'package:another_mine/bloc/game/game_bloc.dart';
 import 'package:another_mine/model/tile_state_type.dart';
-import 'package:another_mine/model/tilemodel.dart';
+import 'package:another_mine/model/tile_model.dart';
 
 class Guesser {
   final GameBloc game;

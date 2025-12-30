@@ -10,25 +10,24 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_bloc: ^8.1.3
-  bloc: ^8.1.2
+  flutter_bloc: ^9.1.1
+  bloc: ^9.1.0
   shared_preferences: ^2.2.2
   go_router: ^11.1.4
   willshex:
     path: ../willshex-dart
   meta: ^1.9.1
-  logging: ^1.2.0
+  logging: ^1.3.0
   equatable: ^2.0.5
   main_thread_processor:
     path: ../main_thread_processor
-  window_manager: ^0.3.7
 
 dev_dependencies:
   flutter_launcher_icons:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0
+  flutter_lints: ^6.0.0
 
 flutter_icons:
   image_path: "images/mine2.png"

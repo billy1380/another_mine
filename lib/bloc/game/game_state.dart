@@ -13,6 +13,7 @@ final class GameState extends Equatable {
   final bool autoSolverEnabled;
   final int refresh;
   final bool autoSolverPaused;
+  final Size gameSize;
 
   const GameState._({
     required this.difficulty,
@@ -27,6 +28,7 @@ final class GameState extends Equatable {
     required this.autoSolverEnabled,
     required this.refresh,
     required this.autoSolverPaused,
+    required this.gameSize,
   });
 
   static List<TileModel> _createMineMap(
@@ -39,7 +41,10 @@ final class GameState extends Equatable {
         TileModel()
           ..hasMine = false
           ..colour = Color.fromARGB(
-              76 + r.nextInt(179), colour.red, colour.green, colour.blue)
+              76 + r.nextInt(179),
+              (colour.r * 255.0).round().clamp(0, 255),
+              (colour.g * 255.0).round().clamp(0, 255),
+              (colour.b * 255.0).round().clamp(0, 255))
           ..index = i
           ..state = TileStateType.notPressed
           ..clearNeighbours(),
@@ -113,6 +118,10 @@ final class GameState extends Equatable {
     Color colour,
   ) {
     return GameState._(
+      gameSize: Size(
+        max(difficulty.width * mineDim, 300),
+        (difficulty.height * mineDim) + gameTopBarHeight,
+      ),
       autoSolverEnabled: false,
       difficulty: difficulty,
       colour: defaultBackgroundColour,
@@ -146,6 +155,7 @@ final class GameState extends Equatable {
     bool? autoSolverEnabled,
     int? refresh,
     bool? autoSolverPaused,
+    Size? gameSize,
   }) =>
       GameState._(
         difficulty: difficulty ?? this.difficulty,
@@ -160,6 +170,7 @@ final class GameState extends Equatable {
         autoSolverEnabled: autoSolverEnabled ?? this.autoSolverEnabled,
         refresh: refresh ?? this.refresh,
         autoSolverPaused: autoSolverPaused ?? this.autoSolverPaused,
+        gameSize: gameSize ?? this.gameSize,
       );
 
   @override

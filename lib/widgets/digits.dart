@@ -22,7 +22,7 @@ class Digits extends StatelessWidget {
         height: 48,
         width: ((digits * 25) + 16).toDouble(),
         decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onBackground,
+            color: Theme.of(context).colorScheme.onSurface,
             borderRadius: const BorderRadius.all(Radius.circular(5))),
         child: Stack(
           children: [
