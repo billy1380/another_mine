@@ -10,6 +10,7 @@ class Pref {
 
   static Pref get service => _one ??= Pref();
   bool _init = false;
+  bool get isInitialized => _init;
 
   Future<bool> init(String prefix) async {
     if (_init) {

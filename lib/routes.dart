@@ -2,6 +2,7 @@ import "package:another_mine/pages/game_page.dart";
 import "package:another_mine/pages/scores_page.dart";
 import "package:another_mine/pages/settings_page.dart";
 import "package:another_mine/pages/startup_page.dart";
+import "package:another_mine/services/pref.dart";
 import "package:go_router/go_router.dart";
 
 final GoRouter router = GoRouter(
@@ -29,4 +30,17 @@ final GoRouter router = GoRouter(
     ),
   ],
   debugLogDiagnostics: true,
+  redirect: (context, state) {
+    if (!Pref.service.isInitialized &&
+        state.matchedLocation != StartupPage.routerPath) {
+      return Uri(
+        path: StartupPage.routerPath,
+        queryParameters: {
+          if (state.uri.toString() != "/") "from": state.uri.toString(),
+        },
+      ).toString();
+    }
+
+    return null;
+  },
 );
