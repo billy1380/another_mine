@@ -141,7 +141,6 @@ class _GamePageState extends State<GamePage>
         }
       },
       builder: (context, state) {
-        // Disable focus mode if autosolver becomes active
         if (state.autoSolverEnabled && _isFocusMode) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
@@ -155,7 +154,6 @@ class _GamePageState extends State<GamePage>
         return Focus(
           focusNode: _focusNode,
           onKeyEvent: (node, event) {
-            // Don't allow overlay toggle when autosolver is active
             if (event.logicalKey == LogicalKeyboardKey.space &&
                 event is KeyDownEvent &&
                 !state.autoSolverEnabled) {
