@@ -132,7 +132,7 @@ final class GameState extends Equatable {
       ),
       autoSolverEnabled: false,
       difficulty: difficulty,
-      colour: defaultBackgroundColour,
+      colour: colour,
       end: null,
       start: null,
       minesMarked: 0,

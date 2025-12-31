@@ -6,12 +6,14 @@ class Digits extends StatelessWidget {
   final String name;
   final int value;
   final int digits;
+  final Color backgroundColor;
 
   const Digits({
     super.key,
     required this.name,
     required this.value,
     this.digits = 2,
+    required this.backgroundColor,
   });
 
   @override
@@ -22,7 +24,7 @@ class Digits extends StatelessWidget {
         height: 48,
         width: ((digits * 25) + 16).toDouble(),
         decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface,
+            color: backgroundColor,
             borderRadius: const BorderRadius.all(Radius.circular(5))),
         child: Stack(
           children: [
@@ -32,7 +34,7 @@ class Digits extends StatelessWidget {
               height: 20,
               decoration: const BoxDecoration(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(5)),
-                  color: Color(0x60FFFFFF)),
+                  color: Color(0x30FFFFFF)),
             ),
           ],
         ),

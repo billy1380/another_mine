@@ -16,8 +16,6 @@ part "game_event.dart";
 part "game_state.dart";
 
 const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
-const String autoSolverSettingName = "auto_solver";
-const String colourSettingName = "colour";
 const double gameTopBarHeight = 100;
 const double mineDim = 40;
 const int lostGameAutoSolverPause = 2;
@@ -118,13 +116,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     await Pref.service.setInt("height", difficulty.height);
     await Pref.service.setInt("mines", difficulty.mines);
 
-    String colourValue = Pref.service.getString(colourSettingName) ??
-        defaultBackgroundColour.toARGB32().toString();
-    int colour = int.parse(colourValue);
+    int colourValue =
+        Pref.service.customBgColor ?? defaultBackgroundColour.toARGB32();
 
     emit(GameState.initial(
       difficulty,
-      Color(colour),
+      Color(colourValue),
     ).copyWith(
       autoSolverEnabled: state.autoSolverEnabled,
     ));
@@ -146,7 +143,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     bool status = !state.autoSolverEnabled;
     _log.info("Toggling auto solver: $status");
 
-    await Pref.service.setBool(autoSolverSettingName, status);
+    await Pref.service.setBool(Pref.keyAutoSolverSettingName, status);
 
     emit(state.copyWith(autoSolverEnabled: status));
 

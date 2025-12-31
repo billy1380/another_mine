@@ -14,6 +14,8 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String currentLocation = GoRouterState.of(context).uri.path;
+
     return Drawer(
       child: Padding(
         padding: const EdgeInsets.only(top: 20.0),
@@ -25,18 +27,23 @@ class AppDrawer extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            _gameDifficultyTile(context, GameDifficulty.beginner),
-            _gameDifficultyTile(context, GameDifficulty.intermediate),
-            _gameDifficultyTile(context, GameDifficulty.expert),
-            _gameDifficultyTile(context),
+            _gameDifficultyTile(
+                context, currentLocation, GameDifficulty.beginner),
+            _gameDifficultyTile(
+                context, currentLocation, GameDifficulty.intermediate),
+            _gameDifficultyTile(
+                context, currentLocation, GameDifficulty.expert),
+            _gameDifficultyTile(context, currentLocation),
             const Divider(),
             ListTile(
               title: const Text("Scores"),
+              selected: currentLocation == ScoresPage.routePath,
               onTap: () => GoRouter.of(context).go(ScoresPage.routePath),
             ),
             const Divider(),
             ListTile(
               title: const Text("Settings"),
+              selected: currentLocation.startsWith(SettingsPage.routePath),
               onTap: () => _showSettings(context),
             ),
           ],
@@ -151,12 +158,27 @@ class AppDrawer extends StatelessWidget {
     GoRouter.of(context).push(SettingsPage.routePath);
   }
 
-  Widget _gameDifficultyTile(BuildContext context,
+  Widget _gameDifficultyTile(BuildContext context, String currentLocation,
       [GameDifficulty? difficulty]) {
+    final bool isSelected =
+        _isGamePageWithDifficulty(currentLocation, difficulty);
+
     return ListTile(
       title: Text(
           "${StringUtils.upperCaseFirstLetter(difficulty?.name ?? customName)}${difficulty == null ? "" : " (${difficulty.description})"}"),
+      selected: isSelected,
       onTap: () => _tap(context, difficulty),
     );
+  }
+
+  bool _isGamePageWithDifficulty(
+      String currentLocation, GameDifficulty? difficulty) {
+    if (!currentLocation.startsWith("/game")) return false;
+
+    if (difficulty == null) {
+      return currentLocation.contains("/custom");
+    }
+
+    return currentLocation.contains("/${difficulty.name}");
   }
 }

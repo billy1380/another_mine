@@ -28,10 +28,15 @@ class _GameTimerState extends State<GameTimer> {
 
   @override
   Widget build(BuildContext context) {
-    return Digits(
-      name: "Time",
-      value: BlocProvider.of<GameBloc>(context).state.seconds,
-      digits: 3,
+    return BlocBuilder<GameBloc, GameState>(
+      builder: (context, state) {
+        return Digits(
+          name: "Time",
+          value: state.seconds,
+          digits: 3,
+          backgroundColor: state.colour,
+        );
+      },
     );
   }
 

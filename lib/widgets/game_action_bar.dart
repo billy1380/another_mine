@@ -15,7 +15,11 @@ class GameActionBar extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Digits(name: "Mines", value: state.minesMarked),
+            Digits(
+              name: "Mines",
+              value: state.minesMarked,
+              backgroundColor: state.colour,
+            ),
             Tooltip(
               message: "Start new game",
               child: InkWell(

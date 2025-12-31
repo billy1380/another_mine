@@ -6,6 +6,14 @@ class Pref {
   late final String _prefix;
   late final SharedPreferences _sharedPreferences;
 
+  static const String keyAnimate = "animate";
+  static const String keyScoresRetained = "scoresRetained";
+  static const String keyRemoteScoresEnabled = "remoteHighScoresEnabled";
+  static const String keyDefaultCountry = "defaultCountry";
+  static const String keyCustomBgEnabled = "customBackgroundColourEnabled";
+  static const String keyCustomBgColor = "customBackgroundColour";
+  static const String keyAutoSolverSettingName = "autoSolver";
+
   static Pref? _one;
 
   static Pref get service => _one ??= Pref();
@@ -60,6 +68,14 @@ class Pref {
 
     return done;
   }
+
+  bool get animate => getBool(keyAnimate) ?? true;
+  int get scoresRetained => getInt(keyScoresRetained) ?? 20;
+  bool get remoteScoresEnabled => getBool(keyRemoteScoresEnabled) ?? false;
+  String get defaultCountry => getString(keyDefaultCountry) ?? "United Kingdom";
+  bool get customBgEnabled => getBool(keyCustomBgEnabled) ?? false;
+  int? get customBgColor => getInt(keyCustomBgColor);
+  bool get autoSolverEnabled => getBool(keyAutoSolverSettingName) ?? false;
 
   String _key(String name) => "$_prefix$name";
 }
