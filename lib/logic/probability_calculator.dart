@@ -17,22 +17,79 @@ class ProbabilityCalculator {
     final List<double> probabilities = List.filled(totalTiles, -1.0);
 
     // 1. Mark knowns (Opened or Flagged)
-    List<int> unrevealedIndices = [];
+    _markKnownTiles(state, probabilities);
 
-    for (int i = 0; i < totalTiles; i++) {
+    // 2. Iterative Trivial Solver (Constraint Propagation)
+    _applyIterativeConstraints(state, probabilities);
+
+    // 3. Solve Islands (Connected Components)
+    _solveIslands(state, probabilities);
+
+    // 4. Global probability for non-boundary tiles
+    _calculateGlobalProbabilities(state, probabilities);
+
+    return probabilities;
+  }
+
+  static void _markKnownTiles(GameState state, List<double> probabilities) {
+    for (int i = 0; i < state.tiles.length; i++) {
       final tile = state.tiles[i];
       if (tile.state == TileStateType.predictedBombCorrect) {
         probabilities[i] = 1.0;
       } else if (tile.state != TileStateType.notPressed &&
           tile.state != TileStateType.unsure) {
-        // Revealed (0-8)
         probabilities[i] = 0.0;
-      } else {
-        // Unrevealed or Unsure
-        unrevealedIndices.add(i);
       }
     }
+  }
 
+  static void _applyIterativeConstraints(
+      GameState state, List<double> probabilities) {
+    // 1.5 Iterative Trivial Solver (Constraint Propagation)
+    // Reduce the search space by solving simple constraints before building islands
+    bool changed = true;
+    while (changed) {
+      changed = false;
+      for (int i = 0; i < state.tiles.length; i++) {
+        final tile = state.tiles[i];
+        if (tile.state.index >= TileStateType.one.index &&
+            tile.state.index <= TileStateType.eight.index) {
+          int minesNeeded = tile.neigbouringMine;
+          int markedNeighbors = 0;
+          List<int> unknownNeighbors = [];
+
+          for (var n in tile.neighbours) {
+            if (n != null) {
+              if (probabilities[n.index] == 1.0) {
+                markedNeighbors++;
+              } else if (probabilities[n.index] == -1.0) {
+                unknownNeighbors.add(n.index);
+              }
+            }
+          }
+
+          if (unknownNeighbors.isEmpty) continue;
+
+          // All remaining neighbors must be mines
+          if (minesNeeded - markedNeighbors == unknownNeighbors.length) {
+            for (var idx in unknownNeighbors) {
+              probabilities[idx] = 1.0;
+            }
+            changed = true;
+          }
+          // All remaining neighbors must be safe
+          else if (minesNeeded - markedNeighbors == 0) {
+            for (var idx in unknownNeighbors) {
+              probabilities[idx] = 0.0;
+            }
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  static void _solveIslands(GameState state, List<double> probabilities) {
     // 2. Identify "Boundary" tiles and "Constraint" numbers
     // A tile is a "Boundary" if it is unrevealed and adjacent to a revealed number.
     // A "Constraint" is a revealed number tile adjacent to at least one unrevealed tile.
@@ -40,7 +97,7 @@ class ProbabilityCalculator {
     Set<int> boundaryTiles = {};
     Set<int> constraints = {};
 
-    for (int i = 0; i < totalTiles; i++) {
+    for (int i = 0; i < state.tiles.length; i++) {
       final tile = state.tiles[i];
       // If tile is a revealed number (constraint)
       if (tile.state.index >= TileStateType.one.index &&
@@ -113,7 +170,10 @@ class ProbabilityCalculator {
     for (List<int> island in islands) {
       _solveIsland(island, constraintToBoundary, state, probabilities);
     }
+  }
 
+  static void _calculateGlobalProbabilities(
+      GameState state, List<double> probabilities) {
     // 5. Global probability for non-boundary tiles
     // Count mines known (marked) + mines deduced as 100% in islands?
     // For simplicity, we stick to the basic "remainder" logic but we should be careful about
@@ -127,48 +187,33 @@ class ProbabilityCalculator {
     //   Mines_for_rest = Total_Mines - E_mines_islands - Already_Marked_Pre_Alg.
     //   Rest_Prob = Mines_for_rest / Count_of_rest_tiles.
 
-    double expectedMinesInIslands = 0.0;
-    Set<int> allIslandTiles = {};
+    // Re-verify island contribution logic or simplify
+    // We can rely on summing probabilities of all island tiles (that are not -1.0)
 
-    for (var island in islands) {
-      for (var cIdx in island) {
-        for (var bIdx in constraintToBoundary[cIdx]!) {
-          allIslandTiles.add(bIdx);
-        }
-      }
-    }
+    // We iterate over all tiles to find ones that were solved (prob > 0 && < 1... etc)
+    // Actually simpler: iterate over all tiles, if prob != -1.0 (and not initially marked), add to expected sum?
+    // Wait, initially marked (flagged) have prob 1.0.
+    // Revealed have prob 0.0.
+    // Solved islands have prob between 0.0 and 1.0.
 
-    for (int idx in allIslandTiles) {
-      if (probabilities[idx] != -1.0) {
-        expectedMinesInIslands += probabilities[idx];
-      }
-    }
+    // So if we just sum ALL probabilities, we get Expected Total Mines from solved/known areas.
+    // Sum includes user flags (1.0).
 
-    // Original marked mines (user flags) are already probability 1.0
-    // but those were not in "unrevealedIndices" usually, or were handled in pass 1.
-    // "probabilities" array has 1.0 for TileStateType.predictedBombCorrect.
-    // Those are NOT in boundaryTiles because we filtered for -1.0.
-
-    int userMarkedCount = 0;
-    for (int i = 0; i < totalTiles; i++) {
-      if (state.tiles[i].state == TileStateType.predictedBombCorrect) {
-        userMarkedCount++;
-      }
-    }
-
-    double remainingMines = state.difficulty.mines.toDouble() -
-        userMarkedCount -
-        expectedMinesInIslands;
-
-    // Count "floating" tiles (unrevealed, not user marked, not in any island)
+    double solvedExpectedMines = 0.0;
     int floatingCount = 0;
     List<int> floatingIndices = [];
-    for (int i = 0; i < totalTiles; i++) {
-      if (probabilities[i] == -1.0) {
+
+    for (int i = 0; i < probabilities.length; i++) {
+      if (probabilities[i] != -1.0) {
+        solvedExpectedMines += probabilities[i];
+      } else {
         floatingCount++;
         floatingIndices.add(i);
       }
     }
+
+    double remainingMines =
+        state.difficulty.mines.toDouble() - solvedExpectedMines;
 
     double floatingProb = 0.0;
     if (floatingCount > 0) {
@@ -178,8 +223,6 @@ class ProbabilityCalculator {
     for (int idx in floatingIndices) {
       probabilities[idx] = floatingProb;
     }
-
-    return probabilities;
   }
 
   static void _solveIsland(
@@ -215,7 +258,7 @@ class ProbabilityCalculator {
       // GameState neighbours include everything.
       int currentMarked = 0;
       for (var n in state.tiles[cIdx].neighbours) {
-        if (n != null && n.state == TileStateType.predictedBombCorrect) {
+        if (n != null && probabilities[n.index] == 1.0) {
           currentMarked++;
         }
       }
