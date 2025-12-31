@@ -70,7 +70,7 @@ class FocusOverlayPainter extends CustomPainter {
     final Path overlayPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    final double cornerRadius = 15.0;
+    final double cornerRadius = 5.0;
     final RRect cutoutRRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(cutoutX, cutoutY, cutoutWidth, cutoutHeight),
       Radius.circular(cornerRadius),
