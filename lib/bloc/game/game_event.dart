@@ -101,3 +101,11 @@ class PauseGame extends GameEvent {
 class ResumeGame extends GameEvent {
   const ResumeGame();
 }
+
+class ToggleProbabilities extends GameEvent {
+  const ToggleProbabilities();
+}
+
+class ToggleFocusMode extends GameEvent {
+  const ToggleFocusMode();
+}

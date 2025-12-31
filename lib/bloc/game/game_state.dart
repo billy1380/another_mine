@@ -19,6 +19,8 @@ final class GameState extends Equatable {
   final List<double> mineProbabilities;
 
   final int? lastInteractedIndex;
+  final bool showProbability;
+  final bool isFocusMode;
 
   const GameState._({
     required this.difficulty,
@@ -38,6 +40,8 @@ final class GameState extends Equatable {
     required this.lastActiveTime,
     required this.mineProbabilities,
     required this.lastInteractedIndex,
+    required this.showProbability,
+    required this.isFocusMode,
   });
 
   static List<TileModel> _createMineMap(
@@ -154,6 +158,8 @@ final class GameState extends Equatable {
         difficulty.mines / difficulty.area,
       ),
       lastInteractedIndex: null,
+      showProbability: false,
+      isFocusMode: false,
     );
   }
 
@@ -178,6 +184,8 @@ final class GameState extends Equatable {
     bool clearLastActiveTime = false,
     List<double>? mineProbabilities,
     int? lastInteractedIndex,
+    bool? showProbability,
+    bool? isFocusMode,
   }) =>
       GameState._(
         difficulty: difficulty ?? this.difficulty,
@@ -198,6 +206,8 @@ final class GameState extends Equatable {
             clearLastActiveTime ? null : lastActiveTime ?? this.lastActiveTime,
         mineProbabilities: mineProbabilities ?? this.mineProbabilities,
         lastInteractedIndex: lastInteractedIndex ?? this.lastInteractedIndex,
+        showProbability: showProbability ?? this.showProbability,
+        isFocusMode: isFocusMode ?? this.isFocusMode,
       );
 
   @override
@@ -218,6 +228,8 @@ final class GameState extends Equatable {
         lastActiveTime,
         ...mineProbabilities,
         lastInteractedIndex,
+        showProbability,
+        isFocusMode,
       ];
 
   bool get isFinished =>

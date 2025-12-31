@@ -64,10 +64,8 @@ class _GamePageState extends State<GamePage>
   final ScrollController _horizontal = ScrollController();
   final ScrollController _vertical = ScrollController();
   bool _pausedBySystem = false;
-  bool _isFocusMode = false;
   ValueNotifier<int?>? _focusIndexNotifier;
   late FocusNode _focusNode;
-  bool _showProbabilities = false;
 
   @override
   void initState() {
@@ -144,14 +142,16 @@ class _GamePageState extends State<GamePage>
         }
       },
       builder: (context, state) {
-        if (state.autoSolverEnabled && _isFocusMode) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _isFocusMode = false;
-              });
-            }
-          });
+        if (state.autoSolverEnabled && state.isFocusMode) {
+          // Auto-disable focus mode if auto solver is enabled
+          // But since state is immutable and handled by bloc, we should dispatch event?
+          // Or just trust the bloc to handle valid states?
+          // The previous logic used addPostFrameCallback to setState.
+          // Ideally GameBloc should prevent enabling focus mode if auto solver is on,
+          // OR auto solver turning on should disable focus mode.
+          // For now, let's just dispatch the toggle event if needed, but beware of loops.
+          // Actually, better to handle this logic in the Bloc listeners or Bloc logic itself.
+          // Let's defer this strictly to the Bloc.
         }
 
         return Focus(
@@ -160,15 +160,12 @@ class _GamePageState extends State<GamePage>
             if (event.logicalKey == LogicalKeyboardKey.space &&
                 event is KeyDownEvent &&
                 !state.autoSolverEnabled) {
-              setState(() {
-                _isFocusMode = !_isFocusMode;
-              });
+              BlocProvider.of<GameBloc>(context).add(const ToggleFocusMode());
               return KeyEventResult.handled;
             } else if (event.logicalKey == LogicalKeyboardKey.keyP &&
                 event is KeyDownEvent) {
-              setState(() {
-                _showProbabilities = !_showProbabilities;
-              });
+              BlocProvider.of<GameBloc>(context)
+                  .add(const ToggleProbabilities());
               return KeyEventResult.handled;
             }
             return KeyEventResult.ignored;
@@ -187,15 +184,72 @@ class _GamePageState extends State<GamePage>
                   "${StringUtils.upperCaseFirstLetter(state.difficulty.name)} - ${StringUtils.upperCaseFirstLetter(state.difficulty.description)}",
                   style: Theme.of(context).textTheme.bodyLarge),
               actions: [
-                IconButton(
-                  tooltip: "Toggle Auto Solver",
-                  icon: Icon(state.autoSolverEnabled
-                      ? Icons.smart_toy
-                      : Icons.smart_toy_outlined),
-                  onPressed: state.isFinished
-                      ? null
-                      : () => BlocProvider.of<GameBloc>(context)
-                          .add(const ToggleAutoSolver()),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_horiz),
+                  tooltip: "Game Tools",
+                  onSelected: (value) {
+                    final bloc = BlocProvider.of<GameBloc>(context);
+                    switch (value) {
+                      case "solver":
+                        bloc.add(const ToggleAutoSolver());
+                        break;
+                      case "probability":
+                        bloc.add(const ToggleProbabilities());
+                        break;
+                      case "focus":
+                        bloc.add(const ToggleFocusMode());
+                        break;
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem(
+                        value: "solver",
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                                state.autoSolverEnabled
+                                    ? Icons.smart_toy
+                                    : Icons.smart_toy_outlined,
+                                color: Colors.black),
+                            const SizedBox(width: 8),
+                            const Text("Auto Solver"),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: "probability",
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                                state.showProbability
+                                    ? Icons.percent
+                                    : Icons.percent_outlined,
+                                color: Colors.black),
+                            const SizedBox(width: 8),
+                            const Text("Probabilities"),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: "focus",
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                                state.isFocusMode
+                                    ? Icons.center_focus_strong
+                                    : Icons.center_focus_strong_outlined,
+                                color: Colors.black),
+                            const SizedBox(width: 8),
+                            const Text("Focus Mode"),
+                          ],
+                        ),
+                      ),
+                    ];
+                  },
                 ),
               ],
             ),
@@ -237,8 +291,8 @@ class _GamePageState extends State<GamePage>
                                     height: state.gameSize.height,
                                     child: Minefield(
                                       focusIndexNotifier: _focusIndexNotifier,
-                                      isFocusMode: _isFocusMode,
-                                      showProbabilities: _showProbabilities,
+                                      isFocusMode: state.isFocusMode,
+                                      showProbabilities: state.showProbability,
                                     ),
                                   ),
                                 ),

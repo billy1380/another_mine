@@ -37,6 +37,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<ToggleAutoSolver>(_toggleAutoSolver);
     on<NewGame>(_newGame);
     on<AutoSolverNextMove>(_autoSolverNextMove);
+    on<ToggleProbabilities>(_toggleProbabilities);
+    on<ToggleFocusMode>(_toggleFocusMode);
     on<PauseAutoSolver>(_pauseAutoSolver);
     on<ResumeAutoSolver>(_resumeAutoSolver);
     on<PauseGame>(_pauseGame);
@@ -146,7 +148,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     await Pref.service.setBool(Pref.keyAutoSolverSettingName, status);
 
-    emit(state.copyWith(autoSolverEnabled: status));
+    emit(state.copyWith(
+      autoSolverEnabled: status,
+      isFocusMode: status ? false : state.isFocusMode,
+    ));
 
     if (status) {
       add(const AutoSolverNextMove());
@@ -382,5 +387,20 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   List<double> _calculateProbabilities(GameState state) {
     return ProbabilityCalculator.calculate(state);
+  }
+
+  void _toggleProbabilities(
+    ToggleProbabilities event,
+    Emitter<GameState> emit,
+  ) {
+    emit(state.copyWith(showProbability: !state.showProbability));
+  }
+
+  void _toggleFocusMode(
+    ToggleFocusMode event,
+    Emitter<GameState> emit,
+  ) {
+    if (state.autoSolverEnabled) return;
+    emit(state.copyWith(isFocusMode: !state.isFocusMode));
   }
 }
