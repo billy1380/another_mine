@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:another_mine/ai/guesser.dart";
+import "package:another_mine/logic/probability_calculator.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/model/tile_model.dart";
@@ -84,7 +85,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       AutoSolverNextMove event, Emitter<GameState> emit) async {
     if (state.isFinished) {
       if (state.status == GameStateType.won) {
-        add(const ToggleAutoSolver());
+        add(const ResumeAutoSolver());
       } else if (state.status == GameStateType.lost) {
         await Future.delayed(const Duration(
           seconds: lostGameAutoSolverPause,
@@ -253,13 +254,17 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     }
 
-    return currentState.copyWith(
+    final GameState updatedState = currentState.copyWith(
       revealedTiles: newRevealedCount,
       status: newStatus,
       end: newEnd,
       accumulatedDuration: newAccumulated,
       clearLastActiveTime: newClearLastActive,
       lastInteractedIndex: startTile.index,
+    );
+
+    return updatedState.copyWith(
+      mineProbabilities: _calculateProbabilities(updatedState),
     );
   }
 
@@ -268,14 +273,20 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       TileModel tile = event.model..speculate();
 
       if (tile.state == TileStateType.predictedBombCorrect) {
-        emit(state.copyWith(
+        final updated = state.copyWith(
           minesMarked: state.minesMarked + 1,
           lastInteractedIndex: tile.index,
+        );
+        emit(updated.copyWith(
+          mineProbabilities: _calculateProbabilities(updated),
         ));
       } else if (tile.state == TileStateType.unsure) {
-        emit(state.copyWith(
+        final updated = state.copyWith(
           minesMarked: state.minesMarked - 1,
           lastInteractedIndex: tile.index,
+        );
+        emit(updated.copyWith(
+          mineProbabilities: _calculateProbabilities(updated),
         ));
       } else {
         emit(state.copyWith(
@@ -367,5 +378,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       lastActiveTime: state.isNotFinished && state.start != null ? now : null,
       autoSolverPaused: false,
     ));
+  }
+
+  List<double> _calculateProbabilities(GameState state) {
+    return ProbabilityCalculator.calculate(state);
   }
 }

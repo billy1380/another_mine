@@ -7,11 +7,13 @@ import "package:flutter_bloc/flutter_bloc.dart";
 class Minefield extends StatelessWidget {
   final ValueNotifier<int?>? focusIndexNotifier;
   final bool isFocusMode;
+  final bool showProbabilities;
 
   const Minefield({
     super.key,
     this.focusIndexNotifier,
     this.isFocusMode = false,
+    this.showProbabilities = false,
   });
 
   @override
@@ -24,6 +26,10 @@ class Minefield extends StatelessWidget {
             return Tile(
               ValueKey(state.tiles[index].index),
               state.tiles[index],
+              probability: state.start != null // Only pass if game started
+                  ? state.mineProbabilities[index]
+                  : null,
+              showProbability: showProbabilities,
             );
           },
           itemCount: state.tiles.length,

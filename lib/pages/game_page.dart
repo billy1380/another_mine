@@ -65,12 +65,15 @@ class _GamePageState extends State<GamePage>
   final ScrollController _vertical = ScrollController();
   bool _pausedBySystem = false;
   bool _isFocusMode = false;
-  final ValueNotifier<int?> _focusIndexNotifier = ValueNotifier<int?>(null);
-  final FocusNode _focusNode = FocusNode();
+  ValueNotifier<int?>? _focusIndexNotifier;
+  late FocusNode _focusNode;
+  bool _showProbabilities = false;
 
   @override
   void initState() {
     super.initState();
+    _focusIndexNotifier = ValueNotifier<int?>(null);
+    _focusNode = FocusNode();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -88,7 +91,7 @@ class _GamePageState extends State<GamePage>
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
-    _focusIndexNotifier.dispose();
+    _focusIndexNotifier?.dispose();
     super.dispose();
   }
 
@@ -161,6 +164,12 @@ class _GamePageState extends State<GamePage>
                 _isFocusMode = !_isFocusMode;
               });
               return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.keyP &&
+                event is KeyDownEvent) {
+              setState(() {
+                _showProbabilities = !_showProbabilities;
+              });
+              return KeyEventResult.handled;
             }
             return KeyEventResult.ignored;
           },
@@ -227,8 +236,9 @@ class _GamePageState extends State<GamePage>
                                     width: state.gameSize.width,
                                     height: state.gameSize.height,
                                     child: Minefield(
-                                      isFocusMode: _isFocusMode,
                                       focusIndexNotifier: _focusIndexNotifier,
+                                      isFocusMode: _isFocusMode,
+                                      showProbabilities: _showProbabilities,
                                     ),
                                   ),
                                 ),

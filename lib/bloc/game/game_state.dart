@@ -16,6 +16,7 @@ final class GameState extends Equatable {
   final Size gameSize;
   final Duration accumulatedDuration;
   final DateTime? lastActiveTime;
+  final List<double> mineProbabilities;
 
   final int? lastInteractedIndex;
 
@@ -35,6 +36,7 @@ final class GameState extends Equatable {
     required this.gameSize,
     required this.accumulatedDuration,
     required this.lastActiveTime,
+    required this.mineProbabilities,
     required this.lastInteractedIndex,
   });
 
@@ -147,6 +149,10 @@ final class GameState extends Equatable {
       autoSolverPaused: false,
       accumulatedDuration: Duration.zero,
       lastActiveTime: null,
+      mineProbabilities: List.filled(
+        difficulty.area,
+        difficulty.mines / difficulty.area,
+      ),
       lastInteractedIndex: null,
     );
   }
@@ -170,6 +176,7 @@ final class GameState extends Equatable {
     Duration? accumulatedDuration,
     DateTime? lastActiveTime,
     bool clearLastActiveTime = false,
+    List<double>? mineProbabilities,
     int? lastInteractedIndex,
   }) =>
       GameState._(
@@ -189,6 +196,7 @@ final class GameState extends Equatable {
         accumulatedDuration: accumulatedDuration ?? this.accumulatedDuration,
         lastActiveTime:
             clearLastActiveTime ? null : lastActiveTime ?? this.lastActiveTime,
+        mineProbabilities: mineProbabilities ?? this.mineProbabilities,
         lastInteractedIndex: lastInteractedIndex ?? this.lastInteractedIndex,
       );
 
@@ -208,6 +216,7 @@ final class GameState extends Equatable {
         autoSolverPaused,
         accumulatedDuration,
         lastActiveTime,
+        ...mineProbabilities,
         lastInteractedIndex,
       ];
 
