@@ -67,27 +67,23 @@ class FocusOverlayPainter extends CustomPainter {
     final double cutoutWidth = (endCol - startCol + 1) * tileWidth;
     final double cutoutHeight = (endRow - startRow + 1) * tileHeight;
 
-    final Path overlayPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-
     final double cornerRadius = 5.0;
-    final RRect cutoutRRect = RRect.fromRectAndRadius(
+
+    final RRect outerRRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.zero,
+    );
+
+    final RRect innerRRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(cutoutX, cutoutY, cutoutWidth, cutoutHeight),
       Radius.circular(cornerRadius),
-    );
-    final Path cutoutPath = Path()..addRRect(cutoutRRect);
-
-    final Path finalPath = Path.combine(
-      PathOperation.difference,
-      overlayPath,
-      cutoutPath,
     );
 
     final Paint paint = Paint()
       ..color = Colors.black.withAlpha(128)
       ..style = PaintingStyle.fill;
 
-    canvas.drawPath(finalPath, paint);
+    canvas.drawDRRect(outerRRect, innerRRect, paint);
   }
 
   @override
