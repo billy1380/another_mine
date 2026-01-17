@@ -108,6 +108,7 @@ class _TileState extends State<Tile> {
 
         if (shouldShow) {
           return Stack(
+            alignment: Alignment.center,
             children: [
               content,
               Center(
