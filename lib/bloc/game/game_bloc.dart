@@ -19,15 +19,19 @@ part "game_state.dart";
 const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 const double gameTopBarHeight = 100;
 const double mineDim = 40;
-const int lostGameAutoSolverPause = 2;
+const int defaultLostGameAutoSolverPause = 2;
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   static final Logger _log = Logger("GameBloc");
 
   late Guesser guesser;
+  final Processor processor;
+  final int lostGamePause;
 
-  GameBloc()
-      : super(GameState.initial(
+  GameBloc({
+    required this.processor,
+    this.lostGamePause = defaultLostGameAutoSolverPause,
+  }) : super(GameState.initial(
             GameDifficulty.beginner, defaultBackgroundColour)) {
     on<RevealAll>(_revealAll);
     on<MightPlay>(_mightPlay);
@@ -50,7 +54,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   Future<void> _pauseAutoSolver(
       PauseAutoSolver event, Emitter<GameState> emit) async {
     if (state.autoSolverEnabled) {
-      Processor.shared.pause();
+      processor.pause();
 
       final DateTime now = DateTime.now();
       Duration accumulated = state.accumulatedDuration;
@@ -72,7 +76,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       if (state.isFinished) {
         add(NewGame(difficulty: state.difficulty));
       } else {
-        Processor.shared.resume();
+        processor.resume();
       }
 
       final DateTime now = DateTime.now();
@@ -87,11 +91,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       AutoSolverNextMove event, Emitter<GameState> emit) async {
     if (state.isFinished) {
       if (state.status == GameStateType.won) {
-        add(const ResumeAutoSolver());
+        emit(state.copyWith(autoSolverEnabled: false));
+        processor.removeAllTasks();
       } else if (state.status == GameStateType.lost) {
-        await Future.delayed(const Duration(
-          seconds: lostGameAutoSolverPause,
-        ));
+        if (lostGamePause > 0) {
+          await Future.delayed(
+            Duration(
+              seconds: lostGamePause,
+            ),
+          );
+        }
 
         if (!state.autoSolverPaused) {
           add(NewGame(
@@ -101,11 +110,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     } else {
       if (state.autoSolverEnabled && !state.autoSolverPaused) {
-        Processor.shared.removeAllTasks();
+        processor.removeAllTasks();
 
         _log.info("Auto solver is managing next move");
 
-        Processor.shared.addTask(
+        processor.addTask(
             ProcessRunnables.single("guesser move", guesser.makeAMove));
       }
     }
@@ -156,7 +165,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (status) {
       add(const AutoSolverNextMove());
     } else {
-      Processor.shared.removeAllTasks();
+      processor.removeAllTasks();
     }
   }
 
@@ -316,7 +325,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     }
 
-    Processor.shared.removeAllTasks();
+    processor.removeAllTasks();
 
     emit(state.copyWith(refresh: state.refresh + 1));
   }
@@ -357,7 +366,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final DateTime now = DateTime.now();
 
     if (state.autoSolverEnabled) {
-      Processor.shared.pause();
+      processor.pause();
     }
 
     Duration accumulated = state.accumulatedDuration;
@@ -376,7 +385,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final DateTime now = DateTime.now();
 
     if (state.autoSolverEnabled) {
-      Processor.shared.resume();
+      processor.resume();
     }
 
     emit(state.copyWith(
