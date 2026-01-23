@@ -44,8 +44,6 @@ class GamePage extends StatefulWidget {
 
     BlocProvider.of<GameBloc>(context).add(NewGame(difficulty: difficulty));
 
-    BlocProvider.of<GameBloc>(context).add(NewGame(difficulty: difficulty));
-
     return GamePage(key: ValueKey(difficulty.description));
   };
 
@@ -203,8 +201,7 @@ class _GamePageState extends State<GamePage>
                                 state.autoSolverEnabled
                                     ? Icons.smart_toy
                                     : Icons.smart_toy_outlined,
-                                color:
-                                    gameWon ? Colors.grey : Colors.black),
+                                color: gameWon ? Colors.grey : Colors.black),
                             const SizedBox(width: 8),
                             Text("Auto Solver",
                                 style: TextStyle(
@@ -223,8 +220,7 @@ class _GamePageState extends State<GamePage>
                                 state.showProbability
                                     ? Icons.percent
                                     : Icons.percent_outlined,
-                                color:
-                                    gameWon ? Colors.grey : Colors.black),
+                                color: gameWon ? Colors.grey : Colors.black),
                             const SizedBox(width: 8),
                             Text("Probabilities",
                                 style: TextStyle(
@@ -243,8 +239,7 @@ class _GamePageState extends State<GamePage>
                                 state.isFocusMode
                                     ? Icons.center_focus_strong
                                     : Icons.center_focus_strong_outlined,
-                                color:
-                                    gameWon ? Colors.grey : Colors.black),
+                                color: gameWon ? Colors.grey : Colors.black),
                             const SizedBox(width: 8),
                             Text("Focus Mode",
                                 style: TextStyle(
