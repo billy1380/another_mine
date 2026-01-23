@@ -10,10 +10,10 @@ int random(int scale) {
   return (r.nextDouble() * scale).toInt();
 }
 
-class Guesser {
+class SimpleGuesser {
   final GameBloc game;
 
-  Guesser(this.game);
+  SimpleGuesser(this.game);
 
   void makeAMove() {
     bool clicked = false;

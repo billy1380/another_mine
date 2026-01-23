@@ -1,4 +1,4 @@
-import "package:another_mine/ai/guesser.dart";
+import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
@@ -13,7 +13,7 @@ import "../mocks.dart";
 void main() {
   late MockGameBloc mockGameBloc;
   late GameState gameState;
-  late Guesser guesser;
+  late SimpleGuesser guesser;
 
   setUpAll(() {
     registerFallbackValue(FakeProbe());
@@ -26,7 +26,7 @@ void main() {
     // Ensure state is "started" or similar so isNotFinished is true
     gameState = gameState.copyWith(status: GameStateType.started);
 
-    guesser = Guesser(mockGameBloc);
+    guesser = SimpleGuesser(mockGameBloc);
 
     // We need to return the *current* state when accessed.
     // By using a closure, we return the current value of the variable `gameState`
@@ -45,7 +45,7 @@ void main() {
       ..clearNeighbours();
   }
 
-  group("Guesser", () {
+  group("SimpleGuesser", () {
     test("flags all neighbours if tile value equals unrevealed neighbours", () {
       final center = createTile(index: 0, state: TileStateType.one);
       final neighbour = createTile(index: 1, state: TileStateType.notPressed);

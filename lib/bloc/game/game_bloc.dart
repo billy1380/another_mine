@@ -1,6 +1,6 @@
 import "dart:async";
 
-import "package:another_mine/ai/guesser.dart";
+import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/logic/probability_calculator.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
@@ -24,7 +24,7 @@ const int defaultLostGameAutoSolverPause = 2;
 class GameBloc extends Bloc<GameEvent, GameState> {
   static final Logger _log = Logger("GameBloc");
 
-  late Guesser guesser;
+  late SimpleGuesser guesser;
   final Processor processor;
   final int lostGamePause;
 
@@ -48,7 +48,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<PauseGame>(_pauseGame);
     on<ResumeGame>(_resumeGame);
 
-    guesser = Guesser(this);
+    guesser = SimpleGuesser(this);
   }
 
   Future<void> _pauseAutoSolver(
