@@ -99,6 +99,29 @@ void main() {
               .having((e) => e.model, "model", neighbour)))).called(1);
     });
 
+    test("prioritizes flagging mines over revealing safe tiles", () {
+      // Tile 0 is '1'. Tile 1 is unrevealed (must be mine).
+      // Tile 2 is '0'. Tile 3 is unrevealed (must be safe).
+      final one = createTile(index: 0, state: TileStateType.one, neigbouringMine: 1);
+      final mine = createTile(index: 1, state: TileStateType.notPressed);
+      one.neighbours[4] = mine;
+
+      final zero = createTile(index: 2, state: TileStateType.revealedSafe, neigbouringMine: 0);
+      final safe = createTile(index: 3, state: TileStateType.notPressed);
+      zero.neighbours[4] = safe;
+
+      gameState = gameState.copyWith(
+        difficulty: GameDifficulty.custom(width: 4, height: 1, mines: 1),
+        tiles: [one, mine, zero, safe],
+      );
+
+      guesser.makeAMove();
+
+      // Should flag the mine (Priority 1) instead of probing the safe tile (Priority 2)
+      verify(() => mockGameBloc.add(any(that: isA<Speculate>()))).called(1);
+      verifyNever(() => mockGameBloc.add(any(that: isA<Probe>())));
+    });
+
     test("picks tile with lowest probability when no certain move", () {
       // Setup a situation where two tiles have different probabilities.
       // Tile A is neighbor to a '1', Tile B is isolated.

@@ -1,5 +1,6 @@
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
+import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/pages/parts/app_drawer.dart";
 import "package:another_mine/widgets/game_action_bar.dart";
 import "package:another_mine/widgets/mine_field.dart";
@@ -142,18 +143,6 @@ class _GamePageState extends State<GamePage>
         }
       },
       builder: (context, state) {
-        if (state.autoSolverEnabled && state.isFocusMode) {
-          // Auto-disable focus mode if auto solver is enabled
-          // But since state is immutable and handled by bloc, we should dispatch event?
-          // Or just trust the bloc to handle valid states?
-          // The previous logic used addPostFrameCallback to setState.
-          // Ideally GameBloc should prevent enabling focus mode if auto solver is on,
-          // OR auto solver turning on should disable focus mode.
-          // For now, let's just dispatch the toggle event if needed, but beware of loops.
-          // Actually, better to handle this logic in the Bloc listeners or Bloc logic itself.
-          // Let's defer this strictly to the Bloc.
-        }
-
         return Focus(
           focusNode: _focusNode,
           onKeyEvent: (node, event) {
@@ -202,9 +191,11 @@ class _GamePageState extends State<GamePage>
                     }
                   },
                   itemBuilder: (BuildContext context) {
+                    final bool gameWon = state.status == GameStateType.won;
                     return [
                       PopupMenuItem(
                         value: "solver",
+                        enabled: !gameWon,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -212,14 +203,19 @@ class _GamePageState extends State<GamePage>
                                 state.autoSolverEnabled
                                     ? Icons.smart_toy
                                     : Icons.smart_toy_outlined,
-                                color: Colors.black),
+                                color:
+                                    gameWon ? Colors.grey : Colors.black),
                             const SizedBox(width: 8),
-                            const Text("Auto Solver"),
+                            Text("Auto Solver",
+                                style: TextStyle(
+                                    color:
+                                        gameWon ? Colors.grey : Colors.black)),
                           ],
                         ),
                       ),
                       PopupMenuItem(
                         value: "probability",
+                        enabled: !gameWon,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -227,14 +223,19 @@ class _GamePageState extends State<GamePage>
                                 state.showProbability
                                     ? Icons.percent
                                     : Icons.percent_outlined,
-                                color: Colors.black),
+                                color:
+                                    gameWon ? Colors.grey : Colors.black),
                             const SizedBox(width: 8),
-                            const Text("Probabilities"),
+                            Text("Probabilities",
+                                style: TextStyle(
+                                    color:
+                                        gameWon ? Colors.grey : Colors.black)),
                           ],
                         ),
                       ),
                       PopupMenuItem(
                         value: "focus",
+                        enabled: !gameWon,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -242,9 +243,13 @@ class _GamePageState extends State<GamePage>
                                 state.isFocusMode
                                     ? Icons.center_focus_strong
                                     : Icons.center_focus_strong_outlined,
-                                color: Colors.black),
+                                color:
+                                    gameWon ? Colors.grey : Colors.black),
                             const SizedBox(width: 8),
-                            const Text("Focus Mode"),
+                            Text("Focus Mode",
+                                style: TextStyle(
+                                    color:
+                                        gameWon ? Colors.grey : Colors.black)),
                           ],
                         ),
                       ),
@@ -328,10 +333,6 @@ class _GamePageState extends State<GamePage>
   void _scrollToIndex(int index, int width, Size gameSize) {
     if (!_horizontal.hasClients || !_vertical.hasClients) return;
 
-    // mineDim is 40.0, derived from gameSize / count or constant.
-    // game_bloc defines it as constant. Since we don't have it imported,
-    // we can calculate it or assume it. Since GameState stores gameSize:
-    // width * mineDim = gameSize.width
     double mineDim = 40.0;
     if (width > 0) {
       mineDim = gameSize.width / width;
@@ -343,21 +344,17 @@ class _GamePageState extends State<GamePage>
     final double targetY = row * mineDim;
     final double targetX = col * mineDim;
 
-    // Viewport dimensions
     final double viewportHeight = _vertical.position.viewportDimension;
     final double viewportWidth = _horizontal.position.viewportDimension;
 
-    // Center the target
     double scrollToY = targetY - (viewportHeight / 2) + (mineDim / 2);
     double scrollToX = targetX - (viewportWidth / 2) + (mineDim / 2);
 
-    // Clamp
     scrollToY = scrollToY.clamp(
         _vertical.position.minScrollExtent, _vertical.position.maxScrollExtent);
     scrollToX = scrollToX.clamp(_horizontal.position.minScrollExtent,
         _horizontal.position.maxScrollExtent);
 
-    // Animate
     _vertical.animateTo(scrollToY,
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     _horizontal.animateTo(scrollToX,

@@ -40,13 +40,16 @@ void main() {
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pumpAndSettle();
 
-    // Find the IconButton containing the specific icon
-    final buttonFinder =
-        find.widgetWithIcon(IconButton, Icons.smart_toy_outlined);
-    expect(buttonFinder, findsOneWidget);
+    // Open menu
+    final menuButton = find.byIcon(Icons.more_horiz);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
 
-    final IconButton button = tester.widget(buttonFinder);
-    expect(button.onPressed, isNotNull, reason: "Button should be enabled");
+    final itemFinder = find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
+    expect(itemFinder, findsOneWidget);
+
+    final PopupMenuItem<String> item = tester.widget(itemFinder);
+    expect(item.enabled, isTrue, reason: "Menu item should be enabled");
   });
 
   testWidgets("AutoSolver button is DISABLED when game is WON", (tester) async {
@@ -57,16 +60,19 @@ void main() {
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pumpAndSettle();
 
-    final buttonFinder =
-        find.widgetWithIcon(IconButton, Icons.smart_toy_outlined);
-    expect(buttonFinder, findsOneWidget);
+    // Open menu
+    final menuButton = find.byIcon(Icons.more_horiz);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
 
-    final IconButton button = tester.widget(buttonFinder);
-    expect(button.onPressed, isNull, reason: "Button should be disabled");
+    final itemFinder = find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
+    expect(itemFinder, findsOneWidget);
+
+    final PopupMenuItem<String> item = tester.widget(itemFinder);
+    expect(item.enabled, isFalse, reason: "Menu item should be disabled");
   });
 
-  testWidgets("AutoSolver button is DISABLED when game is LOST",
-      (tester) async {
+  testWidgets("AutoSolver button is enabled when game is LOST", (tester) async {
     final lostState = gameState.copyWith(status: GameStateType.lost);
     when(() => mockBloc.state).thenReturn(lostState);
     when(() => mockBloc.stream).thenAnswer((_) => Stream.value(lostState));
@@ -74,11 +80,15 @@ void main() {
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pumpAndSettle();
 
-    final buttonFinder =
-        find.widgetWithIcon(IconButton, Icons.smart_toy_outlined);
-    expect(buttonFinder, findsOneWidget);
+    final menuButton = find.byIcon(Icons.more_horiz);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
 
-    final IconButton button = tester.widget(buttonFinder);
-    expect(button.onPressed, isNull, reason: "Button should be disabled");
+    final itemFinder = find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
+    expect(itemFinder, findsOneWidget);
+
+    final PopupMenuItem<String> item = tester.widget(itemFinder);
+    expect(item.enabled, isTrue,
+        reason: "Menu item should be enabled (only disabled on WIN)");
   });
 }

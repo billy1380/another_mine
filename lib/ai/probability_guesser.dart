@@ -46,19 +46,19 @@ class ProbabilityGuesser extends SimpleGuesser {
 
     // 3. Execute moves based on priority
 
-    // Priority 1: Reveal known safe tiles
+    // Priority 1: Flag known mines
+    if (mineTiles.isNotEmpty) {
+      int idx = mineTiles[Random().nextInt(mineTiles.length)];
+      game.add(Speculate(model: game.state.tiles[idx]));
+      return;
+    }
+
+    // Priority 2: Reveal known safe tiles
     if (safeTiles.isNotEmpty) {
       // Pick one randomly to avoid bias if there are many, or just the first
       // Random is better for variety in testing
       int idx = safeTiles[Random().nextInt(safeTiles.length)];
       game.add(Probe(model: game.state.tiles[idx]));
-      return;
-    }
-
-    // Priority 2: Flag known mines
-    if (mineTiles.isNotEmpty) {
-      int idx = mineTiles[Random().nextInt(mineTiles.length)];
-      game.add(Speculate(model: game.state.tiles[idx]));
       return;
     }
 
