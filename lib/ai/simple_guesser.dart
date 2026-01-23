@@ -1,20 +1,12 @@
-import "dart:math";
-
+import "package:another_mine/ai/random_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/tile_model.dart";
 import "package:another_mine/model/tile_state_type.dart";
 
-final Random r = Random();
+class SimpleGuesser extends RandomGuesser {
+  const SimpleGuesser(super._random, super.game);
 
-int random(int scale) {
-  return (r.nextDouble() * scale).toInt();
-}
-
-class SimpleGuesser {
-  final GameBloc game;
-
-  SimpleGuesser(this.game);
-
+  @override
   void makeAMove() {
     bool clicked = false;
     int flagged, notPressed;
@@ -71,7 +63,7 @@ class SimpleGuesser {
           .toList();
       clicked = true;
 
-      game.add(Probe(model: remaining[random(remaining.length)]));
+      game.add(Probe(model: remaining[nextRandom(remaining.length)]));
     }
   }
 }

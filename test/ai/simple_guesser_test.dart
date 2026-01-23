@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
@@ -9,6 +11,8 @@ import "package:flutter_test/flutter_test.dart";
 import "package:mocktail/mocktail.dart";
 
 import "../mocks.dart";
+
+const _seed = 1;
 
 void main() {
   late MockGameBloc mockGameBloc;
@@ -26,10 +30,10 @@ void main() {
     // Ensure state is "started" or similar so isNotFinished is true
     gameState = gameState.copyWith(status: GameStateType.started);
 
-    guesser = SimpleGuesser(mockGameBloc);
+    guesser = SimpleGuesser(Random(_seed), mockGameBloc);
 
     // We need to return the *current* state when accessed.
-    // By using a closure, we return the current value of the variable `gameState`
+
     when(() => mockGameBloc.state).thenAnswer((_) => gameState);
   });
 

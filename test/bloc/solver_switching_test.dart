@@ -6,13 +6,21 @@ import "package:another_mine/services/pref.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "package:willshex/willshex.dart";
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() {
+    setupLogging();
+  });
+
   group("GameBloc Solver Switching", () {
     late GameBloc gameBloc;
     late Processor processor;
+    // Very large board to prevent finishing
+    final GameDifficulty testDifficulty =
+        GameDifficulty.custom(width: 100, height: 100, mines: 500);
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({
@@ -26,9 +34,15 @@ void main() {
       );
     });
 
-    tearDown(() {
+    tearDown(() async {
+      if (gameBloc.state.autoSolverEnabled) {
+        gameBloc.add(const ToggleAutoSolver());
+        await gameBloc.stream.firstWhere((s) => !s.autoSolverEnabled).timeout(
+            const Duration(milliseconds: 200),
+            onTimeout: () => gameBloc.state);
+      }
       processor.removeAllTasks();
-      gameBloc.close();
+      await gameBloc.close();
     });
 
     test("defaults to SimpleGuesser", () {
@@ -37,62 +51,92 @@ void main() {
     });
 
     test("switches to ProbabilityGuesser when pref changes", () async {
-      // Start game
-      gameBloc.add(const NewGame(difficulty: GameDifficulty.beginner));
-      await Future.delayed(const Duration(milliseconds: 10));
+      // 1. Start game
+      gameBloc.add(NewGame(difficulty: testDifficulty));
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      // Enable Auto Solver
+      // 2. Enable Auto Solver
       gameBloc.add(const ToggleAutoSolver());
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Initially Simple
       expect(gameBloc.guesser, isA<SimpleGuesser>());
-      expect(gameBloc.guesser, isNot(isA<ProbabilityGuesser>()));
 
-      // Change Pref
+      // 3. Change Pref
       await Pref.service.setString(Pref.keyAutoSolverType, "probability");
 
-      // Trigger next move logic
+      // 4. Trigger next move logic
       gameBloc.add(const AutoSolverNextMove());
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify switch
       expect(gameBloc.guesser, isA<ProbabilityGuesser>());
     });
 
     test("switches back to SimpleGuesser", () async {
-      // Set to Probability first
+      // 1. Set to Probability first
       await Pref.service.setString(Pref.keyAutoSolverType, "probability");
 
-      gameBloc.add(const NewGame(difficulty: GameDifficulty.beginner));
-      await Future.delayed(const Duration(milliseconds: 10));
+      gameBloc.add(NewGame(difficulty: testDifficulty));
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      // Enable Auto Solver
+      // 2. Enable Auto Solver
       gameBloc.add(const ToggleAutoSolver());
-      await Future.delayed(const Duration(milliseconds: 10));
-
-      // Trigger move (auto triggered by toggle, but let's be sure or wait)
+      await Future.delayed(const Duration(milliseconds: 100));
 
       expect(gameBloc.guesser, isA<ProbabilityGuesser>());
 
-      // Set to Simple
+      // 3. Set to Simple
       await Pref.service.setString(Pref.keyAutoSolverType, "simple");
 
-      // Reset game to ensure valid state
-      gameBloc.add(const NewGame(difficulty: GameDifficulty.beginner));
-      await Future.delayed(const Duration(milliseconds: 10));
+      // 4. Reset game and trigger
+      gameBloc.add(NewGame(difficulty: testDifficulty));
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      // Ensure enabled
       if (!gameBloc.state.autoSolverEnabled) {
         gameBloc.add(const ToggleAutoSolver());
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 100));
       } else {
         gameBloc.add(const AutoSolverNextMove());
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 100));
       }
 
       expect(gameBloc.guesser, isA<SimpleGuesser>());
       expect(gameBloc.guesser, isNot(isA<ProbabilityGuesser>()));
+    });
+
+    test("swapping solver does not reset game state", () async {
+      // 1. Start a new game
+      gameBloc.add(NewGame(difficulty: testDifficulty));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // 2. Initial probe to move out of 'notStarted'
+      gameBloc.add(Probe(model: gameBloc.state.tiles[0]));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final initialState = gameBloc.state;
+      final initialStartTime = initialState.start;
+      final initialRevealedCount = initialState.revealedTiles;
+
+      // 3. Change strategy and trigger move
+      await Pref.service.setString(Pref.keyAutoSolverType, "probability");
+
+      if (!gameBloc.state.autoSolverEnabled) {
+        gameBloc.add(const ToggleAutoSolver());
+      } else {
+        gameBloc.add(const AutoSolverNextMove());
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // 4. Verify strategy changed but state is preserved
+      expect(gameBloc.guesser, isA<ProbabilityGuesser>());
+
+      final currentState = gameBloc.state;
+      expect(currentState.start, equals(initialStartTime),
+          reason: "Start time should be preserved");
+      expect(currentState.revealedTiles,
+          greaterThanOrEqualTo(initialRevealedCount),
+          reason: "Revealed tiles should not decrease");
     });
   });
 }

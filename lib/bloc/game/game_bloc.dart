@@ -1,8 +1,12 @@
 import "dart:async";
+import "dart:math";
 
+import "package:another_mine/ai/guesser.dart";
 import "package:another_mine/ai/probability_guesser.dart";
 import "package:another_mine/ai/simple_guesser.dart";
+import "package:another_mine/logic/game_builder.dart";
 import "package:another_mine/logic/probability_calculator.dart";
+import "package:another_mine/logic/random_game_builder.dart";
 import "package:another_mine/model/auto_solver_type.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
@@ -22,19 +26,26 @@ const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 const double gameTopBarHeight = 100;
 const double mineDim = 40;
 const int defaultLostGameAutoSolverPause = 2;
+Random defaultRandom = Random();
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   static final Logger _log = Logger("GameBloc");
 
-  late SimpleGuesser guesser;
+  late Guesser guesser;
   final Processor processor;
   final int lostGamePause;
+  final GameBuilder gameBuilder;
 
   GameBloc({
     required this.processor,
+    GameBuilder? gameBuilder,
     this.lostGamePause = defaultLostGameAutoSolverPause,
-  }) : super(GameState.initial(
-            GameDifficulty.beginner, defaultBackgroundColour)) {
+  })  : gameBuilder = gameBuilder ?? RandomGameBuilder(),
+        super(GameState.initial(
+          GameDifficulty.beginner,
+          defaultBackgroundColour,
+          gameBuilder ?? RandomGameBuilder(),
+        )) {
     on<RevealAll>(_revealAll);
     on<MightPlay>(_mightPlay);
     on<DonePlaying>(_donePlaying);
@@ -50,7 +61,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<PauseGame>(_pauseGame);
     on<ResumeGame>(_resumeGame);
 
-    guesser = SimpleGuesser(this);
+    guesser = SimpleGuesser(defaultRandom, this);
   }
 
   Future<void> _pauseAutoSolver(
@@ -118,11 +129,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         if (Pref.service.autoSolverType == AutoSolverType.probability) {
           if (guesser is! ProbabilityGuesser) {
-            guesser = ProbabilityGuesser(this);
+            guesser = ProbabilityGuesser(defaultRandom, this);
           }
         } else {
           if (guesser is ProbabilityGuesser) {
-            guesser = SimpleGuesser(this);
+            guesser = SimpleGuesser(defaultRandom, this);
           }
         }
 
@@ -146,6 +157,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(GameState.initial(
       difficulty,
       Color(colourValue),
+      gameBuilder,
     ).copyWith(
       autoSolverEnabled: state.autoSolverEnabled,
     ));
@@ -371,7 +383,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
     }
 
-    GameState._updateMineCountAndNeighbours(state.difficulty, state.tiles);
+    GameBuilder.updateMineCountAndNeighbours(state.difficulty, state.tiles);
   }
 
   Future<void> _pauseGame(PauseGame event, Emitter<GameState> emit) async {
@@ -424,4 +436,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state.autoSolverEnabled) return;
     emit(state.copyWith(isFocusMode: !state.isFocusMode));
   }
+}
+
+extension AutoSolverTypeEx on AutoSolverType {
+  Guesser newGuesser(GameBloc game, Random random) => switch (this) {
+        AutoSolverType.simple => SimpleGuesser(random, game),
+        AutoSolverType.probability => ProbabilityGuesser(random, game),
+      };
 }
