@@ -4,20 +4,21 @@ import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/model/tile_state_type.dart";
 import "package:another_mine/services/pref.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
-import "../mocks.dart";
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group("AutoSolver Restart Test", () {
     late GameBloc gameBloc;
-    late FakeProcessor processor;
+    late Processor processor;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       await Pref.service.init("test_prefix");
-      processor = FakeProcessor();
+      processor = Processor();
+      Scheduler.shared.period = 0;
       gameBloc = GameBloc(
         processor: processor,
         lostGamePause: 0,

@@ -1,7 +1,9 @@
 import "dart:async";
 
+import "package:another_mine/ai/probability_guesser.dart";
 import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/logic/probability_calculator.dart";
+import "package:another_mine/model/auto_solver_type.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/model/tile_model.dart";
@@ -113,6 +115,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         processor.removeAllTasks();
 
         _log.info("Auto solver is managing next move");
+
+        if (Pref.service.autoSolverType == AutoSolverType.probability) {
+          if (guesser is! ProbabilityGuesser) {
+            guesser = ProbabilityGuesser(this);
+          }
+        } else {
+          if (guesser is ProbabilityGuesser) {
+            guesser = SimpleGuesser(this);
+          }
+        }
 
         processor.addTask(
             ProcessRunnables.single("guesser move", guesser.makeAMove));

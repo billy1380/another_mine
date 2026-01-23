@@ -1,3 +1,4 @@
+import "package:another_mine/model/auto_solver_type.dart";
 import "package:another_mine/services/pref.dart";
 import "package:flutter/material.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
@@ -22,6 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late String _defaultCountry;
   late bool _customBgEnabled;
   int? _customBgColor;
+  late AutoSolverType _autoSolverType;
 
   final List<String> _countries = [
     "United Kingdom",
@@ -52,6 +54,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _defaultCountry = Pref.service.defaultCountry;
       _customBgEnabled = Pref.service.customBgEnabled;
       _customBgColor = Pref.service.customBgColor;
+      _autoSolverType = Pref.service.autoSolverType;
     });
   }
 
@@ -79,6 +82,27 @@ class _SettingsPageState extends State<SettingsPage> {
               });
               await Pref.service.setBool(Pref.keyAnimate, value);
             },
+          ),
+          ListTile(
+            title: const Text("Auto Solver Strategy"),
+            subtitle: Text(_autoSolverType.description),
+            trailing: DropdownButton<AutoSolverType>(
+              value: _autoSolverType,
+              onChanged: (AutoSolverType? value) async {
+                if (value != null) {
+                  setState(() {
+                    _autoSolverType = value;
+                  });
+                  await Pref.service.setString(
+                    Pref.keyAutoSolverType,
+                    value.name,
+                  );
+                }
+              },
+              items: AutoSolverType.values
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.title)))
+                  .toList(),
+            ),
           ),
           const Divider(),
           ListTile(

@@ -7,8 +7,6 @@ import "package:flutter_test/flutter_test.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
-import "../mocks.dart";
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -20,7 +18,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       // Initialize Pref service to avoid LateInitializationError
       await Pref.service.init("test_prefix");
-      processor = FakeProcessor();
+      processor = Processor();
+      Scheduler.shared.period = 0;
       gameBloc = GameBloc(
         processor: processor,
       );

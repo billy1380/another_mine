@@ -1,3 +1,4 @@
+import "package:another_mine/model/auto_solver_type.dart";
 import "package:logging/logging.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -13,6 +14,7 @@ class Pref {
   static const String keyCustomBgEnabled = "customBackgroundColourEnabled";
   static const String keyCustomBgColor = "customBackgroundColour";
   static const String keyAutoSolverSettingName = "autoSolver";
+  static const String keyAutoSolverType = "autoSolverType";
 
   static Pref? _one;
 
@@ -76,6 +78,10 @@ class Pref {
   bool get customBgEnabled => getBool(keyCustomBgEnabled) ?? false;
   int? get customBgColor => getInt(keyCustomBgColor);
   bool get autoSolverEnabled => getBool(keyAutoSolverSettingName) ?? false;
+  AutoSolverType get autoSolverType => AutoSolverType.values.firstWhere(
+        (e) => e.name == getString(keyAutoSolverType),
+        orElse: () => AutoSolverType.simple,
+      );
 
   String _key(String name) => "$_prefix$name";
 }

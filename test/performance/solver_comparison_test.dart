@@ -3,8 +3,6 @@ library;
 
 import "dart:async";
 
-import "package:another_mine/ai/probability_guesser.dart";
-import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
@@ -33,9 +31,8 @@ void main() {
       processor: processor,
       lostGamePause: 0,
     );
-    if (useProbability) {
-      bloc.guesser = ProbabilityGuesser(bloc);
-    }
+    await Pref.service.setString(
+        Pref.keyAutoSolverType, useProbability ? "probability" : "simple");
 
     // Start game
     bloc.add(NewGame(difficulty: difficulty));

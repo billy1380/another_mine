@@ -10,6 +10,8 @@ class ProbabilityGuesser extends SimpleGuesser {
 
   @override
   void makeAMove() {
+    if (game.state.isFinished) return;
+
     // 1. Calculate probabilities for all tiles
     List<double> probabilities = ProbabilityCalculator.calculate(game.state);
 
