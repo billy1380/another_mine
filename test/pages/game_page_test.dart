@@ -45,7 +45,8 @@ void main() {
     await tester.tap(menuButton);
     await tester.pumpAndSettle();
 
-    final itemFinder = find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
+    final itemFinder =
+        find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
     expect(itemFinder, findsOneWidget);
 
     final PopupMenuItem<String> item = tester.widget(itemFinder);
@@ -65,7 +66,8 @@ void main() {
     await tester.tap(menuButton);
     await tester.pumpAndSettle();
 
-    final itemFinder = find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
+    final itemFinder =
+        find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
     expect(itemFinder, findsOneWidget);
 
     final PopupMenuItem<String> item = tester.widget(itemFinder);
@@ -84,7 +86,8 @@ void main() {
     await tester.tap(menuButton);
     await tester.pumpAndSettle();
 
-    final itemFinder = find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
+    final itemFinder =
+        find.widgetWithText(PopupMenuItem<String>, "Auto Solver");
     expect(itemFinder, findsOneWidget);
 
     final PopupMenuItem<String> item = tester.widget(itemFinder);

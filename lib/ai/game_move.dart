@@ -1,3 +1,5 @@
+import "package:another_mine/ai/interaction_type.dart";
+
 class GameMove {
   final int x, y;
   final InteractionType type;
@@ -7,10 +9,4 @@ class GameMove {
     this.y = -1,
     this.type = InteractionType.none,
   });
-}
-
-enum InteractionType {
-  none,
-  probe,
-  speculate,
 }

@@ -2,6 +2,7 @@ import "dart:math";
 
 import "package:another_mine/ai/game_move.dart";
 import "package:another_mine/ai/guesser.dart";
+import "package:another_mine/ai/interaction_type.dart";
 import "package:another_mine/ai/probability_guesser.dart";
 import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/logic/game_builder.dart";

@@ -149,10 +149,8 @@ class ProbabilityCalculator {
     }
   }
 
-  static void _calculateGlobalProbabilities(
-      List<TileModel> tiles,
-      GameDifficulty difficulty,
-      List<double> probabilities) {
+  static void _calculateGlobalProbabilities(List<TileModel> tiles,
+      GameDifficulty difficulty, List<double> probabilities) {
     double solvedExpectedMines = 0.0;
     int floatingCount = 0;
     List<int> floatingIndices = [];

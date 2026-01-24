@@ -1,4 +1,5 @@
 import "package:another_mine/ai/game_move.dart";
+import "package:another_mine/ai/interaction_type.dart";
 import "package:another_mine/ai/random_guesser.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
@@ -16,9 +17,8 @@ class SimpleGuesser extends RandomGuesser {
   ) {
     int flagged, notPressed;
 
-    List<TileModel> numbers = tiles
-        .where((t) => t.state.value > 0 && t.state.value <= 8)
-        .toList();
+    List<TileModel> numbers =
+        tiles.where((t) => t.state.value > 0 && t.state.value <= 8).toList();
 
     for (TileModel tile in numbers) {
       flagged = 0;
@@ -65,9 +65,8 @@ class SimpleGuesser extends RandomGuesser {
     }
 
     if (status != GameStateType.won && status != GameStateType.lost) {
-      List<TileModel> remaining = tiles
-          .where((t) => t.state == TileStateType.notPressed)
-          .toList();
+      List<TileModel> remaining =
+          tiles.where((t) => t.state == TileStateType.notPressed).toList();
 
       if (remaining.isNotEmpty) {
         TileModel tile = remaining[nextRandom(remaining.length)];

@@ -1,6 +1,6 @@
 import "dart:math";
 
-import "package:another_mine/ai/game_move.dart";
+import "package:another_mine/ai/interaction_type.dart";
 import "package:another_mine/ai/probability_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/logic/pattern_game_builder.dart";
