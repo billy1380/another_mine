@@ -1,14 +1,12 @@
+import "package:another_mine/bloc/startup/startup_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/pages/game_page.dart";
-import "package:another_mine/services/pref.dart";
-import "package:flutter/foundation.dart";
+import "package:another_mine/services/provider.dart";
 import "package:flutter/material.dart";
-import "package:flutter/scheduler.dart";
-import "package:flutter/services.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
-import "package:willshex/willshex.dart";
 
-class StartupPage extends StatelessWidget {
+class StartupPage extends StatefulWidget {
   static const String routerPath = "/startup";
 
   static GoRouterWidgetBuilder builder = (context, state) => StartupPage._(
@@ -22,31 +20,30 @@ class StartupPage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-        future: _init(),
-        initialData: null,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            SchedulerBinding.instance.addPostFrameCallback((timeStamp) =>
-                GoRouter.of(context)
-                    .go(from ?? GamePage.buildRoute(GameDifficulty.beginner)));
-          }
+  State<StartupPage> createState() => _StartupPageState();
+}
 
-          return const Center(child: CircularProgressIndicator());
-        },
-      ),
-    );
+class _StartupPageState extends State<StartupPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Trigger initialization if not already done
+    context.read<StartupBloc>().add(const InitializeApp());
   }
 
-  Future<bool> _init() async {
-    setupLogging();
-
-    if (kIsWeb) {
-      await BrowserContextMenu.disableContextMenu();
-    }
-
-    return await Pref.service.init("another_mine_");
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<StartupBloc, StartupState>(
+      listener: (context, state) {
+        if (state.status == StartupStatus.complete) {
+          GameDifficulty difficulty = Provider.pref.difficulty;
+          GoRouter.of(context)
+              .go(widget.from ?? GamePage.buildRoute(difficulty));
+        }
+      },
+      child: const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+    );
   }
 }

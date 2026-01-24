@@ -1,5 +1,6 @@
 import "package:another_mine/model/auto_solver_type.dart";
 import "package:another_mine/services/pref.dart";
+import "package:another_mine/services/provider.dart";
 import "package:flutter/material.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
 import "package:go_router/go_router.dart";
@@ -48,13 +49,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _loadPreferences() {
     setState(() {
-      _animate = Pref.service.animate;
-      _scoresRetained = Pref.service.scoresRetained;
-      _remoteScoresEnabled = Pref.service.remoteScoresEnabled;
-      _defaultCountry = Pref.service.defaultCountry;
-      _customBgEnabled = Pref.service.customBgEnabled;
-      _customBgColor = Pref.service.customBgColor;
-      _autoSolverType = Pref.service.autoSolverType;
+      _animate = Provider.pref.animate;
+      _scoresRetained = Provider.pref.scoresRetained;
+      _remoteScoresEnabled = Provider.pref.remoteScoresEnabled;
+      _defaultCountry = Provider.pref.defaultCountry;
+      _customBgEnabled = Provider.pref.customBgEnabled;
+      _customBgColor = Provider.pref.customBgColor;
+      _autoSolverType = Provider.pref.autoSolverType;
     });
   }
 
@@ -80,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _animate = value;
               });
-              await Pref.service.setBool(Pref.keyAnimate, value);
+              await Provider.pref.setBool(Pref.keyAnimate, value);
             },
           ),
           ListTile(
@@ -93,7 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   setState(() {
                     _autoSolverType = value;
                   });
-                  await Pref.service.setString(
+                  await Provider.pref.setString(
                     Pref.keyAutoSolverType,
                     value.name,
                   );
@@ -126,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   setState(() {
                     _scoresRetained = value.round();
                   });
-                  await Pref.service
+                  await Provider.pref
                       .setInt(Pref.keyScoresRetained, _scoresRetained);
                 },
               ),
@@ -140,7 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _remoteScoresEnabled = value;
               });
-              await Pref.service.setBool(Pref.keyRemoteScoresEnabled, value);
+              await Provider.pref.setBool(Pref.keyRemoteScoresEnabled, value);
             },
           ),
           ListTile(
@@ -157,7 +158,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         setState(() {
                           _defaultCountry = value;
                         });
-                        await Pref.service
+                        await Provider.pref
                             .setString(Pref.keyDefaultCountry, value);
                       }
                     }
@@ -185,7 +186,7 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _customBgEnabled = value;
               });
-              await Pref.service.setBool(Pref.keyCustomBgEnabled, value);
+              await Provider.pref.setBool(Pref.keyCustomBgEnabled, value);
             },
           ),
           if (_customBgEnabled)
@@ -238,7 +239,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   setState(() {
                     _customBgColor = color.toARGB32();
                   });
-                  await Pref.service
+                  await Provider.pref
                       .setInt(Pref.keyCustomBgColor, color.toARGB32());
                 }
               },

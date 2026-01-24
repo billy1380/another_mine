@@ -3,10 +3,12 @@ import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/services/pref.dart";
+import "package:another_mine/services/provider.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:willshex/willshex.dart";
+import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,9 @@ void main() {
       SharedPreferences.setMockInitialValues({
         "test_autoSolver": true,
       });
-      await Pref.service.init("test_");
+      ServiceDiscovery.instance.register(Pref("test_"));
+      await ServiceDiscovery.instance.init();
+
       processor = Processor();
       Scheduler.shared.period = 0;
       gameBloc = GameBloc(
@@ -63,7 +67,7 @@ void main() {
       expect(gameBloc.guesser, isA<SimpleGuesser>());
 
       // 3. Change Pref
-      await Pref.service.setString(Pref.keyAutoSolverType, "probability");
+      await Provider.pref.setString(Pref.keyAutoSolverType, "probability");
 
       // 4. Trigger next move logic
       gameBloc.add(const AutoSolverNextMove());
@@ -75,7 +79,7 @@ void main() {
 
     test("switches back to SimpleGuesser", () async {
       // 1. Set to Probability first
-      await Pref.service.setString(Pref.keyAutoSolverType, "probability");
+      await Provider.pref.setString(Pref.keyAutoSolverType, "probability");
 
       gameBloc.add(NewGame(difficulty: testDifficulty));
       await Future.delayed(const Duration(milliseconds: 100));
@@ -87,7 +91,7 @@ void main() {
       expect(gameBloc.guesser, isA<ProbabilityGuesser>());
 
       // 3. Set to Simple
-      await Pref.service.setString(Pref.keyAutoSolverType, "simple");
+      await Provider.pref.setString(Pref.keyAutoSolverType, "simple");
 
       // 4. Reset game and trigger
       gameBloc.add(NewGame(difficulty: testDifficulty));
@@ -119,7 +123,7 @@ void main() {
       final initialRevealedCount = initialState.revealedTiles;
 
       // 3. Change strategy and trigger move
-      await Pref.service.setString(Pref.keyAutoSolverType, "probability");
+      await Provider.pref.setString(Pref.keyAutoSolverType, "probability");
 
       if (!gameBloc.state.autoSolverEnabled) {
         gameBloc.add(const ToggleAutoSolver());

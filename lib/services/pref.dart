@@ -1,10 +1,15 @@
+import "dart:async";
+
 import "package:another_mine/model/auto_solver_type.dart";
+import "package:another_mine/model/game_difficulty.dart";
 import "package:logging/logging.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
-class Pref {
+class Pref extends BasicService {
   static final Logger _log = Logger("Perf");
-  late final String _prefix;
+
+  final String _prefix;
   late final SharedPreferences _sharedPreferences;
 
   static const String keyAnimate = "animate";
@@ -16,22 +21,13 @@ class Pref {
   static const String keyAutoSolverSettingName = "autoSolver";
   static const String keyAutoSolverType = "autoSolverType";
 
-  static Pref? _one;
+  Pref(this._prefix);
 
-  static Pref get service => _one ??= Pref();
-  bool _init = false;
-  bool get isInitialized => _init;
+  @override
+  Future<void> onInit() async {
+    _log.info("Created Pref service with prefix: $_prefix.");
 
-  Future<bool> init(String prefix) async {
-    if (_init) {
-      _log.warning("Attempted to reinit pref service; not possible: skipping!");
-    } else {
-      _sharedPreferences = await SharedPreferences.getInstance();
-      _prefix = prefix;
-      _init = true;
-    }
-
-    return _init;
+    _sharedPreferences = await SharedPreferences.getInstance();
   }
 
   String? getString(String name) => _sharedPreferences.getString(_key(name));
@@ -83,5 +79,20 @@ class Pref {
         orElse: () => AutoSolverType.simple,
       );
 
+  GameDifficulty get difficulty {
+    int width = getInt("width") ?? GameDifficulty.beginner.width;
+    int height = getInt("height") ?? GameDifficulty.beginner.height;
+    int mines = getInt("mines") ?? GameDifficulty.beginner.mines;
+
+    return GameDifficulty.custom(
+      width: width,
+      height: height,
+      mines: mines,
+    );
+  }
+
   String _key(String name) => "$_prefix$name";
+
+  @override
+  void onReset() {}
 }

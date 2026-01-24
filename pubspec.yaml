@@ -23,6 +23,8 @@ dependencies:
     path: ../main_thread_processor
   collection: ^1.19.1
   flutter_colorpicker: ^1.1.0
+  willshex_dart_service_discovery:
+    path: ../willshex_dart_service_discovery
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

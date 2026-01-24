@@ -6,6 +6,7 @@ import "package:another_mine/services/pref.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,10 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      await Pref.service.init("test_prefix");
+
+      ServiceDiscovery.instance.register(Pref("test_prefix"));
+      await ServiceDiscovery.instance.init();
+
       processor = Processor();
       Scheduler.shared.period = 0;
       gameBloc = GameBloc(
@@ -25,8 +29,9 @@ void main() {
       );
     });
 
-    tearDown(() {
-      gameBloc.close();
+    tearDown(() async {
+      processor.removeAllTasks();
+      await gameBloc.close();
     });
 
     test("AutoSolver restarts game after loss", () async {
@@ -60,7 +65,7 @@ void main() {
       gameBloc.add(NewGame(
           difficulty: GameDifficulty.custom(width: 20, height: 20, mines: 1)));
 
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 1000));
       expect(gameBloc.state.status, GameStateType.won,
           reason: "Game should be won");
 

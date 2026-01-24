@@ -14,6 +14,7 @@ import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/model/tile_model.dart";
 import "package:another_mine/model/tile_state_type.dart";
 import "package:another_mine/services/pref.dart";
+import "package:another_mine/services/provider.dart";
 import "package:bloc/bloc.dart";
 import "package:equatable/equatable.dart";
 import "package:flutter/material.dart";
@@ -36,6 +37,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final Processor processor;
   final int lostGamePause;
   final GameBuilder gameBuilder;
+  bool _isClosing = false;
 
   GameBloc({
     required this.processor,
@@ -43,7 +45,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     this.lostGamePause = defaultLostGameAutoSolverPause,
   })  : gameBuilder = gameBuilder ?? RandomGameBuilder(),
         super(GameState.initial(
-          GameDifficulty.beginner,
+          GameDifficulty.none,
           defaultBackgroundColour,
           gameBuilder ?? RandomGameBuilder(),
         )) {
@@ -62,7 +64,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<PauseGame>(_pauseGame);
     on<ResumeGame>(_resumeGame);
 
-    guesser = Pref.service.autoSolverType.newGuesser(defaultRandom);
+    guesser = Provider.pref.autoSolverType.newGuesser(defaultRandom);
+  }
+
+  @override
+  Future<void> close() async {
+    _isClosing = true;
+    await super.close();
   }
 
   Future<void> _pauseAutoSolver(
@@ -117,9 +125,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         }
 
         if (!state.autoSolverPaused) {
-          add(NewGame(
-            difficulty: state.difficulty,
-          ));
+          if (!_isClosing) {
+            add(NewGame(
+              difficulty: state.difficulty,
+            ));
+          }
         }
       }
     } else {
@@ -128,7 +138,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         _log.info("Auto solver is managing next move");
 
-        if (Pref.service.autoSolverType == AutoSolverType.probability) {
+        if (Provider.pref.autoSolverType == AutoSolverType.probability) {
           if (guesser is! ProbabilityGuesser) {
             guesser = ProbabilityGuesser(defaultRandom);
           }
@@ -167,12 +177,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameDifficulty difficulty = event.difficulty;
     _log.info("Starting new game: ${difficulty.name}");
 
-    await Pref.service.setInt("width", difficulty.width);
-    await Pref.service.setInt("height", difficulty.height);
-    await Pref.service.setInt("mines", difficulty.mines);
+    await Provider.pref.setInt("width", difficulty.width);
+    await Provider.pref.setInt("height", difficulty.height);
+    await Provider.pref.setInt("mines", difficulty.mines);
 
     int colourValue =
-        Pref.service.customBgColor ?? defaultBackgroundColour.toARGB32();
+        Provider.pref.customBgColor ?? defaultBackgroundColour.toARGB32();
 
     emit(GameState.initial(
       difficulty,
@@ -199,7 +209,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     bool status = !state.autoSolverEnabled;
     _log.info("Toggling auto solver: $status");
 
-    await Pref.service.setBool(Pref.keyAutoSolverSettingName, status);
+    await Provider.pref.setBool(Pref.keyAutoSolverSettingName, status);
 
     emit(state.copyWith(
       autoSolverEnabled: status,
@@ -226,7 +236,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       emit(finalState);
 
       if (state.autoSolverEnabled) {
-        add(const AutoSolverNextMove());
+        if (!_isClosing) add(const AutoSolverNextMove());
       }
     }
   }
@@ -354,7 +364,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
 
       if (state.autoSolverEnabled) {
-        add(const AutoSolverNextMove());
+        if (!_isClosing) add(const AutoSolverNextMove());
       }
     }
   }

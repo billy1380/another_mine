@@ -8,11 +8,13 @@ import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/services/pref.dart";
+import "package:another_mine/services/provider.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:logging/logging.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:willshex/willshex.dart";
+import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
 void main() {
   final Logger log = Logger("SolverComparison");
@@ -23,7 +25,9 @@ void main() {
     SharedPreferences.setMockInitialValues({
       "test_autoSolver": true,
     });
-    await Pref.service.init("test_");
+
+    ServiceDiscovery.instance.register(Pref("test_"));
+    await ServiceDiscovery.instance.init();
   });
 
   Future<GameResult> runGame(bool useProbability, Processor processor,
@@ -32,7 +36,7 @@ void main() {
       processor: processor,
       lostGamePause: 0,
     );
-    await Pref.service.setString(
+    await Provider.pref.setString(
         Pref.keyAutoSolverType, useProbability ? "probability" : "simple");
 
     // Start game

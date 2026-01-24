@@ -4,7 +4,7 @@ import "package:another_mine/pages/parts/custom_game_body.dart";
 import "package:another_mine/pages/parts/custom_game_title.dart";
 import "package:another_mine/pages/scores_page.dart";
 import "package:another_mine/pages/settings_page.dart";
-import "package:another_mine/services/pref.dart";
+import "package:another_mine/services/provider.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 import "package:willshex/willshex.dart";
@@ -63,10 +63,10 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _showCustomDifficultyDialog(BuildContext context) async {
-    int width = Pref.service.getInt("width") ?? GameDifficulty.beginner.width;
-    int height =
-        Pref.service.getInt("height") ?? GameDifficulty.beginner.height;
-    int mines = Pref.service.getInt("mines") ?? GameDifficulty.beginner.mines;
+    final difficulty = Provider.pref.difficulty;
+    int width = difficulty.width;
+    int height = difficulty.height;
+    int mines = difficulty.mines;
     int maxMines = (width * height) - 9;
 
     await showDialog(
@@ -123,9 +123,9 @@ class AppDrawer extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    Pref.service.setInt("width", width);
-                    Pref.service.setInt("height", height);
-                    Pref.service.setInt("mines", mines);
+                    Provider.pref.setInt("width", width);
+                    Provider.pref.setInt("height", height);
+                    Provider.pref.setInt("mines", mines);
 
                     if (context.mounted) {
                       Navigator.pop(context);

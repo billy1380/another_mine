@@ -28,6 +28,13 @@ class GameDifficulty {
     required this.name,
   });
 
+  static const GameDifficulty none = GameDifficulty(
+    width: 0,
+    height: 0,
+    mines: 0,
+    name: "none",
+  );
+
   static const List<GameDifficulty> values = [beginner, intermediate, expert];
 
   static const GameDifficulty beginner = GameDifficulty(

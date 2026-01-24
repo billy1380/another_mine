@@ -20,6 +20,10 @@ class Minefield extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<GameBloc, GameState>(
       builder: (context, state) {
+        if (state.difficulty.width <= 0) {
+          return const SizedBox();
+        }
+
         final gridView = GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {

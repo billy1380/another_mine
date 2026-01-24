@@ -6,6 +6,7 @@ import "package:another_mine/services/pref.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,9 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       // Initialize Pref service to avoid LateInitializationError
-      await Pref.service.init("test_prefix");
+      ServiceDiscovery.instance.register(Pref("test_"));
+      await ServiceDiscovery.instance.init();
+      
       processor = Processor();
       Scheduler.shared.period = 0;
       gameBloc = GameBloc(
@@ -31,7 +34,7 @@ void main() {
 
     test("initial state is correct", () {
       expect(gameBloc.state.status, GameStateType.notStarted);
-      expect(gameBloc.state.difficulty, GameDifficulty.beginner);
+      expect(gameBloc.state.difficulty, GameDifficulty.none);
     });
 
     test("Flood fill reveals entire area on 0 mines (Custom 5x5)", () async {
