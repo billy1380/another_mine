@@ -13,7 +13,6 @@ GoRouter createRouter(StartupBloc startupBloc) {
   return GoRouter(
     initialLocation: StartupPage.routerPath,
     observers: [routeObserver],
-    refreshListenable: StreamListenable(startupBloc.stream),
     routes: [
       GoRoute(
         name: "StartupPage",
@@ -59,12 +58,4 @@ GoRouter createRouter(StartupBloc startupBloc) {
       return null;
     },
   );
-}
-
-class StreamListenable extends ChangeNotifier {
-  final Stream stream;
-
-  StreamListenable(this.stream) {
-    stream.listen((_) => notifyListeners());
-  }
 }

@@ -20,7 +20,7 @@ void main() {
       // Initialize Pref service to avoid LateInitializationError
       ServiceDiscovery.instance.register(Pref("test_"));
       await ServiceDiscovery.instance.init();
-      
+
       processor = Processor();
       Scheduler.shared.period = 0;
       gameBloc = GameBloc(

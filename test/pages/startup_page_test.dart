@@ -82,10 +82,9 @@ void main() {
     );
   }
 
-  testWidgets(
-      "StartupPage dispatches InitializeApp on init", (tester) async {
+  testWidgets("StartupPage dispatches InitializeApp on init", (tester) async {
     await tester.pumpWidget(createWidget(const StartupState()));
-    
+
     verify(() => mockStartupBloc.add(const InitializeApp())).called(1);
   });
 
@@ -94,12 +93,13 @@ void main() {
       (tester) async {
     // Arrange
     when(() => pref.difficulty).thenReturn(GameDifficulty.beginner);
-    
+
     // Create a controller to emit states
     final startupController = StreamController<StartupState>.broadcast();
     addTearDown(startupController.close);
-    
-    when(() => mockStartupBloc.stream).thenAnswer((_) => startupController.stream);
+
+    when(() => mockStartupBloc.stream)
+        .thenAnswer((_) => startupController.stream);
     when(() => mockStartupBloc.state).thenReturn(const StartupState());
 
     router = GoRouter(
@@ -127,7 +127,7 @@ void main() {
         ),
       ),
     );
-    
+
     // Emit complete state
     final completeState = const StartupState(status: StartupStatus.complete);
     when(() => mockStartupBloc.state).thenReturn(completeState);
@@ -135,7 +135,7 @@ void main() {
 
     // Re-pump to trigger listener and navigation
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100)); 
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text("Game Page"), findsOneWidget);
   });
