@@ -90,6 +90,14 @@ class AppDrawer extends StatelessWidget {
                 width: width,
                 height: height,
                 mines: mines,
+                onDifficultySelected: (value) {
+                  setState(() {
+                    width = value.width;
+                    height = value.height;
+                    mines = value.mines;
+                    updateMaxMines();
+                  });
+                },
               ),
               content: CustomGameBody(
                 width: width,

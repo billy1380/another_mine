@@ -8,19 +8,21 @@ class CustomGameTitle extends StatelessWidget {
   final int width;
   final int height;
   final int mines;
+  final ValueChanged<GameDifficulty>? onDifficultySelected;
 
   const CustomGameTitle({
     super.key,
     required this.width,
     required this.height,
     required this.mines,
+    this.onDifficultySelected,
   });
 
   String get _name {
     GameDifficulty? difficulty = GameDifficulty.values
         .firstWhereOrNull((e) => e.sameAs(width, height, mines));
 
-    return StringUtils.upperCaseFirstLetter(difficulty?.name) ?? "Custom Game";
+    return StringUtils.upperCaseFirstLetter(difficulty?.name) ?? "Custom";
   }
 
   @override
@@ -36,7 +38,26 @@ class CustomGameTitle extends StatelessWidget {
     final ieMid = iFactor + ((eFactor - iFactor) * 0.5);
 
     return Row(children: [
-      Text(_name),
+      if (onDifficultySelected != null)
+        PopupMenuButton<GameDifficulty>(
+          onSelected: (value) => onDifficultySelected!(value),
+          itemBuilder: (context) => GameDifficulty.values
+              .map((e) => PopupMenuItem(
+                    value: e,
+                    child: Text(StringUtils.upperCaseFirstLetter(e.name) ??
+                        e.name.toUpperCase()),
+                  ))
+              .toList(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_name),
+              const Icon(Icons.arrow_drop_down),
+            ],
+          ),
+        )
+      else
+        Text(_name),
       const Spacer(),
       RagIndicator(
         value: currentFactor,
