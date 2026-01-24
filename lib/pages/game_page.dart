@@ -42,7 +42,10 @@ class GamePage extends StatefulWidget {
           GameDifficulty.custom(width: width, height: height, mines: mines),
     );
 
-    BlocProvider.of<GameBloc>(context).add(NewGame(difficulty: difficulty));
+    final GameBloc bloc = BlocProvider.of<GameBloc>(context);
+    if (bloc.state.difficulty != difficulty) {
+      bloc.add(NewGame(difficulty: difficulty));
+    }
 
     return GamePage(key: ValueKey(difficulty.description));
   };
