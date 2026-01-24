@@ -1,3 +1,4 @@
+@Tags(["comparison"])
 @Timeout(Duration(minutes: 15))
 library;
 
@@ -20,7 +21,7 @@ void main() {
     setupLogging();
 
     SharedPreferences.setMockInitialValues({
-      "test_autoSolver": true, // Enable auto solver in prefs
+      "test_autoSolver": true,
     });
     await Pref.service.init("test_");
   });

@@ -1,6 +1,6 @@
-import "dart:async";
 import "dart:math";
 
+import "package:another_mine/ai/game_move.dart";
 import "package:another_mine/ai/guesser.dart";
 import "package:another_mine/ai/probability_guesser.dart";
 import "package:another_mine/ai/simple_guesser.dart";
@@ -61,7 +61,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<PauseGame>(_pauseGame);
     on<ResumeGame>(_resumeGame);
 
-    guesser = SimpleGuesser(defaultRandom, this);
+    guesser = Pref.service.autoSolverType.newGuesser(defaultRandom);
   }
 
   Future<void> _pauseAutoSolver(
@@ -129,16 +129,35 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
         if (Pref.service.autoSolverType == AutoSolverType.probability) {
           if (guesser is! ProbabilityGuesser) {
-            guesser = ProbabilityGuesser(defaultRandom, this);
+            guesser = ProbabilityGuesser(defaultRandom);
           }
         } else {
           if (guesser is ProbabilityGuesser) {
-            guesser = SimpleGuesser(defaultRandom, this);
+            guesser = SimpleGuesser(defaultRandom);
           }
         }
 
-        processor.addTask(
-            ProcessRunnables.single("guesser move", guesser.makeAMove));
+        processor.addTask(ProcessRunnables.single("guesser move", () {
+          if (isClosed) return;
+          final GameMove move = guesser.makeAMove(
+            state.tiles,
+            state.difficulty,
+            state.status,
+          );
+          if (isClosed) return;
+          switch (move.type) {
+            case InteractionType.probe:
+              final tile = state.tileAt(move.x, move.y);
+              if (tile != null) add(Probe(model: tile));
+              break;
+            case InteractionType.speculate:
+              final tile = state.tileAt(move.x, move.y);
+              if (tile != null) add(Speculate(model: tile));
+              break;
+            case InteractionType.none:
+              break;
+          }
+        }));
       }
     }
   }
@@ -419,7 +438,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   List<double> _calculateProbabilities(GameState state) {
-    return ProbabilityCalculator.calculate(state);
+    return ProbabilityCalculator.calculate(
+      state.tiles,
+      state.difficulty,
+      state.status,
+    );
   }
 
   void _toggleProbabilities(
@@ -439,8 +462,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 }
 
 extension AutoSolverTypeEx on AutoSolverType {
-  Guesser newGuesser(GameBloc game, Random random) => switch (this) {
-        AutoSolverType.simple => SimpleGuesser(random, game),
-        AutoSolverType.probability => ProbabilityGuesser(random, game),
+  Guesser newGuesser(Random random) => switch (this) {
+        AutoSolverType.simple => SimpleGuesser(random),
+        AutoSolverType.probability => ProbabilityGuesser(random),
       };
 }

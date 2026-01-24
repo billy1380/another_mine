@@ -20,6 +20,22 @@ Another Mine is a fully featured implementation of the classic Minesweeper game.
 -   **Responsive Design**: scales to fit different screen sizes.
 -   **Game State Management**: Robust state handling using `flutter_bloc`.
 
+## AI Solvers
+
+The game includes two auto-solver strategies located in `lib/ai/`:
+
+### Simple Guesser
+A heuristic-based solver that uses standard Minesweeper logic rules. It scans the board for revealed numbers and applies two primary tactics:
+1.  **Flagging**: If the number of unrevealed neighbors equals the tile's value (minus existing flags), all unrevealed neighbors are mines.
+2.  **Clearing**: If the number of flagged neighbors equals the tile's value, all other unrevealed neighbors are safe.
+If no logical moves are found, it makes a random guess.
+
+### Probability Guesser
+An advanced solver that uses constraint satisfaction and probability calculation.
+1.  **Certainty**: Prioritizes moves with 100% certainty (safe or mine) derived from global board constraints.
+2.  **Probability**: If no certain moves exist, it calculates the mine probability for every unrevealed tile and picks the safest one (lowest probability).
+This solver is significantly more effective than the Simple Guesser, especially in complex end-game situations.
+
 ## Tech Stack
 
 -   **Framework**: [Flutter](https://flutter.dev/)

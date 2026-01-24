@@ -1,5 +1,6 @@
 import "dart:math";
 
+import "package:another_mine/ai/game_move.dart";
 import "package:another_mine/ai/simple_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
@@ -27,12 +28,9 @@ void main() {
   setUp(() {
     mockGameBloc = MockGameBloc();
     gameState = GameState.initial(GameDifficulty.beginner, Colors.black);
-    // Ensure state is "started" or similar so isNotFinished is true
     gameState = gameState.copyWith(status: GameStateType.started);
 
-    guesser = SimpleGuesser(Random(_seed), mockGameBloc);
-
-    // We need to return the *current* state when accessed.
+    guesser = SimpleGuesser(Random(_seed));
 
     when(() => mockGameBloc.state).thenAnswer((_) => gameState);
   });
@@ -59,11 +57,15 @@ void main() {
       // We replace the tiles in the state
       gameState = gameState.copyWith(tiles: [center, neighbour]);
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(any(
-          that: isA<Speculate>()
-              .having((e) => e.model, "model", neighbour)))).called(1);
+      expect(move.type, InteractionType.speculate);
+      expect(move.x, 1);
+      expect(move.y, 0);
     });
 
     test("clicks remaining neighbours if flags equal tile value", () {
@@ -77,11 +79,15 @@ void main() {
 
       gameState = gameState.copyWith(tiles: [center, flagged, unrevealed]);
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(
-              any(that: isA<Probe>().having((e) => e.model, "model", center))))
-          .called(1);
+      expect(move.type, InteractionType.probe);
+      expect(move.x, 0);
+      expect(move.y, 0);
     });
 
     test("makes random move if no logical move is found", () {
@@ -89,11 +95,15 @@ void main() {
 
       gameState = gameState.copyWith(tiles: [tile]);
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(
-              any(that: isA<Probe>().having((e) => e.model, "model", tile))))
-          .called(1);
+      expect(move.type, InteractionType.probe);
+      expect(move.x, 0);
+      expect(move.y, 0);
     });
 
     test("does nothing if game is finished", () {
@@ -102,9 +112,13 @@ void main() {
       final tile = createTile(index: 0, state: TileStateType.notPressed);
       gameState = gameState.copyWith(tiles: [tile]);
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verifyNever(() => mockGameBloc.add(any()));
+      expect(move.type, InteractionType.none);
     });
   });
 }

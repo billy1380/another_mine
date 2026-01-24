@@ -1,5 +1,6 @@
 import "dart:math";
 
+import "package:another_mine/ai/game_move.dart";
 import "package:another_mine/ai/probability_guesser.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/logic/pattern_game_builder.dart";
@@ -8,35 +9,27 @@ import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/model/tile_state_type.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:mocktail/mocktail.dart";
 import "package:willshex/willshex.dart";
 
 import "../fixtures.dart";
-import "../mocks.dart";
 
 const _seed = 1;
 void main() {
-  late MockGameBloc mockGameBloc;
   late GameState gameState;
   late ProbabilityGuesser guesser;
 
   setUpAll(() {
     setupLogging();
-    registerFallbackValue(FakeProbe());
-    registerFallbackValue(FakeSpeculate());
   });
 
   setUp(() {
-    mockGameBloc = MockGameBloc();
     gameState = GameState.initial(GameDifficulty.beginner, Colors.black);
     gameState = gameState.copyWith(
       status: GameStateType.started,
       start: DateTime.now(),
     );
 
-    guesser = ProbabilityGuesser(Random(_seed), mockGameBloc);
-
-    when(() => mockGameBloc.state).thenAnswer((_) => gameState);
+    guesser = ProbabilityGuesser(Random(_seed));
   });
 
   group("ProbabilityGuesser", () {
@@ -55,11 +48,15 @@ void main() {
 
       gameState.tiles[0].state = TileStateType.revealedSafe;
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(
-              any(that: isA<Probe>().having((e) => e.model.index, "index", 1))))
-          .called(1);
+      expect(move.type, InteractionType.probe);
+      expect(move.x, 1);
+      expect(move.y, 0);
     });
 
     test("speculates (flags) tiles with 100% probability", () {
@@ -77,11 +74,15 @@ void main() {
 
       gameState.tiles[0].state = TileStateType.one;
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(any(
-              that: isA<Speculate>().having((e) => e.model.index, "index", 1))))
-          .called(1);
+      expect(move.type, InteractionType.speculate);
+      expect(move.x, 1);
+      expect(move.y, 0);
     });
 
     test("prioritizes flagging mines over revealing safe tiles", () {
@@ -102,12 +103,15 @@ void main() {
       gameState.tiles[0].state = TileStateType.one;
       gameState.tiles[2].state = TileStateType.one;
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(any(
-              that: isA<Speculate>().having((e) => e.model.index, "index", 1))))
-          .called(1);
-      verifyNever(() => mockGameBloc.add(any(that: isA<Probe>())));
+      expect(move.type, InteractionType.speculate);
+      expect(move.x, 1);
+      expect(move.y, 0);
     });
 
     test("picks tile with lowest probability when no certain move", () {
@@ -127,9 +131,15 @@ void main() {
 
       gameState.tiles[1].state = TileStateType.one;
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verify(() => mockGameBloc.add(any(that: isA<Probe>()))).called(1);
+      expect(move.type, InteractionType.probe);
+      expect(move.x == 0 || move.x == 2, isTrue);
+      expect(move.y, 0);
     });
 
     test("does nothing if game is finished", () {
@@ -141,9 +151,13 @@ void main() {
       gameState =
           gameState.copyWith(status: GameStateType.won, start: DateTime.now());
 
-      guesser.makeAMove();
+      final move = guesser.makeAMove(
+        gameState.tiles,
+        gameState.difficulty,
+        gameState.status,
+      );
 
-      verifyNever(() => mockGameBloc.add(any()));
+      expect(move.type, InteractionType.none);
     });
   });
 }

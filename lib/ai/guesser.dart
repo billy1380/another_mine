@@ -1,9 +1,14 @@
-import "package:another_mine/bloc/game/game_bloc.dart";
+import "package:another_mine/ai/game_move.dart";
+import "package:another_mine/model/game_difficulty.dart";
+import "package:another_mine/model/game_state_type.dart";
+import "package:another_mine/model/tile_model.dart";
 
 abstract class Guesser {
-  final GameBloc game;
+  const Guesser();
 
-  const Guesser(this.game);
-
-  void makeAMove();
+  GameMove makeAMove(
+    List<TileModel> tiles,
+    GameDifficulty difficulty,
+    GameStateType status,
+  );
 }

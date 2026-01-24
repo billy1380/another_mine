@@ -1,17 +1,22 @@
+import "package:another_mine/ai/game_move.dart";
 import "package:another_mine/ai/random_guesser.dart";
-import "package:another_mine/bloc/game/game_bloc.dart";
+import "package:another_mine/model/game_difficulty.dart";
+import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/model/tile_model.dart";
 import "package:another_mine/model/tile_state_type.dart";
 
 class SimpleGuesser extends RandomGuesser {
-  const SimpleGuesser(super._random, super.game);
+  const SimpleGuesser(super._random);
 
   @override
-  void makeAMove() {
-    bool clicked = false;
+  GameMove makeAMove(
+    List<TileModel> tiles,
+    GameDifficulty difficulty,
+    GameStateType status,
+  ) {
     int flagged, notPressed;
 
-    List<TileModel> numbers = game.state.tiles
+    List<TileModel> numbers = tiles
         .where((t) => t.state.value > 0 && t.state.value <= 8)
         .toList();
 
@@ -39,31 +44,41 @@ class SimpleGuesser extends RandomGuesser {
               final TileModel neighbour = tile.neighbours[i]!;
 
               if (neighbour.state != TileStateType.predictedBombCorrect) {
-                clicked = true;
-                game.add(Speculate(model: neighbour));
+                return GameMove(
+                  x: neighbour.index % difficulty.width,
+                  y: neighbour.index ~/ difficulty.width,
+                  type: InteractionType.speculate,
+                );
               }
             }
           }
-
-          break;
         }
       }
 
       if (TileStateType.from(flagged) == tile.state && notPressed > 0) {
-        clicked = true;
-        game.add(Probe(model: tile));
+        return GameMove(
+          x: tile.index % difficulty.width,
+          y: tile.index ~/ difficulty.width,
+          type: InteractionType.probe,
+        );
       }
-
-      if (clicked) break;
     }
 
-    if (game.state.isNotFinished && !clicked) {
-      List<TileModel> remaining = game.state.tiles
+    if (status != GameStateType.won && status != GameStateType.lost) {
+      List<TileModel> remaining = tiles
           .where((t) => t.state == TileStateType.notPressed)
           .toList();
-      clicked = true;
 
-      game.add(Probe(model: remaining[nextRandom(remaining.length)]));
+      if (remaining.isNotEmpty) {
+        TileModel tile = remaining[nextRandom(remaining.length)];
+        return GameMove(
+          x: tile.index % difficulty.width,
+          y: tile.index ~/ difficulty.width,
+          type: InteractionType.probe,
+        );
+      }
     }
+
+    return const GameMove(type: InteractionType.none);
   }
 }

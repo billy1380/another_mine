@@ -1,0 +1,3 @@
+tags:
+  comparison:
+    skip: "Skipped by default as these are slow comparison tests. Run with --tags=comparison to include."
