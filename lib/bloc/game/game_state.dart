@@ -19,6 +19,8 @@ final class GameState extends Equatable {
   final List<double> mineProbabilities;
 
   final int? lastInteractedIndex;
+  final int? autoSolverLookingIndex;
+  final InteractionType autoSolverLookingInteraction;
   final bool showProbability;
   final bool isFocusMode;
 
@@ -40,6 +42,8 @@ final class GameState extends Equatable {
     required this.lastActiveTime,
     required this.mineProbabilities,
     required this.lastInteractedIndex,
+    required this.autoSolverLookingIndex,
+    required this.autoSolverLookingInteraction,
     required this.showProbability,
     required this.isFocusMode,
   });
@@ -76,6 +80,8 @@ final class GameState extends Equatable {
         difficulty.mines / difficulty.area,
       ),
       lastInteractedIndex: null,
+      autoSolverLookingIndex: null,
+      autoSolverLookingInteraction: InteractionType.none,
       showProbability: false,
       isFocusMode: false,
     );
@@ -102,6 +108,8 @@ final class GameState extends Equatable {
     bool clearLastActiveTime = false,
     List<double>? mineProbabilities,
     int? lastInteractedIndex,
+    int? autoSolverLookingIndex,
+    InteractionType? autoSolverLookingInteraction,
     bool? showProbability,
     bool? isFocusMode,
   }) =>
@@ -124,6 +132,10 @@ final class GameState extends Equatable {
             clearLastActiveTime ? null : lastActiveTime ?? this.lastActiveTime,
         mineProbabilities: mineProbabilities ?? this.mineProbabilities,
         lastInteractedIndex: lastInteractedIndex ?? this.lastInteractedIndex,
+        autoSolverLookingIndex:
+            autoSolverLookingIndex ?? this.autoSolverLookingIndex,
+        autoSolverLookingInteraction:
+            autoSolverLookingInteraction ?? this.autoSolverLookingInteraction,
         showProbability: showProbability ?? this.showProbability,
         isFocusMode: isFocusMode ?? this.isFocusMode,
       );
@@ -146,6 +158,8 @@ final class GameState extends Equatable {
         lastActiveTime,
         ...mineProbabilities,
         lastInteractedIndex,
+        autoSolverLookingIndex,
+        autoSolverLookingInteraction,
         showProbability,
         isFocusMode,
       ];

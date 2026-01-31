@@ -1,4 +1,5 @@
 import "package:another_mine/bloc/game/game_bloc.dart";
+import "package:another_mine/widgets/auto_solver_highlight_overlay.dart";
 import "package:another_mine/widgets/focus_overlay.dart";
 import "package:another_mine/widgets/tile.dart";
 import "package:flutter/gestures.dart";
@@ -34,6 +35,7 @@ class Minefield extends StatelessWidget {
             children: [
               _buildGrid(state),
               if (focusIndexNotifier != null) _buildFocusOverlay(state),
+              const AutoSolverHighlightOverlay(),
             ],
           ),
         );
@@ -50,13 +52,16 @@ class Minefield extends StatelessWidget {
         crossAxisCount: state.difficulty.width,
         childAspectRatio: 1.0,
       ),
-      itemBuilder: (context, index) => Tile(
-        ValueKey(state.tiles[index].index),
-        state.tiles[index],
-        probability:
-            state.start != null ? state.mineProbabilities[index] : null,
-        showProbability: showProbabilities,
-      ),
+      itemBuilder: (context, index) {
+        final tileModel = state.tiles[index];
+        return Tile(
+          tileModel,
+          key: ValueKey(tileModel.index),
+          probability:
+              state.start != null ? state.mineProbabilities[index] : null,
+          showProbability: showProbabilities,
+        );
+      },
     );
   }
 

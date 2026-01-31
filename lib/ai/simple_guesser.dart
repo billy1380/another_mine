@@ -57,11 +57,20 @@ class SimpleGuesser extends RandomGuesser {
       }
 
       if (TileStateType.from(flagged) == tile.state && notPressed > 0) {
-        return GameMove(
-          x: tile.index % difficulty.width,
-          y: tile.index ~/ difficulty.width,
-          type: InteractionType.probe,
-        );
+        for (int i = 0; i < tile.neighbours.length; i++) {
+          if (tile.neighbours[i] != null) {
+            final TileModel neighbour = tile.neighbours[i]!;
+
+            if (neighbour.state == TileStateType.notPressed ||
+                neighbour.state == TileStateType.unsure) {
+              return GameMove(
+                x: neighbour.index % difficulty.width,
+                y: neighbour.index ~/ difficulty.width,
+                type: InteractionType.probe,
+              );
+            }
+          }
+        }
       }
     }
 

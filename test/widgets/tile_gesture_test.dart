@@ -58,7 +58,10 @@ void main() {
         MaterialApp(
           home: BlocProvider<GameBloc>.value(
             value: mockBloc,
-            child: Tile(const Key("tile_0"), tileModel),
+            child: Tile(
+              tileModel,
+              key: const Key("tile_0"),
+            ),
           ),
         ),
       );
@@ -82,7 +85,10 @@ void main() {
         MaterialApp(
           home: BlocProvider<GameBloc>.value(
             value: mockBloc,
-            child: Tile(const Key("tile_0"), tileModel),
+            child: Tile(
+              tileModel,
+              key: const Key("tile_0"),
+            ),
           ),
         ),
       );
@@ -115,7 +121,10 @@ void main() {
         MaterialApp(
           home: BlocProvider<GameBloc>.value(
             value: mockBloc,
-            child: Tile(const Key("tile_0"), tileModel),
+            child: Tile(
+              tileModel,
+              key: const Key("tile_0"),
+            ),
           ),
         ),
       );

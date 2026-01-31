@@ -63,6 +63,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<PauseGame>(_pauseGame);
     on<ResumeGame>(_resumeGame);
     on<RefreshSettings>(_refreshSettings);
+    on<UpdateAutoSolverMove>(_updateAutoSolverMove);
 
     guesser = Provider.pref.autoSolverType.newGuesser(defaultRandom);
   }
@@ -113,8 +114,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       AutoSolverNextMove event, Emitter<GameState> emit) async {
     if (state.isFinished) {
       if (state.status == GameStateType.won) {
-        emit(state.copyWith(autoSolverEnabled: false));
+        emit(state.copyWith(
+          autoSolverEnabled: false,
+          autoSolverLookingIndex: null,
+        ));
         processor.removeAllTasks();
+        Scheduler.shared.resetPeriod();
       } else if (state.status == GameStateType.lost) {
         if (lostGamePause > 0) {
           await Future.delayed(
@@ -156,13 +161,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
             state.status,
           );
           if (isClosed) return;
+
+          add(UpdateAutoSolverMove(move));
+
+          final tile = state.tileAt(move.x, move.y);
           switch (move.type) {
             case InteractionType.probe:
-              final tile = state.tileAt(move.x, move.y);
               if (tile != null) add(Probe(model: tile));
               break;
             case InteractionType.speculate:
-              final tile = state.tileAt(move.x, move.y);
               if (tile != null) add(Speculate(model: tile));
               break;
             case InteractionType.none:
@@ -198,6 +205,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     if (state.autoSolverEnabled) {
       add(const AutoSolverNextMove());
+    } else {
+      Scheduler.shared.resetPeriod();
     }
   }
 
@@ -211,12 +220,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(
       autoSolverEnabled: status,
       isFocusMode: status ? false : state.isFocusMode,
+      autoSolverLookingIndex: status ? state.autoSolverLookingIndex : null,
     ));
 
     if (status) {
       add(const AutoSolverNextMove());
     } else {
       processor.removeAllTasks();
+      Scheduler.shared.resetPeriod();
     }
   }
 
@@ -228,7 +239,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
       GameState runningState = _ensureGameStarted(state, now);
 
-      GameState finalState = _processFloodFill(runningState, event.model, now);
+      GameState finalState = _processFloodFill(runningState, event, now);
 
       emit(finalState);
 
@@ -259,7 +270,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   GameState _processFloodFill(
-      GameState currentState, TileModel startTile, DateTime now) {
+      GameState currentState, Probe event, DateTime now) {
+    TileModel startTile = event.model;
     int newRevealedCount = currentState.revealedTiles;
     GameStateType newStatus = currentState.status;
     DateTime? newEnd = currentState.end;
@@ -325,7 +337,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       end: newEnd,
       accumulatedDuration: newAccumulated,
       clearLastActiveTime: newClearLastActive,
-      lastInteractedIndex: startTile.index,
+      lastInteractedIndex: event.model.index,
     );
 
     return updatedState.copyWith(
@@ -340,7 +352,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       if (tile.state == TileStateType.predictedBombCorrect) {
         final updated = state.copyWith(
           minesMarked: state.minesMarked + 1,
-          lastInteractedIndex: tile.index,
+          lastInteractedIndex: event.model.index,
         );
         emit(updated.copyWith(
           mineProbabilities: _calculateProbabilities(updated),
@@ -348,7 +360,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       } else if (tile.state == TileStateType.unsure) {
         final updated = state.copyWith(
           minesMarked: state.minesMarked - 1,
-          lastInteractedIndex: tile.index,
+          lastInteractedIndex: event.model.index,
         );
         emit(updated.copyWith(
           mineProbabilities: _calculateProbabilities(updated),
@@ -356,7 +368,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       } else {
         emit(state.copyWith(
           refresh: state.refresh + 1,
-          lastInteractedIndex: tile.index,
+          lastInteractedIndex: event.model.index,
         ));
       }
 
@@ -378,7 +390,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     processor.removeAllTasks();
 
-    emit(state.copyWith(refresh: state.refresh + 1));
+    emit(state.copyWith(
+      refresh: state.refresh + 1,
+      autoSolverLookingIndex: null,
+    ));
   }
 
   Future<void> _mightPlay(MightPlay event, Emitter<GameState> emit) async {
@@ -484,6 +499,26 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(
       colour: baseColour,
       refresh: state.refresh + 1,
+    ));
+  }
+
+  void _updateAutoSolverMove(
+    UpdateAutoSolverMove event,
+    Emitter<GameState> emit,
+  ) {
+    final move = event.move;
+    final bool hasValidMove = move.type != InteractionType.none &&
+        move.x >= 0 &&
+        move.x < state.difficulty.width &&
+        move.y >= 0 &&
+        move.y < state.difficulty.height;
+
+    final int? index =
+        hasValidMove ? (move.y * state.difficulty.width) + move.x : null;
+
+    emit(state.copyWith(
+      autoSolverLookingIndex: index,
+      autoSolverLookingInteraction: move.type,
     ));
   }
 }

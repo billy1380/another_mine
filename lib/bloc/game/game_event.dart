@@ -113,3 +113,15 @@ class ToggleFocusMode extends GameEvent {
 class RefreshSettings extends GameEvent {
   const RefreshSettings();
 }
+
+class UpdateAutoSolverMove extends GameEvent {
+  final GameMove move;
+
+  const UpdateAutoSolverMove(this.move);
+
+  @override
+  List<Object?> get props => [
+        ...super.props,
+        move,
+      ];
+}

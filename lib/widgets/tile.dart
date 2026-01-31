@@ -10,11 +10,11 @@ class Tile extends StatefulWidget {
   final bool showProbability;
 
   const Tile(
-    Key key,
     this.model, {
+    super.key,
     this.probability,
     this.showProbability = false,
-  }) : super(key: key);
+  });
 
   @override
   State<Tile> createState() => _TileState();
