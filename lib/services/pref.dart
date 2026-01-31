@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:another_mine/model/auto_solver_type.dart";
 import "package:another_mine/model/game_difficulty.dart";
+import "package:flutter/material.dart";
 import "package:logging/logging.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
@@ -20,6 +21,9 @@ class Pref extends BasicService {
   static const String keyCustomBgColor = "customBackgroundColour";
   static const String keyAutoSolverSettingName = "autoSolver";
   static const String keyAutoSolverType = "autoSolverType";
+
+  static const Color defaultBackgroundColour =
+      Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 
   Pref(this._prefix);
 
@@ -72,12 +76,16 @@ class Pref extends BasicService {
   bool get remoteScoresEnabled => getBool(keyRemoteScoresEnabled) ?? false;
   String get defaultCountry => getString(keyDefaultCountry) ?? "United Kingdom";
   bool get customBgEnabled => getBool(keyCustomBgEnabled) ?? false;
-  int? get customBgColor => getInt(keyCustomBgColor);
+  int get customBgColor =>
+      getInt(keyCustomBgColor) ?? defaultBackgroundColour.toARGB32();
   bool get autoSolverEnabled => getBool(keyAutoSolverSettingName) ?? false;
   AutoSolverType get autoSolverType => AutoSolverType.values.firstWhere(
         (e) => e.name == getString(keyAutoSolverType),
         orElse: () => AutoSolverType.simple,
       );
+
+  Color get effectiveCustomBgColor =>
+      customBgEnabled ? Color(customBgColor) : defaultBackgroundColour;
 
   GameDifficulty get difficulty {
     int width = getInt("width") ?? GameDifficulty.beginner.width;

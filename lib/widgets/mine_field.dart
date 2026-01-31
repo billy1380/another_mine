@@ -53,7 +53,8 @@ class Minefield extends StatelessWidget {
       itemBuilder: (context, index) => Tile(
         ValueKey(state.tiles[index].index),
         state.tiles[index],
-        probability: state.start != null ? state.mineProbabilities[index] : null,
+        probability:
+            state.start != null ? state.mineProbabilities[index] : null,
         showProbability: showProbabilities,
       ),
     );

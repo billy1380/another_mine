@@ -1,7 +1,10 @@
+import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/auto_solver_type.dart";
 import "package:another_mine/services/pref.dart";
 import "package:another_mine/services/provider.dart";
+import "package:another_mine/strings.dart";
 import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
 import "package:go_router/go_router.dart";
 
@@ -63,19 +66,19 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Settings"),
+        title: const Text(Strings.settingsTitle),
       ),
       body: ListView(
         children: [
           ListTile(
             title: Text(
-              "Game",
+              Strings.gameSection,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           SwitchListTile(
-            title: const Text("Animations"),
-            subtitle: const Text("Enable tile reveal animations"),
+            title: const Text(Strings.animationsTitle),
+            subtitle: const Text(Strings.animationsSubtitle),
             value: _animate,
             onChanged: (value) async {
               setState(() {
@@ -85,7 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           ListTile(
-            title: const Text("Auto Solver Strategy"),
+            title: const Text(Strings.autoSolverStrategyTitle),
             subtitle: Text(_autoSolverType.description),
             trailing: DropdownButton<AutoSolverType>(
               value: _autoSolverType,
@@ -108,13 +111,14 @@ class _SettingsPageState extends State<SettingsPage> {
           const Divider(),
           ListTile(
             title: Text(
-              "High Scores",
+              Strings.highScoresSection,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           ListTile(
-            title: const Text("Local Scores Retained"),
-            subtitle: Text("Keep up to $_scoresRetained scores"),
+            title: const Text(Strings.localScoresRetainedTitle),
+            subtitle: Text(Strings.keepUpToScores
+                .replaceFirst("%s", _scoresRetained.toString())),
             trailing: SizedBox(
               width: 200,
               child: Slider(
@@ -134,8 +138,8 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           SwitchListTile(
-            title: const Text("Online High Scores"),
-            subtitle: const Text("Enable online leaderboards"),
+            title: const Text(Strings.onlineHighScoresTitle),
+            subtitle: const Text(Strings.onlineHighScoresSubtitle),
             value: _remoteScoresEnabled,
             onChanged: (value) async {
               setState(() {
@@ -145,7 +149,7 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           ListTile(
-            title: const Text("Default Country"),
+            title: const Text(Strings.defaultCountryTitle),
             subtitle: Text(_defaultCountry),
             enabled: _remoteScoresEnabled,
             trailing: DropdownButton<String>(
@@ -174,24 +178,29 @@ class _SettingsPageState extends State<SettingsPage> {
           const Divider(),
           ListTile(
             title: Text(
-              "Appearance",
+              Strings.appearanceSection,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           SwitchListTile(
-            title: const Text("Custom Background Color"),
-            subtitle: const Text("Use a custom background color"),
+            title: const Text(Strings.customBgColorEnabledTitle),
+            subtitle: const Text(Strings.customBgColorEnabledSubtitle),
             value: _customBgEnabled,
             onChanged: (value) async {
+              final bloc = context.read<GameBloc>();
               setState(() {
                 _customBgEnabled = value;
               });
               await Provider.pref.setBool(Pref.keyCustomBgEnabled, value);
+
+              if (mounted) {
+                bloc.add(const RefreshSettings());
+              }
             },
           ),
           if (_customBgEnabled)
             ListTile(
-              title: const Text("Background Color"),
+              title: const Text(Strings.backgroundColorTitle),
               trailing: Container(
                 width: 40,
                 height: 40,
@@ -204,6 +213,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               onTap: () async {
+                final bloc = context.read<GameBloc>();
                 Color pickerColor = _customBgColor != null
                     ? Color(_customBgColor!)
                     : Colors.blue;
@@ -212,7 +222,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text("Choose Background Color"),
+                      title: const Text(Strings.chooseBackgroundColorTitle),
                       content: SingleChildScrollView(
                         child: ColorPicker(
                           pickerColor: pickerColor,
@@ -225,11 +235,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text("Cancel"),
+                          child: const Text(Strings.cancel),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, pickerColor),
-                          child: const Text("Select"),
+                          child: const Text(Strings.select),
                         ),
                       ],
                     );
@@ -241,6 +251,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   await Provider.pref
                       .setInt(Pref.keyCustomBgColor, color.toARGB32());
+
+                  if (mounted) {
+                    bloc.add(const RefreshSettings());
+                  }
                 }
               },
             ),

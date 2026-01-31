@@ -1,6 +1,7 @@
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/bloc/startup/startup_bloc.dart";
 import "package:another_mine/routes.dart";
+import "package:another_mine/services/pref.dart";
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
@@ -43,7 +44,7 @@ class _AppState extends State<App> {
       child: MaterialApp.router(
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: defaultBackgroundColour,
+            seedColor: Pref.defaultBackgroundColour,
           ),
           useMaterial3: true,
         ),

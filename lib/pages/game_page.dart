@@ -6,6 +6,7 @@ import "package:another_mine/pages/parts/app_drawer.dart";
 import "package:another_mine/widgets/game_action_bar.dart";
 import "package:another_mine/widgets/mine_field.dart";
 import "package:another_mine/routes.dart";
+import "package:another_mine/strings.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
@@ -172,8 +173,8 @@ class _GamePageState extends State<GamePage>
     if (state.autoSolverEnabled &&
         !state.autoSolverPaused &&
         state.lastInteractedIndex != null) {
-      _scrollToIndex(state.lastInteractedIndex!, state.difficulty.width,
-          state.gameSize);
+      _scrollToIndex(
+          state.lastInteractedIndex!, state.difficulty.width, state.gameSize);
     }
   }
 
@@ -214,7 +215,7 @@ class _GamePageState extends State<GamePage>
     final bool gameWon = state.status == GameStateType.won;
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_horiz),
-      tooltip: "Game Tools",
+      tooltip: Strings.gameToolsTooltip,
       onSelected: (value) {
         final bloc = context.read<GameBloc>();
         switch (value) {
@@ -232,20 +233,22 @@ class _GamePageState extends State<GamePage>
       itemBuilder: (context) => [
         _buildPopupItem(
             "solver",
-            state.autoSolverEnabled ? Icons.smart_toy : Icons.smart_toy_outlined,
-            "Auto Solver",
+            state.autoSolverEnabled
+                ? Icons.smart_toy
+                : Icons.smart_toy_outlined,
+            Strings.autoSolver,
             gameWon),
         _buildPopupItem(
             "probability",
             state.showProbability ? Icons.percent : Icons.percent_outlined,
-            "Probabilities",
+            Strings.probabilities,
             gameWon),
         _buildPopupItem(
             "focus",
             state.isFocusMode
                 ? Icons.center_focus_strong
                 : Icons.center_focus_strong_outlined,
-            "Focus Mode",
+            Strings.focusMode,
             gameWon),
       ],
     );

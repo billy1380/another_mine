@@ -1,3 +1,4 @@
+import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_difficulty.dart";
 import "package:another_mine/pages/game_page.dart";
 import "package:another_mine/pages/parts/custom_game_body.dart";
@@ -5,7 +6,9 @@ import "package:another_mine/pages/parts/custom_game_title.dart";
 import "package:another_mine/pages/scores_page.dart";
 import "package:another_mine/pages/settings_page.dart";
 import "package:another_mine/services/provider.dart";
+import "package:another_mine/strings.dart";
 import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 import "package:willshex/willshex.dart";
 
@@ -16,39 +19,55 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final String currentLocation = GoRouterState.of(context).uri.path;
 
-    return Drawer(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: ListView(
-          children: <Widget>[
-            ListTile(
-              title: Text(
-                "Difficulty",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+    return BlocBuilder<GameBloc, GameState>(
+      builder: (context, state) {
+        return Drawer(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 20.0),
+            child: ListView(
+              children: <Widget>[
+                ListTile(
+                  title: Text(
+                    Strings.difficulty,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                _gameDifficultyTile(
+                  context,
+                  currentLocation,
+                  state,
+                  GameDifficulty.beginner,
+                ),
+                _gameDifficultyTile(
+                  context,
+                  currentLocation,
+                  state,
+                  GameDifficulty.intermediate,
+                ),
+                _gameDifficultyTile(
+                  context,
+                  currentLocation,
+                  state,
+                  GameDifficulty.expert,
+                ),
+                _gameDifficultyTile(context, currentLocation, state),
+                const Divider(),
+                ListTile(
+                  title: const Text(Strings.scores),
+                  selected: currentLocation == ScoresPage.routePath,
+                  onTap: () => GoRouter.of(context).go(ScoresPage.routePath),
+                ),
+                const Divider(),
+                ListTile(
+                  title: const Text(Strings.settingsTitle),
+                  selected: currentLocation.startsWith(SettingsPage.routePath),
+                  onTap: () => _showSettings(context),
+                ),
+              ],
             ),
-            _gameDifficultyTile(
-                context, currentLocation, GameDifficulty.beginner),
-            _gameDifficultyTile(
-                context, currentLocation, GameDifficulty.intermediate),
-            _gameDifficultyTile(
-                context, currentLocation, GameDifficulty.expert),
-            _gameDifficultyTile(context, currentLocation),
-            const Divider(),
-            ListTile(
-              title: const Text("Scores"),
-              selected: currentLocation == ScoresPage.routePath,
-              onTap: () => GoRouter.of(context).go(ScoresPage.routePath),
-            ),
-            const Divider(),
-            ListTile(
-              title: const Text("Settings"),
-              selected: currentLocation.startsWith(SettingsPage.routePath),
-              onTap: () => _showSettings(context),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -127,7 +146,7 @@ class AppDrawer extends StatelessWidget {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text("Cancel"),
+                  child: const Text(Strings.cancel),
                 ),
                 TextButton(
                   onPressed: () {
@@ -146,7 +165,7 @@ class AppDrawer extends StatelessWidget {
                       )));
                     }
                   },
-                  child: const Text("Start"),
+                  child: const Text(Strings.start),
                 ),
               ],
             );
@@ -166,15 +185,55 @@ class AppDrawer extends StatelessWidget {
     GoRouter.of(context).push(SettingsPage.routePath);
   }
 
-  Widget _gameDifficultyTile(BuildContext context, String currentLocation,
-      [GameDifficulty? difficulty]) {
+  Widget _gameDifficultyTile(
+    BuildContext context,
+    String currentLocation,
+    GameState state, [
+    GameDifficulty? difficulty,
+  ]) {
     final bool isSelected =
         _isGamePageWithDifficulty(currentLocation, difficulty);
+
+    Widget? badge;
+
+    final bool isCurrentGameDifficulty = difficulty == null
+        ? state.difficulty.name == customName
+        : state.difficulty == difficulty;
+
+    if (isCurrentGameDifficulty && state.isNotFinished) {
+      final Color bgColor = Provider.pref.effectiveCustomBgColor;
+      final Color textColor =
+          bgColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+      String text;
+      if (difficulty == null) {
+        text = "${state.minesMarked}/${state.difficulty.mines}";
+      } else {
+        text = "${state.difficulty.mines - state.minesMarked}";
+      }
+
+      badge = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
 
     return ListTile(
       title: Text(
           "${StringUtils.upperCaseFirstLetter(difficulty?.name ?? customName)}${difficulty == null ? "" : " (${difficulty.description})"}"),
       selected: isSelected,
+      trailing: badge,
       onTap: () => _tap(context, difficulty),
     );
   }

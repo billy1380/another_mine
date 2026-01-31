@@ -24,7 +24,6 @@ import "package:main_thread_processor/main_thread_processor.dart";
 part "game_event.dart";
 part "game_state.dart";
 
-const Color defaultBackgroundColour = Color.fromARGB(0xff, 0x2e, 0x34, 0x36);
 const double gameTopBarHeight = 100;
 const double mineDim = 40;
 const int defaultLostGameAutoSolverPause = 2;
@@ -46,7 +45,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   })  : gameBuilder = gameBuilder ?? RandomGameBuilder(),
         super(GameState.initial(
           GameDifficulty.none,
-          defaultBackgroundColour,
+          Pref.defaultBackgroundColour,
           gameBuilder ?? RandomGameBuilder(),
         )) {
     on<RevealAll>(_revealAll);
@@ -63,6 +62,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<ResumeAutoSolver>(_resumeAutoSolver);
     on<PauseGame>(_pauseGame);
     on<ResumeGame>(_resumeGame);
+    on<RefreshSettings>(_refreshSettings);
 
     guesser = Provider.pref.autoSolverType.newGuesser(defaultRandom);
   }
@@ -181,12 +181,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     await Provider.pref.setInt("height", difficulty.height);
     await Provider.pref.setInt("mines", difficulty.mines);
 
-    int colourValue =
-        Provider.pref.customBgColor ?? defaultBackgroundColour.toARGB32();
-
     emit(GameState.initial(
       difficulty,
-      Color(colourValue),
+      Provider.pref.effectiveCustomBgColor,
       gameBuilder,
     ).copyWith(
       autoSolverEnabled: state.autoSolverEnabled,
@@ -469,6 +466,25 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   ) {
     if (state.autoSolverEnabled) return;
     emit(state.copyWith(isFocusMode: !state.isFocusMode));
+  }
+
+  Future<void> _refreshSettings(
+      RefreshSettings event, Emitter<GameState> emit) async {
+    Color baseColour = Provider.pref.effectiveCustomBgColor;
+
+    for (var tile in state.tiles) {
+      tile.colour = Color.fromARGB(
+        (tile.colour.a * 255.0).round(),
+        (baseColour.r * 255.0).round().clamp(0, 255),
+        (baseColour.g * 255.0).round().clamp(0, 255),
+        (baseColour.b * 255.0).round().clamp(0, 255),
+      );
+    }
+
+    emit(state.copyWith(
+      colour: baseColour,
+      refresh: state.refresh + 1,
+    ));
   }
 }
 

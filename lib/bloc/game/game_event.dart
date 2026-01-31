@@ -109,3 +109,7 @@ class ToggleProbabilities extends GameEvent {
 class ToggleFocusMode extends GameEvent {
   const ToggleFocusMode();
 }
+
+class RefreshSettings extends GameEvent {
+  const RefreshSettings();
+}
