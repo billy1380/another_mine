@@ -78,7 +78,7 @@ class _TileState extends State<Tile> {
 
     Widget content = image == null
         ? widget.model.state == TileStateType.revealedSafe
-            ? Container()
+            ? const SizedBox()
             : Container(
                 decoration: BoxDecoration(
                     color: widget.model.colour,
@@ -107,7 +107,7 @@ class _TileState extends State<Tile> {
         bool shouldShow = !(prob < 0.01);
 
         if (shouldShow) {
-          return Stack(
+          content = Stack(
             alignment: Alignment.center,
             children: [
               content,
