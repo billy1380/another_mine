@@ -43,7 +43,8 @@ class SimpleGuesser extends RandomGuesser {
             if (tile.neighbours[i] != null) {
               final TileModel neighbour = tile.neighbours[i]!;
 
-              if (neighbour.state != TileStateType.predictedBombCorrect) {
+              if (neighbour.state == TileStateType.notPressed ||
+                  neighbour.state == TileStateType.unsure) {
                 return GameMove(
                   x: neighbour.index % difficulty.width,
                   y: neighbour.index ~/ difficulty.width,
@@ -65,8 +66,11 @@ class SimpleGuesser extends RandomGuesser {
     }
 
     if (status != GameStateType.won && status != GameStateType.lost) {
-      List<TileModel> remaining =
-          tiles.where((t) => t.state == TileStateType.notPressed).toList();
+      List<TileModel> remaining = tiles
+          .where((t) =>
+              t.state == TileStateType.notPressed ||
+              t.state == TileStateType.unsure)
+          .toList();
 
       if (remaining.isNotEmpty) {
         TileModel tile = remaining[nextRandom(remaining.length)];
