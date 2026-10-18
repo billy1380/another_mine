@@ -75,8 +75,22 @@ class _AnotherMineViewState extends State<AnotherMineView> {
       _startGame();
     }
 
-    _publisher?.invalidate();
-    _publish();
+    // A host that rebuilds this widget whenever the header it shows changes
+    // would otherwise loop: publishing changes the header, which rebuilds, which
+    // publishes again. Only publish again when what is shown has changed.
+    if (oldWidget.session != widget.session) {
+      final GameBloc? bloc = _bloc;
+      final PageSession? session = widget.session;
+      _publisher = bloc == null || session == null
+          ? null
+          : GameSessionPublisher(bloc: bloc, session: session);
+    }
+
+    if (oldWidget.section != widget.section ||
+        oldWidget.session != widget.session) {
+      _publisher?.invalidate();
+      _publish();
+    }
   }
 
   /// Gives the host the title and actions for the current game.
@@ -88,14 +102,25 @@ class _AnotherMineViewState extends State<AnotherMineView> {
     );
   }
 
+  /// Shows or hides the browser's context menu. Only the app's main view can,
+  /// so it is left alone, quietly, anywhere else (such as a view embedded in a
+  /// page that is not Flutter).
+  Future<void> _setContextMenu({required bool enabled}) async {
+    if (!kIsWeb) return;
+
+    try {
+      await (enabled
+          ? BrowserContextMenu.enableContextMenu()
+          : BrowserContextMenu.disableContextMenu());
+    } catch (_) {}
+  }
+
   Future<void> _initialise() async {
     try {
       await initServices(SharedPreferencesPrefStorage());
 
-      if (kIsWeb) {
-        // Flags are set with a secondary click.
-        await BrowserContextMenu.disableContextMenu();
-      }
+      // Flags are set with a secondary click.
+      await _setContextMenu(enabled: false);
 
       if (!mounted) return;
 
@@ -117,9 +142,7 @@ class _AnotherMineViewState extends State<AnotherMineView> {
 
   @override
   void dispose() {
-    if (kIsWeb) {
-      BrowserContextMenu.enableContextMenu();
-    }
+    _setContextMenu(enabled: true);
     _subscription?.cancel();
     _bloc?.close();
     super.dispose();

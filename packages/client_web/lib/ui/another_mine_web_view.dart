@@ -72,8 +72,22 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
       _startGame();
     }
 
-    _publisher?.invalidate();
-    _publish();
+    // A host that rebuilds this component whenever the header it shows changes
+    // would otherwise loop: publishing changes the header, which rebuilds, which
+    // publishes again. Only publish again when what is shown has changed.
+    if (oldComponent.session != component.session) {
+      final GameBloc? bloc = _bloc;
+      final PageSession? session = component.session;
+      _publisher = bloc == null || session == null
+          ? null
+          : GameSessionPublisher(bloc: bloc, session: session);
+    }
+
+    if (oldComponent.section != component.section ||
+        oldComponent.session != component.session) {
+      _publisher?.invalidate();
+      _publish();
+    }
   }
 
   void _publish() => _publisher?.publish(component.section);
