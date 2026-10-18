@@ -1,7 +1,6 @@
 import "dart:async";
 
 import "package:another_mine_common/another_mine_common.dart";
-import "package:another_mine_flutter/extensions/colour_ex.dart";
 import "package:another_mine_flutter/pages/settings_page.dart";
 import "package:another_mine_flutter/services/shared_preferences_pref_storage.dart";
 import "package:another_mine_flutter/widgets/custom_game_form.dart";
@@ -153,14 +152,9 @@ class _AnotherMineViewState extends State<AnotherMineView> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Another Mine",
-      theme:
-          widget.theme ??
-          ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Pref.defaultBackgroundColour.color,
-            ),
-            useMaterial3: true,
-          ),
+      theme: (widget.theme ?? Theme.of(context)).copyWith(
+        scaffoldBackgroundColor: Colors.transparent,
+      ),
       home: Scaffold(body: _buildBody()),
     );
   }
