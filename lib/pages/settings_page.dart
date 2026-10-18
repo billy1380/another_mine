@@ -14,7 +14,12 @@ class SettingsPage extends StatefulWidget {
   static GoRouterWidgetBuilder builder =
       (context, state) => const SettingsPage._();
 
-  const SettingsPage._();
+  const SettingsPage._() : showAppBar = true;
+
+  /// For use inside another app, which supplies the page title.
+  const SettingsPage.embedded({super.key}) : showAppBar = false;
+
+  final bool showAppBar;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -65,9 +70,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(Strings.settingsTitle),
-      ),
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: const Text(Strings.settingsTitle),
+            )
+          : null,
       body: ListView(
         children: [
           ListTile(

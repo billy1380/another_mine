@@ -1,3 +1,4 @@
+import "package:another_mine/assets.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/tile_model.dart";
 import "package:another_mine/model/tile_state_type.dart";
@@ -90,7 +91,7 @@ class _TileState extends State<Tile> {
                     ? const Color.fromARGB(0xFF, 0xE2, 0x41, 0x00)
                     : null,
                 borderRadius: const BorderRadius.all(Radius.circular(5))),
-            child: Image.asset(image),
+            child: AnotherMineAssets.image(image),
           );
 
     // Overlay probability if enabled and appropriate

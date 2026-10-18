@@ -1,3 +1,4 @@
+import "package:another_mine/assets.dart";
 import "package:another_mine/bloc/game/game_bloc.dart";
 import "package:another_mine/model/game_state_type.dart";
 import "package:another_mine/widgets/digits.dart";
@@ -28,9 +29,9 @@ class GameActionBar extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(5)),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Image.asset(
-                    height: 45,
+                  child: AnotherMineAssets.image(
                     _image(state.status),
+                    height: 45,
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import "package:another_mine/assets.dart";
 import "dart:math";
 
 import "package:flutter/material.dart";
@@ -48,7 +49,7 @@ class Digits extends StatelessWidget {
     for (int i = 0; i < digits; i++) {
       widgets.add(Positioned(
         left: (25 * i).toDouble(),
-        child: Image.asset(
+        child: AnotherMineAssets.image(
           _image(_digit(value, digits - i)),
           height: 50,
         ),
