@@ -41,7 +41,7 @@ dev_dependencies:
   lints: ^6.0.0
 
 jaspr:
-  port: 8082
+  port: 8083
   uses-ssr: false
   mode: client
   flutter: embedded

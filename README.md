@@ -81,8 +81,10 @@ This solver is significantly more effective than the Simple Guesser, especially 
 
     ```bash
     cd packages/client_web
-    jaspr serve
+    jaspr serve --web-port 5468 --proxy-port 5568
     ```
+
+    The app is at http://localhost:8083.
 
     The timer, mine count, new game button and minefield are the Flutter
     widgets from `client_flutter`, hosted in the Jaspr page through

@@ -75,7 +75,7 @@ Jaspr provides the page, and the game board stays Flutter.
 - Config: `jaspr.flutter: embedded`, a Flutter SDK dependency, and `web/flutter_bootstrap.js`, as in `flutter-willshex`.
 - Images come from `mine_images` through the Flutter bundle, so the web client has no copy of them.
 
-Run it with the "another_mine (web, Jaspr)" launch configuration, or `jaspr serve` in `packages/client_web` (http://localhost:8082).
+Run it with the "another_mine (web, Jaspr)" launch configuration, or `jaspr serve` in `packages/client_web` (http://localhost:8083). The ports differ from `willshex_triangles` (8082) and `flutter-willshex` (8080), and the task passes `--web-port 5468 --proxy-port 5568` so the build servers do not clash either. Flutter's embedded dev server is fixed at 5678 by `jaspr_cli`, so this project and `flutter-willshex` (both embed Flutter) still cannot run `jaspr serve` at the same time.
 
 ## Changes needed to make the engine pure Dart
 
@@ -119,7 +119,7 @@ Done on the `package-split` branch (uncommitted):
 - Engine is pure Dart (`Colour` and `BoardSize` replace Flutter's `Color` and `Size`; `PrefStorage` replaces `shared_preferences`). `dart test` runs it without Flutter.
 - Flutter client analyzes clean and its tests pass. Built for macOS, iOS and Android with the new toolchain.
 - CocoaPods removed from iOS and macOS. Android on Gradle 9.3.1, AGP 9.1.0, Kotlin 2.4.0.
-- Web client builds with `jaspr build` and `jaspr serve` serves it on port 8082. Not yet run in a browser.
+- Web client builds with `jaspr build` and `jaspr serve` serves it on port 8083. Not yet run in a browser.
 - `flutter-willshex` still depends on the old `another_mine` package and has not been touched (see Steps, 4).
 
 Known issues:
