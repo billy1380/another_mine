@@ -414,7 +414,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     processor.removeAllTasks();
 
     emit(
-      state.copyWith(refresh: state.refresh + 1, autoSolverLookingIndex: null),
+      state.copyWith(
+        refresh: state.refresh + 1,
+        autoSolverLookingIndex: null,
+        minesMarked: state.status == GameStateType.won
+            ? state.difficulty.mines
+            : state.minesMarked,
+      ),
     );
   }
 

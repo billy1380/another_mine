@@ -1,4 +1,5 @@
 import "package:another_mine_common/bloc/game/game_bloc.dart";
+import "package:another_mine_common/logic/pattern_game_builder.dart";
 import "package:another_mine_common/model/colour.dart";
 import "package:another_mine_common/model/game_difficulty.dart";
 import "package:another_mine_common/model/game_state_type.dart";
@@ -8,6 +9,9 @@ import "package:another_mine_common/services/pref_storage.dart";
 import "package:another_mine_common/services/provider.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:test/test.dart";
+
+import "../fixtures.dart";
+
 import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
 void main() {
@@ -76,6 +80,30 @@ void main() {
 
         expect(gameBloc.state.revealedTiles, equals(25));
         expect(gameBloc.state.status, equals(GameStateType.won));
+      });
+
+      test("Winning without flagging leaves no mines remaining", () async {
+        final GameBloc bloc = GameBloc(
+          processor: processor,
+          gameBuilder: const PatternGameBuilder(safeAndMine),
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(
+          NewGame(
+            difficulty: GameDifficulty.custom(width: 2, height: 1, mines: 1),
+          ),
+        );
+        await pump();
+
+        expect(bloc.state.minesRemaining, 1);
+
+        bloc.add(Probe(model: bloc.state.tiles[0]));
+        await pump();
+
+        expect(bloc.state.status, GameStateType.won);
+        expect(bloc.state.tiles[1].state, TileStateType.predictedBombCorrect);
+        expect(bloc.state.minesRemaining, 0);
       });
 
       test("Clicking a mine results in loss", () async {
