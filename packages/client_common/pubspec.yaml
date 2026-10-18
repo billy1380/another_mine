@@ -1,0 +1,31 @@
+name: another_mine_common
+description: Shared board, solvers, game state and settings for Another Mine. Pure Dart.
+publish_to: "none"
+version: 1.0.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  bloc: ^9.2.1
+  equatable: ^2.0.5
+  logging: ^1.3.0
+  collection: ^1.19.1
+  meta: ^1.9.1
+  mine_images:
+    path: ../mine_images
+  willshex:
+    path: ../../../willshex-dart
+  willshex_dart_service_discovery:
+    path: ../../../willshex_dart_service_discovery
+  main_thread_processor:
+    path: ../../../main_thread_processor
+  willshex_embedding:
+    path: ../../../willshex_embedding
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
+  mocktail: ^1.0.4
+  bloc_test: ^10.0.0

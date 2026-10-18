@@ -1,0 +1,5 @@
+dev:
+  hot_reload: true
+
+build:
+  source_maps: true

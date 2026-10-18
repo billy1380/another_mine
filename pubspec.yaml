@@ -1,93 +1,19 @@
-name: another_mine
-description: Another minesweeper clone
+name: another_mine_workspace
 publish_to: "none"
-version: 1.0.0+1
 
 environment:
-  sdk: ">=3.1.3 <4.0.0"
+  sdk: ^3.13.0
 
-dependencies:
-  flutter:
-    sdk: flutter
+workspace:
+  - packages/client_common
+  - packages/client_flutter
+  - packages/client_web
+  - packages/mine_images
 
-  flutter_bloc: ^9.1.1
-  bloc: ^9.1.0
-  shared_preferences: ^2.2.2
-  go_router: ">=11.1.4 <18.0.0"
-  willshex:
-    path: ../willshex-dart
-  meta: ^1.9.1
-  logging: ^1.3.0
-  equatable: ^2.0.5
-  main_thread_processor:
-    path: ../main_thread_processor
-  collection: ^1.19.1
-  flutter_colorpicker: ^1.1.0
-  willshex_dart_service_discovery:
-    path: ../willshex_dart_service_discovery
-  willshex_embedding:
-    path: ../willshex_embedding
-
-dev_dependencies:
-  flutter_launcher_icons: ^0.13.1
-  flutter_test:
-    sdk: flutter
-
-  flutter_lints: ^6.0.0
-  mocktail: ^1.0.4
-  bloc_test: ^10.0.0
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "images/icon.png"
-  min_sdk_android: 21
-  web:
-    generate: true
-    image_path: "images/icon.png"
-    background_color: "#ffffff"
-  windows:
-    generate: true
-    image_path: "images/icon.png"
-    icon_size: 48
-  linux:
-    generate: true
-    image_path: "images/icon.png"
-  macos:
-    generate: true
-    image_path: "images/icon.png"
-
-flutter:
-  uses-material-design: true
-
-  assets:
-    - images/cool.png
-    - images/counter0.png
-    - images/counter1.png
-    - images/counter2.png
-    - images/counter3.png
-    - images/counter4.png
-    - images/counter5.png
-    - images/counter6.png
-    - images/counter7.png
-    - images/counter8.png
-    - images/counter9.png
-    - images/dead.png
-    - images/dunno.png
-    - images/eight.png
-    - images/five.png
-    - images/found.png
-    - images/four.png
-    - images/hidden.png
-    - images/medal1.png
-    - images/medal2.png
-    - images/medal3.png
-    - images/not.png
-    - images/one.png
-    - images/restin.png
-    - images/seven.png
-    - images/six.png
-    - images/thinking.png
-    - images/three.png
-    - images/two.png
-    - images/well.png
+# willshex_dart_service_discovery still depends on build ^3, which jaspr_builder
+# cannot share. Same overrides as willshex_triangles.
+dependency_overrides:
+  build: ^4.0.0
+  dart_style: 3.1.8
+  analyzer: ^12.1.0
+  cli_util: ^0.5.0

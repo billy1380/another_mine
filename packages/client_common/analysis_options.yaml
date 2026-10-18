@@ -1,0 +1,12 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - .dart_tool/**
+
+linter:
+  rules:
+    prefer_single_quotes: false
+    prefer_double_quotes: true
+    curly_braces_in_flow_control_structures: true

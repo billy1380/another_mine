@@ -41,3 +41,10 @@ app.*.map.json
 
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# CocoaPods is not used, plugins come in as Swift packages
+Pods/
+Podfile.lock
+
+# Build output of every package
+build/

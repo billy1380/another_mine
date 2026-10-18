@@ -1,0 +1,111 @@
+import "package:another_mine_common/bloc/game/game_bloc.dart";
+import "package:another_mine_common/model/colour.dart";
+import "package:another_mine_common/model/game_difficulty.dart";
+import "package:another_mine_common/model/game_state_type.dart";
+import "package:another_mine_flutter/pages/game_page.dart";
+import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:go_router/go_router.dart";
+import "package:mocktail/mocktail.dart";
+
+class MockGameBloc extends Mock implements GameBloc {}
+
+class MockGoRouter extends Mock implements GoRouter {}
+
+void main() {
+  late MockGameBloc mockBloc;
+  late GameState gameState;
+
+  setUp(() {
+    mockBloc = MockGameBloc();
+    gameState = GameState.initial(
+      GameDifficulty.beginner,
+      const Colour(0xFF000000),
+    );
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(gameState));
+    when(() => mockBloc.state).thenReturn(gameState);
+  });
+
+  Widget createWidgetUnderTest() {
+    return MaterialApp(
+      home: BlocProvider<GameBloc>.value(
+        value: mockBloc,
+        child: const GamePage(),
+      ),
+    );
+  }
+
+  testWidgets("AutoSolver button is enabled when game is running", (
+    tester,
+  ) async {
+    when(() => mockBloc.state)
+        .thenReturn(gameState.copyWith(status: GameStateType.started));
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pumpAndSettle();
+
+    // Open menu
+    final menuButton = find.byIcon(Icons.more_horiz);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
+
+    final itemFinder = find.widgetWithText(
+      PopupMenuItem<String>,
+      "Auto Solver",
+    );
+    expect(itemFinder, findsOneWidget);
+
+    final PopupMenuItem<String> item = tester.widget(itemFinder);
+    expect(item.enabled, isTrue, reason: "Menu item should be enabled");
+  });
+
+  testWidgets("AutoSolver button is DISABLED when game is WON", (tester) async {
+    final wonState = gameState.copyWith(status: GameStateType.won);
+    when(() => mockBloc.state).thenReturn(wonState);
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(wonState));
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pumpAndSettle();
+
+    // Open menu
+    final menuButton = find.byIcon(Icons.more_horiz);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
+
+    final itemFinder = find.widgetWithText(
+      PopupMenuItem<String>,
+      "Auto Solver",
+    );
+    expect(itemFinder, findsOneWidget);
+
+    final PopupMenuItem<String> item = tester.widget(itemFinder);
+    expect(item.enabled, isFalse, reason: "Menu item should be disabled");
+  });
+
+  testWidgets("AutoSolver button is enabled when game is LOST", (tester) async {
+    final lostState = gameState.copyWith(status: GameStateType.lost);
+    when(() => mockBloc.state).thenReturn(lostState);
+    when(() => mockBloc.stream).thenAnswer((_) => Stream.value(lostState));
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pumpAndSettle();
+
+    final menuButton = find.byIcon(Icons.more_horiz);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
+
+    final itemFinder = find.widgetWithText(
+      PopupMenuItem<String>,
+      "Auto Solver",
+    );
+    expect(itemFinder, findsOneWidget);
+
+    final PopupMenuItem<String> item = tester.widget(itemFinder);
+    expect(
+      item.enabled,
+      isTrue,
+      reason: "Menu item should be enabled (only disabled on WIN)",
+    );
+  });
+}

@@ -1,0 +1,12 @@
+name: mine_images
+description: Images for the Another Mine board, shared by the Flutter and web clients.
+publish_to: "none"
+version: 0.0.1
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+flutter:
+  assets:
+    - assets/images/
