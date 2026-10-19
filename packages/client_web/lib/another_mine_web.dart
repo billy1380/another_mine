@@ -7,10 +7,12 @@ export "package:another_mine_common/embedding/another_mine_section.dart"
     show AnotherMineSection;
 export "package:another_mine_common/model/game_difficulty.dart"
     show GameDifficulty;
+export "package:another_mine_common/presentation/game_routes.dart"
+    show GameRoutes;
 
 export "ui/another_mine_web_view.dart" show AnotherMineWebView;
 export "ui/screens/custom_game_screen.dart"
-    show CustomGameScreen, CustomGameView;
+    show CustomGameScreen, CustomGameDialog;
 export "ui/screens/game_screen.dart" show GameScreen, GameView;
 export "ui/screens/scores_screen.dart" show ScoresScreen, ScoresView;
 export "ui/screens/settings_screen.dart" show SettingsScreen, SettingsView;

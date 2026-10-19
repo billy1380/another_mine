@@ -13,11 +13,15 @@ import "package:willshex/willshex.dart";
 class GameScreen extends StatefulComponent {
   final GameDifficulty difficulty;
   final bool useLayout;
+  final String basePath;
+  final Component? overlay;
 
   const GameScreen({
     super.key,
     required this.difficulty,
     this.useLayout = true,
+    this.basePath = "",
+    this.overlay,
   });
 
   @override
@@ -46,7 +50,11 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Component build(BuildContext context) {
-    if (!component.useLayout) return const GameView();
+    final Component content = component.overlay == null
+        ? const GameView()
+        : Component.fragment([const GameView(), component.overlay!]);
+
+    if (!component.useLayout) return content;
 
     final GameBloc bloc = BlocProvider.of<GameBloc>(context);
 
@@ -62,7 +70,8 @@ class _GameScreenState extends State<GameScreen> {
           actions: [if (started) GameTools(bloc: bloc, state: state)],
           onSidebarChanged: (open) =>
               bloc.add(open ? const PauseGame() : const ResumeGame()),
-          child: const GameView(),
+          basePath: component.basePath,
+          child: content,
         );
       },
     );

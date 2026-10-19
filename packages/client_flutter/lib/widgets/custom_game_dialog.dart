@@ -1,27 +1,27 @@
-import "package:another_mine_common/model/game_difficulty.dart";
-import "package:another_mine_common/services/provider.dart";
-import "package:another_mine_common/strings.dart";
+import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/pages/parts/custom_game_body.dart";
 import "package:another_mine_flutter/pages/parts/custom_game_title.dart";
 import "package:flutter/material.dart";
 
-/// Pick a custom board size and mine count, on a page rather than in a dialog.
-class CustomGameForm extends StatefulWidget {
-  /// Called after the chosen difficulty has been saved.
-  final ValueChanged<GameDifficulty> onStart;
+Future<GameDifficulty?> showCustomGameDialog(BuildContext context) =>
+    showDialog<GameDifficulty>(
+      context: context,
+      builder: (context) => const CustomGameDialog(),
+    );
 
-  const CustomGameForm({super.key, required this.onStart});
+class CustomGameDialog extends StatefulWidget {
+  const CustomGameDialog({super.key});
 
   @override
-  State<CustomGameForm> createState() => _CustomGameFormState();
+  State<CustomGameDialog> createState() => _CustomGameDialogState();
 }
 
-class _CustomGameFormState extends State<CustomGameForm> {
+class _CustomGameDialogState extends State<CustomGameDialog> {
   late int _width;
   late int _height;
   late int _mines;
 
-  int get _maxMines => ((_width * _height) - 9).clamp(1, 1 << 20);
+  int get _maxMines => CustomGame.maxMinesFor(_width, _height);
 
   @override
   void initState() {
@@ -29,12 +29,7 @@ class _CustomGameFormState extends State<CustomGameForm> {
     final GameDifficulty difficulty = Provider.pref.difficulty;
     _width = difficulty.width;
     _height = difficulty.height;
-    _mines = difficulty.mines;
-  }
-
-  void _clampMines() {
-    if (_mines > _maxMines) _mines = _maxMines;
-    if (_mines < 1) _mines = 1;
+    _mines = CustomGame.clampMines(difficulty.mines, _width, _height);
   }
 
   Future<void> _start() async {
@@ -48,19 +43,24 @@ class _CustomGameFormState extends State<CustomGameForm> {
     await Provider.pref.setInt("height", difficulty.height);
     await Provider.pref.setInt("mines", difficulty.mines);
 
-    if (mounted) widget.onStart(difficulty);
+    if (mounted) Navigator.of(context).pop(difficulty);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Text(
+                "Custom game",
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 16),
               CustomGameTitle(
                 width: _width,
                 height: _height,
@@ -68,8 +68,7 @@ class _CustomGameFormState extends State<CustomGameForm> {
                 onDifficultySelected: (value) => setState(() {
                   _width = value.width;
                   _height = value.height;
-                  _mines = value.mines;
-                  _clampMines();
+                  _mines = CustomGame.clampMines(value.mines, _width, _height);
                 }),
               ),
               Flexible(
@@ -80,17 +79,30 @@ class _CustomGameFormState extends State<CustomGameForm> {
                   maxMines: _maxMines,
                   onWidthChanged: (value) => setState(() {
                     _width = value;
-                    _clampMines();
+                    _mines = CustomGame.clampMines(_mines, _width, _height);
                   }),
                   onHeightChanged: (value) => setState(() {
                     _height = value;
-                    _clampMines();
+                    _mines = CustomGame.clampMines(_mines, _width, _height);
                   }),
                   onMinesChanged: (value) => setState(() => _mines = value),
                 ),
               ),
               const SizedBox(height: 16),
-              FilledButton(onPressed: _start, child: const Text(Strings.start)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(Strings.cancel),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: _start,
+                    child: const Text(Strings.start),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

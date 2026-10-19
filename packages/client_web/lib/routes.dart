@@ -46,6 +46,7 @@ class AnotherMineWebRoutes {
           basePath: prefix,
           onStart: (difficulty) =>
               Router.of(context).push("$prefix${GameRoutes.game(difficulty)}"),
+          onCancel: Router.of(context).back,
         ),
       ),
       Route(

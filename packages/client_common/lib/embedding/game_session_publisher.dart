@@ -23,7 +23,8 @@ class GameSessionPublisher {
   /// Publishes for [section], doing nothing if nothing the header shows has
   /// changed since last time.
   void publish(AnotherMineSection section) {
-    if (section != AnotherMineSection.game) {
+    if (section != AnotherMineSection.game &&
+        section != AnotherMineSection.custom) {
       if (_publishedFor != section) {
         _publishedFor = section;
         session.clearTitle();
@@ -60,7 +61,7 @@ class GameSessionPublisher {
     ) => PageAction(
       id: id,
       label: label,
-      variant: on ? ActionVariant.primary : ActionVariant.outline,
+      variant: on ? ActionVariant.toggled : ActionVariant.outline,
       isEnabled: !finished,
       order: order,
       onTrigger: onTrigger,

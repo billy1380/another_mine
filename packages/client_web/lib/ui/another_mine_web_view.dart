@@ -28,7 +28,10 @@ class AnotherMineWebView extends StatefulComponent {
 
   /// Called once a custom difficulty has been chosen and saved, so that the
   /// host can go to the game.
-  final void Function()? onCustomGameStarted;
+  final void Function(GameDifficulty difficulty)? onCustomGameStarted;
+
+  /// Called when the custom game dialog is dismissed without starting.
+  final void Function()? onCustomGameCancelled;
 
   /// Where the title and actions of the game are published, for the host to
   /// show in its header.
@@ -42,6 +45,7 @@ class AnotherMineWebView extends StatefulComponent {
     this.section = AnotherMineSection.game,
     this.difficulty,
     this.onCustomGameStarted,
+    this.onCustomGameCancelled,
     this.session,
     this.storage,
   });
@@ -66,8 +70,8 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
   void didUpdateComponent(AnotherMineWebView oldComponent) {
     super.didUpdateComponent(oldComponent);
 
-    if (component.section == AnotherMineSection.game &&
-        (oldComponent.section != component.section ||
+    if (_plays(component.section) &&
+        (!_plays(oldComponent.section) ||
             oldComponent.difficulty != component.difficulty)) {
       _startGame();
     }
@@ -89,6 +93,10 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
       _publish();
     }
   }
+
+  static bool _plays(AnotherMineSection section) =>
+      section == AnotherMineSection.game ||
+      section == AnotherMineSection.custom;
 
   void _publish() => _publisher?.publish(component.section);
 
@@ -113,7 +121,7 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
       _subscription = bloc.stream.listen((_) => _publish());
       setState(() => _bloc = bloc);
 
-      if (component.section == AnotherMineSection.game) _startGame();
+      if (_plays(component.section)) _startGame();
       _publish();
     } catch (e) {
       if (mounted) setState(() => _error = e);
@@ -145,9 +153,14 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
       bloc: bloc,
       child: switch (component.section) {
         AnotherMineSection.game => const GameView(),
-        AnotherMineSection.custom => CustomGameView(
-          onStart: (_) => component.onCustomGameStarted?.call(),
-        ),
+        AnotherMineSection.custom => Component.fragment([
+          const GameView(),
+          CustomGameDialog(
+            onStart: (difficulty) =>
+                component.onCustomGameStarted?.call(difficulty),
+            onCancel: () => component.onCustomGameCancelled?.call(),
+          ),
+        ]),
         AnotherMineSection.scores => const ScoresView(),
         AnotherMineSection.settings => const SettingsView(),
       },

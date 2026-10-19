@@ -1,43 +1,50 @@
 import "package:another_mine_common/another_mine_common.dart";
-import "package:another_mine_web/ui/layout.dart";
 import "package:another_mine_web/ui/parts/rag_indicator.dart";
+import "package:another_mine_web/ui/screens/game_screen.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
 import "package:web/web.dart" as web;
 
-/// Choosing a custom board on its own page.
 class CustomGameScreen extends StatelessComponent {
   final bool useLayout;
   final String basePath;
   final void Function(GameDifficulty difficulty) onStart;
+  final void Function() onCancel;
 
   const CustomGameScreen({
     super.key,
     required this.onStart,
+    required this.onCancel,
     this.useLayout = true,
     this.basePath = "",
   });
 
   @override
   Component build(BuildContext context) {
-    final Component view = CustomGameView(onStart: onStart);
-    if (!useLayout) return view;
-
-    return AppLayout(title: "Custom game", basePath: basePath, child: view);
+    return GameScreen(
+      difficulty: Provider.pref.difficulty,
+      useLayout: useLayout,
+      basePath: basePath,
+      overlay: CustomGameDialog(onStart: onStart, onCancel: onCancel),
+    );
   }
 }
 
-/// Pick a board size and mine count. Saves the choice and calls [onStart].
-class CustomGameView extends StatefulComponent {
+class CustomGameDialog extends StatefulComponent {
   final void Function(GameDifficulty difficulty) onStart;
+  final void Function() onCancel;
 
-  const CustomGameView({super.key, required this.onStart});
+  const CustomGameDialog({
+    super.key,
+    required this.onStart,
+    required this.onCancel,
+  });
 
   @override
-  State<CustomGameView> createState() => _CustomGameViewState();
+  State<CustomGameDialog> createState() => _CustomGameDialogState();
 }
 
-class _CustomGameViewState extends State<CustomGameView> {
+class _CustomGameDialogState extends State<CustomGameDialog> {
   late int _width;
   late int _height;
   late int _mines;
@@ -75,7 +82,7 @@ class _CustomGameViewState extends State<CustomGameView> {
     required int max,
     required void Function(int value) onChanged,
   }) {
-    return div(classes: "mb-4", [
+    return div(classes: "mb-3", [
       label_(label, value),
       div(classes: "d-flex align-items-center gap-2", [
         span(classes: "text-secondary small", [Component.text("$min")]),
@@ -108,81 +115,122 @@ class _CustomGameViewState extends State<CustomGameView> {
     final int maxMines = CustomGame.maxMinesFor(_width, _height);
 
     return div(
+      classes: "modal d-block",
       attributes: const {
-        "style": "max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 3rem;",
+        "tabindex": "-1",
+        "style": "background-color: rgba(0, 0, 0, 0.5);",
       },
       [
-        div(classes: "d-flex align-items-center justify-content-between mb-4", [
-          select(
-            classes: "form-select w-auto",
-            events: {
-              "change": (e) {
-                final String name = (e.target as web.HTMLSelectElement).value;
-                final GameDifficulty? chosen = GameDifficulty.values
-                    .where((d) => d.name == name)
-                    .firstOrNull;
-                if (chosen == null) return;
-                setState(() {
-                  _width = chosen.width;
-                  _height = chosen.height;
-                  _mines = CustomGame.clampMines(chosen.mines, _width, _height);
-                });
-              },
-            },
-            [
-              option(
-                value: customName,
-                selected:
-                    CustomGame.nameFor(_width, _height, _mines) == "Custom",
-                [Component.text(CustomGame.nameFor(_width, _height, _mines))],
+        div(classes: "modal-dialog modal-dialog-centered", [
+          div(classes: "modal-content shadow-lg border", [
+            div(classes: "modal-header", [
+              h5(classes: "modal-title m-0 fw-bold", [
+                const Component.text("Custom game"),
+              ]),
+              button(
+                classes: "btn-close",
+                attributes: const {"title": "Close", "aria-label": "Close"},
+                events: {"click": (e) => component.onCancel()},
+                const [],
               ),
-              for (final GameDifficulty d in GameDifficulty.values)
-                option(
-                  value: d.name,
-                  selected: d.sameAs(_width, _height, _mines),
-                  [
-                    Component.text(
-                      CustomGame.nameFor(d.width, d.height, d.mines),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          RagIndicator(width: _width, height: _height, mines: _mines),
+            ]),
+            div(classes: "modal-body", [
+              div(
+                classes:
+                    "d-flex align-items-center justify-content-between mb-4",
+                [
+                  select(
+                    classes: "form-select w-auto",
+                    events: {
+                      "change": (e) {
+                        final String name =
+                            (e.target as web.HTMLSelectElement).value;
+                        final GameDifficulty? chosen = GameDifficulty.values
+                            .where((d) => d.name == name)
+                            .firstOrNull;
+                        if (chosen == null) return;
+                        setState(() {
+                          _width = chosen.width;
+                          _height = chosen.height;
+                          _mines = CustomGame.clampMines(
+                            chosen.mines,
+                            _width,
+                            _height,
+                          );
+                        });
+                      },
+                    },
+                    [
+                      option(
+                        value: customName,
+                        selected:
+                            CustomGame.nameFor(_width, _height, _mines) ==
+                            "Custom",
+                        [
+                          Component.text(
+                            CustomGame.nameFor(_width, _height, _mines),
+                          ),
+                        ],
+                      ),
+                      for (final GameDifficulty d in GameDifficulty.values)
+                        option(
+                          value: d.name,
+                          selected: d.sameAs(_width, _height, _mines),
+                          [
+                            Component.text(
+                              CustomGame.nameFor(d.width, d.height, d.mines),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  RagIndicator(width: _width, height: _height, mines: _mines),
+                ],
+              ),
+              _slider(
+                label: "Width",
+                value: _width,
+                min: CustomGame.minWidth,
+                max: CustomGame.maxWidth,
+                onChanged: (v) {
+                  _width = v;
+                  _mines = CustomGame.clampMines(_mines, _width, _height);
+                },
+              ),
+              _slider(
+                label: "Height",
+                value: _height,
+                min: CustomGame.minHeight,
+                max: CustomGame.maxHeight,
+                onChanged: (v) {
+                  _height = v;
+                  _mines = CustomGame.clampMines(_mines, _width, _height);
+                },
+              ),
+              _slider(
+                label: "Mines",
+                value: _mines,
+                min: CustomGame.minMines,
+                max: maxMines,
+                onChanged: (v) => _mines = v,
+              ),
+            ]),
+            div(classes: "modal-footer", [
+              button(
+                classes: "btn btn-outline-secondary",
+                attributes: const {"type": "button"},
+                events: {"click": (e) => component.onCancel()},
+                const [Component.text(Strings.cancel)],
+              ),
+              button(
+                classes: "btn btn-primary",
+                attributes: const {"type": "button"},
+                events: {"click": (e) => _start()},
+                const [Component.text(Strings.start)],
+              ),
+            ]),
+          ]),
         ]),
-        _slider(
-          label: "Width",
-          value: _width,
-          min: CustomGame.minWidth,
-          max: CustomGame.maxWidth,
-          onChanged: (v) {
-            _width = v;
-            _mines = CustomGame.clampMines(_mines, _width, _height);
-          },
-        ),
-        _slider(
-          label: "Height",
-          value: _height,
-          min: CustomGame.minHeight,
-          max: CustomGame.maxHeight,
-          onChanged: (v) {
-            _height = v;
-            _mines = CustomGame.clampMines(_mines, _width, _height);
-          },
-        ),
-        _slider(
-          label: "Mines",
-          value: _mines,
-          min: CustomGame.minMines,
-          max: maxMines,
-          onChanged: (v) => _mines = v,
-        ),
-        button(
-          classes: "btn btn-primary w-100",
-          attributes: const {"type": "button"},
-          events: {"click": (e) => _start()},
-          const [Component.text(Strings.start)],
-        ),
       ],
     );
   }

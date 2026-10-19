@@ -3,7 +3,7 @@ import "dart:async";
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/pages/settings_page.dart";
 import "package:another_mine_flutter/services/shared_preferences_pref_storage.dart";
-import "package:another_mine_flutter/widgets/custom_game_form.dart";
+import "package:another_mine_flutter/widgets/custom_game_dialog.dart";
 import "package:another_mine_flutter/widgets/game_body.dart";
 import "package:another_mine_flutter/widgets/game_tools_menu.dart";
 import "package:flutter/foundation.dart";
@@ -26,6 +26,7 @@ class AnotherMineView extends StatefulWidget {
     this.section = AnotherMineSection.game,
     this.difficulty,
     this.onCustomGameStarted,
+    this.onCustomGameCancelled,
     this.session,
     this.theme,
   });
@@ -39,7 +40,10 @@ class AnotherMineView extends StatefulWidget {
 
   /// Called once a custom difficulty has been chosen and saved, so that the
   /// host can go to the game.
-  final VoidCallback? onCustomGameStarted;
+  final ValueChanged<GameDifficulty>? onCustomGameStarted;
+
+  /// Called when the custom game dialog is dismissed without starting.
+  final VoidCallback? onCustomGameCancelled;
 
   /// Where the title and actions of the game are published, for the host to
   /// show in its header. Without one the game shows its own header.
@@ -68,8 +72,8 @@ class _AnotherMineViewState extends State<AnotherMineView> {
   void didUpdateWidget(AnotherMineView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.section == AnotherMineSection.game &&
-        (oldWidget.section != widget.section ||
+    if (_plays(widget.section) &&
+        (!_plays(oldWidget.section) ||
             oldWidget.difficulty != widget.difficulty)) {
       _startGame();
     }
@@ -94,6 +98,10 @@ class _AnotherMineViewState extends State<AnotherMineView> {
 
   /// Gives the host the title and actions for the current game.
   void _publish() => _publisher?.publish(widget.section);
+
+  static bool _plays(AnotherMineSection section) =>
+      section == AnotherMineSection.game ||
+      section == AnotherMineSection.custom;
 
   void _startGame() {
     _bloc?.add(
@@ -132,7 +140,7 @@ class _AnotherMineViewState extends State<AnotherMineView> {
       _subscription = bloc.stream.listen((_) => _publish());
       setState(() => _bloc = bloc);
 
-      if (widget.section == AnotherMineSection.game) _startGame();
+      if (_plays(widget.section)) _startGame();
       _publish();
     } catch (e) {
       if (mounted) setState(() => _error = e);
@@ -177,8 +185,20 @@ class _AnotherMineViewState extends State<AnotherMineView> {
             const Expanded(child: GameBody()),
           ],
         ),
-        AnotherMineSection.custom => CustomGameForm(
-          onStart: (_) => widget.onCustomGameStarted?.call(),
+        AnotherMineSection.custom => Stack(
+          children: [
+            Column(
+              children: [
+                if (widget.session == null) const _Header(),
+                const Expanded(child: GameBody()),
+              ],
+            ),
+            _CustomGameLauncher(
+              onStarted: (difficulty) =>
+                  widget.onCustomGameStarted?.call(difficulty),
+              onCancelled: () => widget.onCustomGameCancelled?.call(),
+            ),
+          ],
         ),
         AnotherMineSection.scores => const Center(
           child: Text("Scores are not available yet."),
@@ -218,4 +238,37 @@ class _Header extends StatelessWidget {
       },
     );
   }
+}
+
+class _CustomGameLauncher extends StatefulWidget {
+  final ValueChanged<GameDifficulty> onStarted;
+  final VoidCallback onCancelled;
+
+  const _CustomGameLauncher({
+    required this.onStarted,
+    required this.onCancelled,
+  });
+
+  @override
+  State<_CustomGameLauncher> createState() => _CustomGameLauncherState();
+}
+
+class _CustomGameLauncherState extends State<_CustomGameLauncher> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final GameDifficulty? difficulty = await showCustomGameDialog(context);
+      if (!mounted) return;
+
+      if (difficulty == null) {
+        widget.onCancelled();
+      } else {
+        widget.onStarted(difficulty);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
