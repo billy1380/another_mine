@@ -102,9 +102,8 @@ class _SettingsViewState extends State<SettingsView> {
     final Pref pref = Provider.pref;
 
     return div(
-      attributes: const {
-        "style": "max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 3rem;",
-      },
+      classes: "p-4 p-md-5 overflow-auto",
+      attributes: const {"style": "max-width: 640px; margin: 0 auto;"},
       [
         _heading(Strings.gameSection),
         _switch(

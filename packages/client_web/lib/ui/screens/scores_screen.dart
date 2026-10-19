@@ -28,10 +28,8 @@ class ScoresView extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return const div(
-      classes: "text-center text-secondary",
-      attributes: {
-        "style": "max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 3rem;",
-      },
+      classes: "text-center text-secondary p-4 p-md-5",
+      attributes: {"style": "max-width: 640px; margin: 0 auto;"},
       [Component.text("Scores are not available yet.")],
     );
   }
