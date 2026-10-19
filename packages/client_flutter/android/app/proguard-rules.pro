@@ -1,0 +1,9 @@
+-keep class io.flutter.plugins.sharedpreferences.** { *; }
+-keep class kotlin.Unit { *; }
+-keep class kotlin.Result { *; }
+-keep class kotlin.Result$Failure { *; }
+-keep class kotlin.coroutines.Continuation { *; }
+-keep class kotlin.coroutines.intrinsics.CoroutineSingletons { *; }
+-keep class kotlin.coroutines.intrinsics.IntrinsicsKt { *; }
+-keep class kotlin.enums.EnumEntries { *; }
+-keep class kotlin.jvm.internal.DefaultConstructorMarker { *; }

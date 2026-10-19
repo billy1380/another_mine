@@ -4,12 +4,15 @@ import "package:bloc/bloc.dart";
 import "package:equatable/equatable.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/services.dart";
+import "package:logging/logging.dart";
 import "package:willshex/willshex.dart";
 
 part "startup_event.dart";
 part "startup_state.dart";
 
 class StartupBloc extends Bloc<StartupEvent, StartupState> {
+  static final Logger _log = Logger("StartupBloc");
+
   StartupBloc() : super(const StartupState()) {
     on<InitializeApp>(_onInitializeApp);
   }
@@ -32,7 +35,8 @@ class StartupBloc extends Bloc<StartupEvent, StartupState> {
       await initServices(SharedPreferencesPrefStorage());
 
       emit(state.copyWith(status: StartupStatus.complete));
-    } catch (e) {
+    } catch (e, st) {
+      _log.severe("Startup failed to initialise", e, st);
       emit(state.copyWith(status: StartupStatus.error, error: e));
     }
   }

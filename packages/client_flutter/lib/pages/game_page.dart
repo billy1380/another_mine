@@ -104,7 +104,7 @@ class _GamePageState extends State<GamePage> with RouteAware {
           onDrawerChanged: _onDrawerChanged,
           drawer: const AppDrawer(),
           appBar: _buildAppBar(context, state),
-          body: const GameBody(),
+          body: const SafeArea(child: GameBody()),
           floatingActionButton: _buildFAB(context, state),
         );
       },
