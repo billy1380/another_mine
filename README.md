@@ -91,6 +91,16 @@ This solver is significantly more effective than the Simple Guesser, especially 
     `jaspr_flutter_embed`. The sidebar, header, custom game and settings are
     Jaspr.
 
+### Launcher icons
+
+The icon generator is not a project dependency, because it requires a `cli_util` version that the Jaspr CLI cannot share. Install it once and run it from the Flutter client:
+
+```bash
+dart pub global activate flutter_launcher_icons
+cd packages/client_flutter
+dart pub global run flutter_launcher_icons
+```
+
 ### Tests
 
 ```bash

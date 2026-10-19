@@ -36,7 +36,7 @@ dependencies:
 dev_dependencies:
   jaspr_builder: ^0.23.5
   jaspr_cli: ^0.23.5
-  build_runner: 2.16.1 # newer releases need a newer analyzer than the overrides allow
+  build_runner: ^2.15.1
   build_web_compilers: ^4.8.5
   lints: ^6.0.0
 
