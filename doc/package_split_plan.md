@@ -147,7 +147,7 @@ Each step ends with tests passing and the app running. Steps 1 to 3 and 5 are do
    - Scaffold the Jaspr app, with `jaspr.mode: client`, as in triangles.
    - Jaspr for the sidebar, header, custom game and settings; the Flutter board embedded with `jaspr_flutter_embed`. Scores stays a stub.
    - Add `WebGameView` and wire it into the Jaspr host.
-6. **Docs.** Add a README for the workspace and an embedding guide, as in `willshex_triangles/docs/EMBEDDING_GUIDE.md`.
+6. **Docs.** Add a README for the workspace and an embedding guide, as in `willshex_triangles/docs/embedding_guide.md`.
 
 ## Testing
 

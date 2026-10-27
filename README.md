@@ -111,7 +111,7 @@ cd packages/client_flutter && flutter test    # widgets and pages
 ## Project Structure
 
 This is a Dart workspace, laid out like `willshex_triangles`. See
-[doc/PACKAGE_SPLIT_PLAN.md](doc/PACKAGE_SPLIT_PLAN.md) for how it was split.
+[doc/package_split_plan.md](doc/package_split_plan.md) for how it was split.
 
 -   `packages/client_common` (`another_mine_common`): pure Dart game engine shared by both clients.
     -   `lib/ai/`: the auto solvers.
