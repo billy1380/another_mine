@@ -55,12 +55,14 @@ class GameSessionPublisher {
     PageAction toggle(
       String id,
       String label,
+      String icon,
       bool on,
       void Function() onTrigger,
       double order,
     ) => PageAction(
       id: id,
       label: label,
+      icon: EmbeddingIcon.named(icon),
       variant: on ? ActionVariant.toggled : ActionVariant.outline,
       isEnabled: !finished,
       order: order,
@@ -75,6 +77,7 @@ class GameSessionPublisher {
       toggle(
         "solver",
         Strings.autoSolver,
+        "smart_toy",
         state.autoSolverEnabled,
         () => bloc.add(const ToggleAutoSolver()),
         1,
@@ -82,6 +85,7 @@ class GameSessionPublisher {
       toggle(
         "probability",
         Strings.probabilities,
+        "percent",
         state.showProbability,
         () => bloc.add(const ToggleProbabilities()),
         2,
@@ -89,6 +93,7 @@ class GameSessionPublisher {
       toggle(
         "focus",
         Strings.focusMode,
+        "center_focus",
         state.isFocusMode,
         () => bloc.add(const ToggleFocusMode()),
         3,
@@ -97,6 +102,9 @@ class GameSessionPublisher {
         PageAction(
           id: "solver_pause",
           label: state.autoSolverPaused ? "Resume solver" : "Pause solver",
+          icon: EmbeddingIcon.named(
+            state.autoSolverPaused ? "play_arrow" : "pause",
+          ),
           order: 4,
           onTrigger: () => bloc.add(
             state.autoSolverPaused
