@@ -1,6 +1,7 @@
 import "dart:math";
 
 import "package:another_mine_common/bloc/game/game_bloc.dart";
+import "package:another_mine_flutter/assets.dart";
 import "package:another_mine_flutter/extensions/colour_ex.dart";
 import "package:another_mine_flutter/widgets/game_action_bar.dart";
 import "package:another_mine_flutter/widgets/mine_field.dart";
@@ -44,6 +45,12 @@ class _GameBodyState extends State<GameBody> with WidgetsBindingObserver {
     _horizontal.dispose();
     _vertical.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    AnotherMineAssets.precache(context);
   }
 
   @override
