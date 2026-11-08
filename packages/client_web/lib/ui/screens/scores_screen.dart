@@ -3,6 +3,7 @@ import "package:another_mine_web/ui/layout.dart";
 import "package:another_mine_web/ui/parts/small_picture.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
+import "package:jaspr_router/jaspr_router.dart";
 import "package:mine_images/mine_images.dart";
 import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
 
@@ -15,18 +16,26 @@ class ScoresScreen extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    if (!useLayout) return const ScoresView();
+    if (!useLayout) return ScoresView(basePath: basePath);
 
     return AppLayout(
       title: Strings.scores,
       basePath: basePath,
-      child: const ScoresView(),
+      child: ScoresView(basePath: basePath),
     );
   }
 }
 
 class ScoresView extends StatefulComponent {
-  const ScoresView({super.key});
+  /// Prefix of the app's paths when it is mounted under another path.
+  final String basePath;
+
+  /// Called with the id of an online score the player wants to replay; a host
+  /// that has a page for it goes there. Without one, the app's own route
+  /// under [basePath] is used.
+  final void Function(int id)? onScoreSelected;
+
+  const ScoresView({super.key, this.basePath = "", this.onScoreSelected});
 
   @override
   State<ScoresView> createState() => _ScoresViewState();
@@ -102,6 +111,19 @@ class _ScoresViewState extends State<ScoresView> {
 
     await Provider.scoreKeeper.clearCategory(category);
     await _load();
+  }
+
+  Future<void> _watch(ScoreRow score) async {
+    if (score.replay == null || score.id == null) {
+      return ScoreDialogs.replayUnreadable();
+    }
+
+    if (component.onScoreSelected != null) {
+      component.onScoreSelected!(score.id!);
+    } else if (mounted) {
+      Router.of(context)
+          .push("${component.basePath}${GameRoutes.scorePath(score.id!)}");
+    }
   }
 
   void _select(ScoreCategory category) {
@@ -260,6 +282,17 @@ class _ScoresViewState extends State<ScoresView> {
         div(classes: "flex-shrink-0 fs-6 fw-medium", [
           Component.text("${score.seconds} s"),
         ]),
+        if (score.recording != null)
+          button(
+            classes: "btn btn-sm btn-link text-secondary p-1",
+            attributes: const {
+              "type": "button",
+              "title": Strings.replayTooltip,
+              "aria-label": Strings.replayTooltip,
+            },
+            events: {"click": (e) => _watch(score)},
+            [i(classes: "bi bi-play-circle", const [])],
+          ),
         if (score.local != null)
           button(
             classes: "btn btn-sm btn-link text-secondary p-1",

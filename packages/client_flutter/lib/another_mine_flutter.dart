@@ -10,4 +10,4 @@ export "package:another_mine_common/embedding/another_mine_section.dart"
     show AnotherMineSection;
 
 export "widgets/another_mine_view.dart" show AnotherMineView;
-export "widgets/embedded_game.dart" show EmbeddedGame;
+export "widgets/embedded_game.dart" show EmbeddedGame, EmbeddedReplay;

@@ -32,13 +32,39 @@ abstract class ScoreDialogs {
   }
 
   /// The question after a win: whose score is it? Answers the name to keep it
-  /// under, or `null` if the player skipped.
+  /// under, or `null` if the player skipped. With [askForName] false the player
+  /// is known (the online player), so it only congratulates and answers
+  /// [initialName].
   static Future<String?> askName(
     WonGame game,
     int place, {
     String initialName = "",
+    bool askForName = true,
   }) async {
     final String board = game.category.label;
+
+    if (!askForName) {
+      await AnotherMineDialogs.ask(
+        DialogRequest(
+          title: Strings.wonTitle,
+          message:
+              "${Strings.timeOnBoard(game.seconds, board)}\n"
+              "${place == 1 ? Strings.bestTime : Strings.placeIn(place, board)}",
+          image: imageFor(place),
+          actions: const [
+            DialogAction(
+              id: "ok",
+              label: Strings.ok,
+              variant: ActionVariant.primary,
+              isCancel: true,
+            ),
+          ],
+        ),
+      );
+
+      return initialName.isEmpty ? null : initialName;
+    }
+
     final DialogResult? result = await AnotherMineDialogs.ask(
       DialogRequest.prompt(
         title: Strings.wonTitle,
@@ -131,4 +157,15 @@ abstract class ScoreDialogs {
         ),
       ))?.actionId ==
       "confirm";
+
+  /// Tells the player that the recording of a game could not be replayed.
+  static Future<void> replayUnreadable() async {
+    await AnotherMineDialogs.ask(
+      const DialogRequest(
+        title: Strings.replayUnreadableTitle,
+        message: Strings.replayUnreadableMessage,
+        actions: [DialogAction.cancel(label: Strings.cancel)],
+      ),
+    );
+  }
 }

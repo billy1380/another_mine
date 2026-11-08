@@ -14,4 +14,7 @@ enum AnotherMineSection {
 
   /// Game settings.
   settings,
+
+  /// The replay of an online score, which the host gives the id of.
+  score,
 }

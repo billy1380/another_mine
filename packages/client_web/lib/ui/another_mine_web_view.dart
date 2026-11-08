@@ -5,6 +5,7 @@ import "package:another_mine_web/services/local_storage_pref_storage.dart";
 import "package:another_mine_web/ui/bloc_provider.dart";
 import "package:another_mine_web/ui/screens/custom_game_screen.dart";
 import "package:another_mine_web/ui/screens/game_screen.dart";
+import "package:another_mine_web/ui/screens/score_screen.dart";
 import "package:another_mine_web/ui/screens/scores_screen.dart";
 import "package:another_mine_web/ui/screens/settings_screen.dart";
 import "package:jaspr/dom.dart";
@@ -34,6 +35,13 @@ class AnotherMineWebView extends StatefulComponent {
   /// Called when the custom game dialog is dismissed without starting.
   final void Function()? onCustomGameCancelled;
 
+  /// The online score to replay in [AnotherMineSection.score].
+  final int? scoreId;
+
+  /// Called with the id of a score the player wants to replay, so that the
+  /// host can go to [AnotherMineSection.score] for it.
+  final void Function(int id)? onScoreSelected;
+
   /// Where the title and actions of the game are published, for the host to
   /// show in its header.
   final PageSession? session;
@@ -47,6 +55,8 @@ class AnotherMineWebView extends StatefulComponent {
     this.difficulty,
     this.onCustomGameStarted,
     this.onCustomGameCancelled,
+    this.scoreId,
+    this.onScoreSelected,
     this.session,
     this.storage,
   });
@@ -177,7 +187,10 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
                   ),
                 ],
               ),
-              AnotherMineSection.scores => const ScoresView(),
+              AnotherMineSection.scores => ScoresView(
+                onScoreSelected: component.onScoreSelected,
+              ),
+              AnotherMineSection.score => ScoreView(id: component.scoreId),
               AnotherMineSection.settings => const SettingsView(),
             },
           ),

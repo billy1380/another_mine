@@ -1,8 +1,11 @@
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/extensions/colour_ex.dart";
+import "package:another_mine_flutter/extensions/embedding_theme_ex.dart";
+import "package:another_mine_flutter/pages/replay_page.dart";
 import "package:another_mine_flutter/widgets/game_body.dart";
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
+import "package:willshex_embedding/willshex_embedding.dart";
 
 /// The mine count, new game button, timer and minefield, for a page that is
 /// not Flutter (a Jaspr page through a Flutter embed view).
@@ -25,34 +28,73 @@ class EmbeddedGame extends StatelessWidget {
   const EmbeddedGame({super.key, required this.bloc, this.theme});
 
   @override
-  Widget build(BuildContext context) {
-    final Color seed = Pref.defaultBackgroundColour.color;
+  Widget build(BuildContext context) => _embeddedApp(
+    theme,
+    BlocProvider<GameBloc>.value(value: bloc, child: const GameBody()),
+  );
+}
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: "Another Mine",
-      theme:
-          theme ??
-          ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: seed),
+/// A recorded game played back, for a page that is not Flutter, in the same
+/// way as [EmbeddedGame]. It takes its colours from the theme of the host that
+/// embeds the game, or of the game's own host when there is none.
+class EmbeddedReplay extends StatefulWidget {
+  final Recording recording;
+
+  const EmbeddedReplay({super.key, required this.recording});
+
+  @override
+  State<EmbeddedReplay> createState() => _EmbeddedReplayState();
+}
+
+class _EmbeddedReplayState extends State<EmbeddedReplay> {
+  final PageSession? _host = AnotherMineDialogs.hostSession;
+
+  @override
+  void initState() {
+    super.initState();
+    AnotherMineDialogs.local.addListener(_changed);
+    _host?.addThemeListener(_changed);
+  }
+
+  @override
+  void dispose() {
+    AnotherMineDialogs.local.removeListener(_changed);
+    _host?.removeThemeListener(_changed);
+    super.dispose();
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) => _embeddedApp(
+    (_host?.theme ?? AnotherMineDialogs.local.state.theme).toThemeData(),
+    ReplayView(recording: widget.recording),
+  );
+}
+
+Widget _embeddedApp(ThemeData? theme, Widget body) {
+  final Color seed = Pref.defaultBackgroundColour.color;
+
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: "Another Mine",
+    theme:
+        theme ??
+        ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: seed),
+          useMaterial3: true,
+        ),
+    darkTheme: theme != null
+        ? null
+        : ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: seed,
+              brightness: Brightness.dark,
+            ),
             useMaterial3: true,
           ),
-      darkTheme: theme == null
-          ? ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: seed,
-                brightness: Brightness.dark,
-              ),
-              useMaterial3: true,
-            )
-          : null,
-      home: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: BlocProvider<GameBloc>.value(
-          value: bloc,
-          child: const GameBody(),
-        ),
-      ),
-    );
-  }
+    home: Scaffold(backgroundColor: Colors.transparent, body: body),
+  );
 }

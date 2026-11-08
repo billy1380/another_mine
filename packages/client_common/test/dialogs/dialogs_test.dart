@@ -172,6 +172,25 @@ void main() {
       expect(asked.message, contains("A new best time!"));
     });
 
+    test("a known player is congratulated, not asked a name", () async {
+      late DialogRequest asked;
+      answerLocal((request) {
+        asked = request;
+
+        return const DialogResult("ok");
+      });
+
+      final String? name = await ScoreDialogs.askName(
+        game,
+        3,
+        initialName: "billy",
+        askForName: false,
+      );
+
+      expect(name, "billy");
+      expect(asked.fields, isEmpty);
+    });
+
     test("skipping, or saving no name, keeps nothing", () async {
       answerLocal((request) => DialogResult(request.cancelAction!.id));
 

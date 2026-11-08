@@ -32,6 +32,8 @@ Future<void> offerToKeepScore(BuildContext context, GameState state) async {
     game,
     place,
     initialName: Provider.pref.playerName,
+    // with online scores on the player is known, so the name is not asked again
+    askForName: !Provider.pref.remoteScoresEnabled,
   );
 
   if (name != null) await keeper.keep(game, name);

@@ -2,6 +2,7 @@ import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_web/routes.dart";
 import "package:another_mine_web/services/local_storage_pref_storage.dart";
 import "package:another_mine_web/ui/bloc_provider.dart";
+import "package:another_mine_web/ui/embedding_theme.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
 import "package:willshex_embedding_jaspr/willshex_embedding_jaspr.dart";
@@ -30,6 +31,7 @@ class _AppState extends State<App> {
   Future<void> _initialise() async {
     try {
       await initServices(LocalStoragePrefStorage());
+      followSiteTheme();
 
       if (!mounted) return;
       setState(() {

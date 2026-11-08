@@ -19,6 +19,7 @@ export "logic/game_builder.dart";
 export "logic/pattern_game_builder.dart";
 export "logic/probability_calculator.dart";
 export "logic/random_game_builder.dart";
+export "logic/recorded_game_builder.dart";
 
 export "model/auto_solver_type.dart";
 export "model/board_size.dart";
@@ -33,6 +34,8 @@ export "scores/local_score.dart";
 export "scores/online_board.dart";
 export "scores/online_config.dart";
 export "scores/online_scores.dart";
+export "scores/recording.dart";
+export "scores/replay_cubit.dart";
 export "scores/score_category.dart";
 export "scores/score_keeper.dart";
 export "scores/score_row.dart";

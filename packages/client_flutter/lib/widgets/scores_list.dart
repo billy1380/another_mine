@@ -2,6 +2,7 @@ import "dart:math";
 
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/assets.dart";
+import "package:another_mine_flutter/pages/score_page.dart";
 import "package:another_mine_flutter/widgets/small_picture.dart";
 import "package:flutter/material.dart";
 import "package:mine_images/mine_images.dart";
@@ -14,7 +15,12 @@ import "package:mine_images/mine_images.dart";
 /// without a router, scaffold or drawer around it. The tab starting selected is
 /// the category of the game last played.
 class ScoresList extends StatefulWidget {
-  const ScoresList({super.key});
+  /// Called with the id of an online score the player wants to replay; a host
+  /// that has a page for it goes there. Without one the game's own router, or
+  /// its own navigator, opens it.
+  final ValueChanged<int>? onOpenScore;
+
+  const ScoresList({super.key, this.onOpenScore});
 
   @override
   State<ScoresList> createState() => _ScoresListState();
@@ -50,6 +56,7 @@ class _ScoresListState extends State<ScoresList> {
                       "${category.localId}-${Provider.scoreKeeper.showsOnline}",
                     ),
                     category: category,
+                    onOpenScore: widget.onOpenScore,
                     onSwitchedToLocal: () => setState(() {}),
                   ),
               ],
@@ -69,10 +76,12 @@ class _CategoryScores extends StatefulWidget {
   /// Called once the player has chosen to switch to local scores, so the tabs
   /// are drawn again.
   final VoidCallback onSwitchedToLocal;
+  final ValueChanged<int>? onOpenScore;
 
   const _CategoryScores({
     super.key,
     required this.category,
+    required this.onOpenScore,
     required this.onSwitchedToLocal,
   });
 
@@ -162,6 +171,14 @@ class _CategoryScoresState extends State<_CategoryScores>
                   onDelete: _online
                       ? null
                       : () => _delete(scores[index].local!),
+                  onReplay: scores[index].recording == null
+                      ? null
+                      : () =>
+                            widget.onOpenScore != null &&
+                                scores[index].replay != null &&
+                                scores[index].id != null
+                            ? widget.onOpenScore!(scores[index].id!)
+                            : ScorePage.open(context, scores[index]),
                 ),
         );
       },
@@ -181,11 +198,13 @@ class _ScoreTile extends StatelessWidget {
   final int place;
   final ScoreRow score;
   final VoidCallback? onDelete;
+  final VoidCallback? onReplay;
 
   const _ScoreTile({
     required this.place,
     required this.score,
     required this.onDelete,
+    required this.onReplay,
   });
 
   @override
@@ -242,6 +261,12 @@ class _ScoreTile extends StatelessWidget {
             "${score.seconds} s",
             style: Theme.of(context).textTheme.titleMedium,
           ),
+          if (onReplay != null)
+            IconButton(
+              tooltip: Strings.replayTooltip,
+              icon: const Icon(Icons.play_circle_outline),
+              onPressed: onReplay,
+            ),
           if (onDelete != null)
             IconButton(
               tooltip: Strings.deleteScoreTooltip,

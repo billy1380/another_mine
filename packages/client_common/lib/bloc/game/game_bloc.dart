@@ -42,12 +42,17 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final GameRecorder recorder = GameRecorder();
   final int lostGamePause;
   final GameBuilder gameBuilder;
+
+  /// Whether a new game is kept in [Pref] as the one to start with next time;
+  /// a replay's game is not.
+  final bool remembersGames;
   bool _isClosing = false;
 
   GameBloc({
     required this.processor,
     GameBuilder? gameBuilder,
     this.lostGamePause = defaultLostGameAutoSolverPause,
+    this.remembersGames = true,
   }) : gameBuilder = gameBuilder ?? RandomGameBuilder(),
        super(
          GameState.initial(
@@ -208,9 +213,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameDifficulty difficulty = event.difficulty;
     _log.info("Starting new game: ${difficulty.name}");
 
-    await Provider.pref.setInt("width", difficulty.width);
-    await Provider.pref.setInt("height", difficulty.height);
-    await Provider.pref.setInt("mines", difficulty.mines);
+    if (remembersGames) {
+      await Provider.pref.setInt("width", difficulty.width);
+      await Provider.pref.setInt("height", difficulty.height);
+      await Provider.pref.setInt("mines", difficulty.mines);
+    }
 
     emit(
       GameState.initial(

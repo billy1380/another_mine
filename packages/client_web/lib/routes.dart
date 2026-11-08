@@ -1,6 +1,7 @@
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_web/ui/screens/custom_game_screen.dart";
 import "package:another_mine_web/ui/screens/game_screen.dart";
+import "package:another_mine_web/ui/screens/score_screen.dart";
 import "package:another_mine_web/ui/screens/scores_screen.dart";
 import "package:another_mine_web/ui/screens/settings_screen.dart";
 import "package:jaspr_router/jaspr_router.dart";
@@ -53,6 +54,14 @@ class AnotherMineWebRoutes {
         path: path(GameRoutes.settings),
         builder: (context, state) =>
             SettingsScreen(useLayout: useLayout, basePath: prefix),
+      ),
+      Route(
+        path: path(GameRoutes.score),
+        builder: (context, state) => ScoreScreen(
+          id: int.tryParse(state.params[GameRoutes.scoreParam] ?? ""),
+          useLayout: useLayout,
+          basePath: prefix,
+        ),
       ),
       Route(
         path: path(GameRoutes.scores),

@@ -95,7 +95,7 @@ class _GameBodyState extends State<GameBody> with WidgetsBindingObserver {
               children: [
                 _buildActionBar(state),
                 Flexible(
-                  child: _GameScrollable(
+                  child: GameScrollable(
                     horizontalController: _horizontal,
                     verticalController: _vertical,
                     contentSize: state.gameSize.size,
@@ -201,13 +201,15 @@ class _GameBodyState extends State<GameBody> with WidgetsBindingObserver {
   }
 }
 
-class _GameScrollable extends StatelessWidget {
+/// The minefield, scrolling both ways when it is bigger than the space it has.
+class GameScrollable extends StatelessWidget {
   final ScrollController horizontalController;
   final ScrollController verticalController;
   final Size contentSize;
   final Widget child;
 
-  const _GameScrollable({
+  const GameScrollable({
+    super.key,
     required this.horizontalController,
     required this.verticalController,
     required this.contentSize,

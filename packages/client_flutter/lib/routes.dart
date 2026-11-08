@@ -1,5 +1,6 @@
 import "package:another_mine_flutter/bloc/startup/startup_bloc.dart";
 import "package:another_mine_flutter/pages/game_page.dart";
+import "package:another_mine_flutter/pages/score_page.dart";
 import "package:another_mine_flutter/pages/scores_page.dart";
 import "package:another_mine_flutter/pages/settings_page.dart";
 import "package:another_mine_flutter/pages/startup_page.dart";
@@ -28,6 +29,11 @@ GoRouter createRouter(StartupBloc startupBloc) {
         name: "SettingsPage",
         path: SettingsPage.routePath,
         builder: SettingsPage.builder,
+      ),
+      GoRoute(
+        name: "ScorePage",
+        path: ScorePage.routePath,
+        builder: ScorePage.builder,
       ),
       GoRoute(
         name: "ScoresPage",

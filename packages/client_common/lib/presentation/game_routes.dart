@@ -16,6 +16,14 @@ abstract class GameRoutes {
   static const String scores = "/scores";
   static const String custom = "/custom";
 
+  static const String scoreParam = "id";
+
+  /// The route pattern of the replay of an online score.
+  static const String score = "/score/:$scoreParam";
+
+  /// The path that replays the online score [id].
+  static String scorePath(int id) => "/score/$id";
+
   /// The path that plays [difficulty].
   static String game(GameDifficulty difficulty) =>
       "/game/${difficulty.width}/${difficulty.height}/${difficulty.mines}";

@@ -14,6 +14,7 @@ export "ui/another_mine_web_view.dart" show AnotherMineWebView;
 export "ui/screens/custom_game_screen.dart"
     show CustomGameScreen, CustomGameLauncher;
 export "ui/screens/game_screen.dart" show GameScreen, GameView;
+export "ui/screens/score_screen.dart" show ScoreScreen, ScoreView;
 export "ui/screens/scores_screen.dart" show ScoresScreen, ScoresView;
 export "ui/screens/settings_screen.dart" show SettingsScreen, SettingsView;
 

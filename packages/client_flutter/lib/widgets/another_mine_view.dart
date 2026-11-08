@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:another_mine_common/another_mine_common.dart";
+import "package:another_mine_flutter/pages/score_page.dart";
 import "package:another_mine_flutter/pages/settings_page.dart";
 import "package:another_mine_flutter/services/scores_path.dart";
 import "package:another_mine_flutter/services/shared_preferences_pref_storage.dart";
@@ -29,6 +30,8 @@ class AnotherMineView extends StatefulWidget {
     this.difficulty,
     this.onCustomGameStarted,
     this.onCustomGameCancelled,
+    this.scoreId,
+    this.onScoreSelected,
     this.session,
     this.theme,
   });
@@ -46,6 +49,13 @@ class AnotherMineView extends StatefulWidget {
 
   /// Called when the custom game dialog is dismissed without starting.
   final VoidCallback? onCustomGameCancelled;
+
+  /// The online score to replay in [AnotherMineSection.score].
+  final int? scoreId;
+
+  /// Called with the id of a score the player wants to replay, so that the
+  /// host can go to [AnotherMineSection.score] for it.
+  final ValueChanged<int>? onScoreSelected;
 
   /// Where the title and actions of the game are published, for the host to
   /// show in its header. Without one the game shows its own header.
@@ -216,7 +226,10 @@ class _AnotherMineViewState extends State<AnotherMineView> {
             ),
           ],
         ),
-        AnotherMineSection.scores => const ScoresList(),
+        AnotherMineSection.scores => ScoresList(
+          onOpenScore: widget.onScoreSelected,
+        ),
+        AnotherMineSection.score => ScoreReplay(id: widget.scoreId),
         AnotherMineSection.settings => const SettingsPage.embedded(),
       },
     );

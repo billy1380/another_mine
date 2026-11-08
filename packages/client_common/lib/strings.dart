@@ -36,6 +36,7 @@ abstract class Strings {
   static const String wonTitle = "You won!";
   static const String nameLabel = "Name";
   static const String save = "Save";
+  static const String ok = "OK";
   static const String skip = "Skip";
   static const String noScoresYet = "No scores yet.";
   static const String scoresNotLoaded = "The scores were not loaded.";
@@ -56,6 +57,17 @@ abstract class Strings {
 
   static const String delete = "Delete";
   static const String deleteScoreTooltip = "Delete this score";
+  static const String replayTooltip = "Watch the replay";
+  static const String replayTitle = "Replay";
+  static const String replayUnreadableTitle = "Can't replay this game";
+  static const String replayUnreadableMessage =
+      "The recording of this game could not be read.";
+  static const String scoreNotFound = "That score was not found.";
+  static const String replayPlay = "Play";
+  static const String replayPause = "Pause";
+  static const String replayAgain = "Play again";
+  static const String replaySpeed = "Speed";
+  static String replayOf(String name, String board) => "$name · $board";
   static const String deleteScoreTitle = "Delete score?";
 
   /// "billy's 37 s on Beginner will be deleted."

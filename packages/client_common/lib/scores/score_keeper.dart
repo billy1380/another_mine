@@ -162,18 +162,7 @@ class ScoreKeeper extends BasicService {
   /// The lines of the scores table for [category], best first: the online
   /// scores or this device's, as [showsOnline] says.
   Future<List<ScoreRow>> rows(ScoreCategory category) async => showsOnline
-      ? [
-          for (final OnlineScore s in await _online.top(category))
-            ScoreRow(
-              name: s.name,
-              detail: s.board,
-              country: s.country,
-              flag: s.flag,
-              service: s.service,
-              seconds: s.seconds,
-              when: s.when,
-            ),
-        ]
+      ? [for (final OnlineScore s in await _online.top(category)) _row(s)]
       : [
           for (final LocalScore s in await top(category))
             ScoreRow(
@@ -184,6 +173,25 @@ class ScoreKeeper extends BasicService {
               local: s,
             ),
         ];
+
+  /// The online score with [id], or null if it is not found.
+  Future<ScoreRow?> onlineScore(int id) async {
+    final OnlineScore? score = await _online.find(id);
+
+    return score == null ? null : _row(score);
+  }
+
+  static ScoreRow _row(OnlineScore s) => ScoreRow(
+    id: s.id,
+    name: s.name,
+    detail: s.board,
+    country: s.country,
+    flag: s.flag,
+    service: s.service,
+    seconds: s.seconds,
+    when: s.when,
+    recording: s.recording,
+  );
 
   /// The best scores of [category], best first.
   Future<List<LocalScore>> top(ScoreCategory category) async =>
