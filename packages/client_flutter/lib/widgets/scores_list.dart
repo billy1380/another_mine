@@ -1,27 +1,36 @@
+import "dart:math";
+
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/assets.dart";
+import "package:another_mine_flutter/widgets/small_picture.dart";
 import "package:flutter/material.dart";
 import "package:mine_images/mine_images.dart";
 
-/// The local high scores, a tab for each category.
+/// The high scores, a tab for each category: this device's, or the online ones
+/// when online scores are on (Custom Easy is local only, so it has no tab then).
 ///
 /// Brings its own [DefaultTabController] and needs only a [Material] above it,
 /// which both the game's page and the embeddable view have, so it works with or
 /// without a router, scaffold or drawer around it. The tab starting selected is
 /// the category of the game last played.
-class ScoresList extends StatelessWidget {
+class ScoresList extends StatefulWidget {
   const ScoresList({super.key});
 
   @override
+  State<ScoresList> createState() => _ScoresListState();
+}
+
+class _ScoresListState extends State<ScoresList> {
+  @override
   Widget build(BuildContext context) {
-    final List<ScoreCategory> categories = ScoreCategory.values;
+    final List<ScoreCategory> categories = Provider.scoreKeeper.categories;
     final ScoreCategory current = ScoreCategory.forDifficulty(
       Provider.pref.difficulty,
     );
 
     return DefaultTabController(
       length: categories.length,
-      initialIndex: categories.indexOf(current),
+      initialIndex: max(0, categories.indexOf(current)),
       child: Column(
         children: [
           TabBar(
@@ -36,7 +45,13 @@ class ScoresList extends StatelessWidget {
             child: TabBarView(
               children: [
                 for (final ScoreCategory category in categories)
-                  _CategoryScores(category: category),
+                  _CategoryScores(
+                    key: ValueKey(
+                      "${category.localId}-${Provider.scoreKeeper.showsOnline}",
+                    ),
+                    category: category,
+                    onSwitchedToLocal: () => setState(() {}),
+                  ),
               ],
             ),
           ),
@@ -51,7 +66,15 @@ class ScoresList extends StatelessWidget {
 class _CategoryScores extends StatefulWidget {
   final ScoreCategory category;
 
-  const _CategoryScores({required this.category});
+  /// Called once the player has chosen to switch to local scores, so the tabs
+  /// are drawn again.
+  final VoidCallback onSwitchedToLocal;
+
+  const _CategoryScores({
+    super.key,
+    required this.category,
+    required this.onSwitchedToLocal,
+  });
 
   @override
   State<_CategoryScores> createState() => _CategoryScoresState();
@@ -59,12 +82,25 @@ class _CategoryScores extends StatefulWidget {
 
 class _CategoryScoresState extends State<_CategoryScores>
     with AutomaticKeepAliveClientMixin {
-  late Future<List<LocalScore>> _scores = Provider.scoreKeeper.top(
-    widget.category,
-  );
+  bool get _online => Provider.scoreKeeper.showsOnline;
+
+  late Future<List<ScoreRow>?> _scores = _load();
+
+  /// Null if the online scores could not be read and the player gave up or
+  /// switched to local.
+  Future<List<ScoreRow>?> _load() async {
+    final List<ScoreRow>? rows = await ScoreDialogs.loadRows(
+      Provider.scoreKeeper,
+      widget.category,
+    );
+
+    if (rows == null && !_online && mounted) widget.onSwitchedToLocal();
+
+    return rows;
+  }
 
   void _reload() => setState(() {
-    _scores = Provider.scoreKeeper.top(widget.category);
+    _scores = _load();
   });
 
   Future<void> _delete(LocalScore score) async {
@@ -88,22 +124,26 @@ class _CategoryScoresState extends State<_CategoryScores>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return FutureBuilder<List<LocalScore>>(
+    return FutureBuilder<List<ScoreRow>?>(
       future: _scores,
       builder: (context, snapshot) {
-        final List<LocalScore>? scores = snapshot.data;
+        final List<ScoreRow>? scores = snapshot.data;
 
         if (scores == null) {
-          return snapshot.hasError
-              ? Center(child: Text("${snapshot.error}"))
+          return snapshot.connectionState == ConnectionState.done
+              ? Center(
+                  child: snapshot.hasError
+                      ? Text("${snapshot.error}")
+                      : const Text(Strings.scoresNotLoaded),
+                )
               : const Center(child: CircularProgressIndicator());
         } else if (scores.isEmpty) {
           return const Center(child: Text(Strings.noScoresYet));
         }
 
         return ListView.builder(
-          // one more than the scores: the button to delete them all
-          itemCount: scores.length + 1,
+          // one more than the local scores: the button to delete them all
+          itemCount: scores.length + (_online ? 0 : 1),
           itemBuilder: (context, index) => index == scores.length
               ? Padding(
                   padding: const EdgeInsets.all(8),
@@ -119,7 +159,9 @@ class _CategoryScoresState extends State<_CategoryScores>
               : _ScoreTile(
                   place: index + 1,
                   score: scores[index],
-                  onDelete: () => _delete(scores[index]),
+                  onDelete: _online
+                      ? null
+                      : () => _delete(scores[index].local!),
                 ),
         );
       },
@@ -137,8 +179,8 @@ MineImage? medalFor(int place) => switch (place) {
 
 class _ScoreTile extends StatelessWidget {
   final int place;
-  final LocalScore score;
-  final VoidCallback onDelete;
+  final ScoreRow score;
+  final VoidCallback? onDelete;
 
   const _ScoreTile({
     required this.place,
@@ -168,11 +210,22 @@ class _ScoreTile extends StatelessWidget {
       ),
       title: Text(score.name),
       // hovering, or pressing and holding, shows the moment to the second
-      subtitle: Tooltip(
-        message: formatFullTime(score.when),
-        child: Text(
-          "${score.board} · ${localizations.formatMediumDate(score.when)} ${formatClock(score.when)}",
-        ),
+      subtitle: Row(
+        children: [
+          if (score.flag != null) ...[
+            SmallPicture(score.flag!),
+            const SizedBox(width: 8),
+          ] else if (score.country != null)
+            Text("${score.country} · "),
+          Expanded(
+            child: Tooltip(
+              message: formatFullTime(score.when),
+              child: Text(
+                "${score.detail} · ${localizations.formatMediumDate(score.when)} ${formatClock(score.when)}",
+              ),
+            ),
+          ),
+        ],
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -181,11 +234,12 @@ class _ScoreTile extends StatelessWidget {
             "${score.seconds} s",
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          IconButton(
-            tooltip: Strings.deleteScoreTooltip,
-            icon: const Icon(Icons.delete_outline),
-            onPressed: onDelete,
-          ),
+          if (onDelete != null)
+            IconButton(
+              tooltip: Strings.deleteScoreTooltip,
+              icon: const Icon(Icons.delete_outline),
+              onPressed: onDelete,
+            ),
         ],
       ),
     );

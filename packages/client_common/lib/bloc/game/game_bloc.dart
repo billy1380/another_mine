@@ -6,6 +6,7 @@ import "package:another_mine_common/ai/interaction_type.dart";
 import "package:another_mine_common/ai/probability_guesser.dart";
 import "package:another_mine_common/ai/simple_guesser.dart";
 import "package:another_mine_common/logic/game_builder.dart";
+import "package:another_mine_common/scores/game_recorder.dart";
 import "package:another_mine_common/logic/probability_calculator.dart";
 import "package:another_mine_common/logic/random_game_builder.dart";
 import "package:another_mine_common/model/auto_solver_type.dart";
@@ -36,6 +37,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   late Guesser guesser;
   final Processor processor;
+
+  /// What the player did in this game, for replaying it.
+  final GameRecorder recorder = GameRecorder();
   final int lostGamePause;
   final GameBuilder gameBuilder;
   bool _isClosing = false;
@@ -70,6 +74,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<UpdateAutoSolverMove>(_updateAutoSolverMove);
 
     guesser = Provider.pref.autoSolverType.newGuesser(defaultRandom);
+  }
+
+  @override
+  void onEvent(GameEvent event) {
+    super.onEvent(event);
+    recorder.record(event, state);
   }
 
   @override

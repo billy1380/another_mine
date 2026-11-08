@@ -11,9 +11,9 @@ enum ScoreCategory {
   beginner(1, "Beginner"),
   intermediate(2, "Intermediate"),
   expert(3, "Expert"),
-  easy(4, "Easy"),
-  medium(5, "Medium"),
-  hard(6, "Hard");
+  easy(4, "Custom Easy"),
+  medium(5, "Custom Medium"),
+  hard(6, "Custom Hard");
 
   /// The id the category has in the local store. Online, categories are found
   /// by [label] and the game, never by this.
@@ -23,6 +23,9 @@ enum ScoreCategory {
   final String label;
 
   const ScoreCategory(this.localId, this.label);
+
+  /// Whether scores of this category go online. Custom Easy games are local only.
+  bool get isOnline => this != easy;
 
   static ScoreCategory forDifficulty(GameDifficulty difficulty) {
     switch (difficulty.name) {

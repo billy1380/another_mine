@@ -1,5 +1,6 @@
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_web/ui/layout.dart";
+import "package:another_mine_web/ui/parts/small_picture.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
 import "package:mine_images/mine_images.dart";
@@ -33,8 +34,11 @@ class ScoresView extends StatefulComponent {
 
 class _ScoresViewState extends State<ScoresView> {
   late ScoreCategory _category;
-  List<LocalScore>? _scores;
+  List<ScoreRow>? _scores;
   Object? _error;
+
+  /// The online scores could not be read and the player gave up.
+  bool _failed = false;
 
   /// The scores are read from a store that the game, in its own view, writes
   /// to as games are won; so what was loaded can be stale by the time it is
@@ -44,7 +48,11 @@ class _ScoresViewState extends State<ScoresView> {
   @override
   void initState() {
     super.initState();
-    _category = ScoreCategory.forDifficulty(Provider.pref.difficulty);
+    final ScoreCategory current = ScoreCategory.forDifficulty(
+      Provider.pref.difficulty,
+    );
+    final List<ScoreCategory> shown = Provider.scoreKeeper.categories;
+    _category = shown.contains(current) ? current : shown.first;
     _load();
   }
 
@@ -54,13 +62,24 @@ class _ScoresViewState extends State<ScoresView> {
     final ScoreCategory category = _category;
 
     try {
-      final List<LocalScore> scores = await Provider.scoreKeeper.top(category);
+      final List<ScoreRow>? scores = await ScoreDialogs.loadRows(
+        Provider.scoreKeeper,
+        category,
+      );
 
-      if (category == _category) {
+      if (category != _category) return;
+
+      if (scores != null) {
         setState(() {
           _scores = scores;
           _error = null;
         });
+      } else if (!Provider.scoreKeeper.showsOnline) {
+        // switched to local: its tabs, and this one's local scores
+        setState(() => _scores = null);
+        await _load();
+      } else {
+        setState(() => _failed = true);
       }
     } catch (e) {
       if (category == _category) setState(() => _error = e);
@@ -90,6 +109,7 @@ class _ScoresViewState extends State<ScoresView> {
       _category = category;
       _scores = null;
       _error = null;
+      _failed = false;
     });
     _load();
   }
@@ -104,7 +124,7 @@ class _ScoresViewState extends State<ScoresView> {
 
     return div(
       classes: "p-3",
-      attributes: const {"style": "max-width: 640px; margin: 0 auto;"},
+      attributes: const {"style": "max-width: 800px; margin: 0 auto;"},
       [
         // Bootstrap's own tabs, as the rest of the site has them, so they follow
         // the host page's theme. No overflow on the strip: it would clip the
@@ -113,7 +133,8 @@ class _ScoresViewState extends State<ScoresView> {
           classes: "nav nav-tabs mb-3",
           attributes: const {"role": "tablist"},
           [
-            for (final ScoreCategory category in ScoreCategory.values)
+            for (final ScoreCategory category
+                in Provider.scoreKeeper.categories)
               li(
                 classes: "nav-item",
                 attributes: const {"role": "presentation"},
@@ -160,9 +181,13 @@ class _ScoresViewState extends State<ScoresView> {
   }
 
   Component _body() {
-    final List<LocalScore>? scores = _scores;
+    final List<ScoreRow>? scores = _scores;
 
-    if (_error != null) {
+    if (_failed) {
+      return const div(classes: "text-secondary", [
+        Component.text(Strings.scoresNotLoaded),
+      ]);
+    } else if (_error != null) {
       return div(classes: "text-danger", [Component.text("$_error")]);
     } else if (scores == null) {
       return const div(classes: "text-secondary", [
@@ -180,21 +205,22 @@ class _ScoresViewState extends State<ScoresView> {
       div(classes: "list-group list-group-flush", [
         for (int i = 0; i < scores.length; i++) _row(i + 1, scores[i]),
       ]),
-      div(classes: "d-flex justify-content-end mt-2", [
-        button(
-          classes: "btn btn-sm btn-outline-danger",
-          attributes: const {"type": "button"},
-          events: {"click": (e) => _deleteAll()},
-          [
-            i(classes: "bi bi-trash me-1", const []),
-            Component.text(Strings.deleteAll(_category.label)),
-          ],
-        ),
-      ]),
+      if (!Provider.scoreKeeper.showsOnline)
+        div(classes: "d-flex justify-content-end mt-2", [
+          button(
+            classes: "btn btn-sm btn-outline-danger",
+            attributes: const {"type": "button"},
+            events: {"click": (e) => _deleteAll()},
+            [
+              i(classes: "bi bi-trash me-1", const []),
+              Component.text(Strings.deleteAll(_category.label)),
+            ],
+          ),
+        ]),
     ]);
   }
 
-  Component _row(int place, LocalScore score) {
+  Component _row(int place, ScoreRow score) {
     return div(
       classes:
           "list-group-item bg-transparent d-flex align-items-center gap-3 px-2",
@@ -210,31 +236,38 @@ class _ScoresViewState extends State<ScoresView> {
           attributes: const {"style": "min-width: 0;"},
           [
             div(classes: "text-truncate", [Component.text(score.name)]),
-            div(
-              classes: "small text-secondary text-truncate",
-              // hovering shows the moment to the second
-              attributes: {"title": formatFullTime(score.when)},
-              [
-                Component.text(
-                  "${score.board} · ${formatDay(score.when)} ${formatClock(score.when)}",
-                ),
-              ],
-            ),
+            div(classes: "d-flex align-items-center gap-2 small text-secondary", [
+              if (score.flag != null)
+                smallPicture(score.flag!)
+              else if (score.country != null)
+                Component.text("${score.country} ·"),
+              div(
+                classes: "text-truncate",
+                // hovering shows the moment to the second
+                attributes: {"title": formatFullTime(score.when)},
+                [
+                  Component.text(
+                    "${score.detail} · ${formatDay(score.when)} ${formatClock(score.when)}",
+                  ),
+                ],
+              ),
+            ]),
           ],
         ),
         div(classes: "flex-shrink-0 fs-6 fw-medium", [
           Component.text("${score.seconds} s"),
         ]),
-        button(
-          classes: "btn btn-sm btn-link text-secondary p-1",
-          attributes: const {
-            "type": "button",
-            "title": Strings.deleteScoreTooltip,
-            "aria-label": Strings.deleteScoreTooltip,
-          },
-          events: {"click": (e) => _delete(score)},
-          [i(classes: "bi bi-trash", const [])],
-        ),
+        if (score.local != null)
+          button(
+            classes: "btn btn-sm btn-link text-secondary p-1",
+            attributes: const {
+              "type": "button",
+              "title": Strings.deleteScoreTooltip,
+              "aria-label": Strings.deleteScoreTooltip,
+            },
+            events: {"click": (e) => _delete(score.local!)},
+            [i(classes: "bi bi-trash", const [])],
+          ),
       ],
     );
   }

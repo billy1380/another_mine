@@ -1,9 +1,11 @@
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_web/ui/bloc_provider.dart";
 import "package:another_mine_web/ui/layout.dart";
+import "package:another_mine_web/ui/parts/small_picture.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
 import "package:web/web.dart" as web;
+import "package:willshex_embedding/willshex_embedding.dart";
 
 /// Settings on their own page.
 class SettingsScreen extends StatelessComponent {
@@ -55,6 +57,23 @@ class _SettingsViewState extends State<SettingsView> {
 
   void _refreshGame() {
     BlocProvider.maybeOf<GameBloc>(context)?.add(const RefreshSettings());
+  }
+
+  /// `name · [logo] service · [flag] country`; hovering a picture says what it is.
+  Component _onlinePlayerSummary() {
+    final OnlinePlayer player = onlineScores.player;
+    final DialogImage? flag = flagOf(player.country);
+
+    return div(
+      classes: "d-flex align-items-center gap-2 small text-secondary",
+      [
+        Component.text("${player.name} ·"),
+        smallPicture(serviceImage(player.service), height: 20),
+        Component.text("${serviceName(player.service)} ·"),
+        if (flag != null) smallPicture(flag),
+        Component.text(countryName(player.country)),
+      ],
+    );
   }
 
   Component _heading(String text) => h3(
@@ -209,9 +228,7 @@ class _SettingsViewState extends State<SettingsView> {
               div(classes: "fw-medium", [
                 Component.text(Strings.onlinePlayerTitle),
               ]),
-              div(classes: "small text-secondary", [
-                Component.text(onlineScores.player.summary),
-              ]),
+              _onlinePlayerSummary(),
             ],
           ),
         _heading(Strings.appearanceSection),

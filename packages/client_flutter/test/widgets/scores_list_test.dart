@@ -39,7 +39,7 @@ void main() {
 
     expect(find.byType(Tab), findsNWidgets(ScoreCategory.values.length));
     expect(find.text("Beginner"), findsOneWidget);
-    expect(find.text("Hard"), findsOneWidget);
+    expect(find.text("Custom Hard"), findsOneWidget);
   });
 
   testWidgets("starts on the category of the game last played", (tester) async {
@@ -66,7 +66,7 @@ void main() {
     await show(tester);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text("Medium"));
+    await tester.tap(find.text("Custom Medium"));
     await tester.pumpAndSettle();
 
     expect(find.text("No scores yet."), findsOneWidget);

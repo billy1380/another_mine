@@ -5,8 +5,10 @@ import "package:another_mine_common/services/pref.dart";
 import "package:another_mine_common/services/provider.dart";
 import "package:another_mine_common/strings.dart";
 import "package:flutter/material.dart";
+import "package:another_mine_flutter/widgets/small_picture.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
+import "package:willshex_embedding/willshex_embedding.dart";
 import "package:go_router/go_router.dart";
 
 class SettingsPage extends StatefulWidget {
@@ -49,6 +51,25 @@ class _SettingsPageState extends State<SettingsPage> {
       _customBgColor = Provider.pref.customBgColor;
       _autoSolverType = Provider.pref.autoSolverType;
     });
+  }
+
+  /// `name · [logo] service · [flag] country`; hovering, or pressing and
+  /// holding, a picture says what it is.
+  Widget _onlinePlayerSummary() {
+    final OnlinePlayer player = onlineScores.player;
+    final DialogImage? flag = flagOf(player.country);
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 6,
+      children: [
+        Text("${player.name} ·"),
+        SmallPicture(serviceImage(player.service), height: 20),
+        Text("${serviceName(player.service)} ·"),
+        if (flag != null) SmallPicture(flag),
+        Text(countryName(player.country)),
+      ],
+    );
   }
 
   @override
@@ -149,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
           if (_remoteScoresEnabled)
             ListTile(
               title: const Text(Strings.onlinePlayerTitle),
-              subtitle: Text(onlineScores.player.summary),
+              subtitle: _onlinePlayerSummary(),
               trailing: const Icon(Icons.edit),
               onTap: () async {
                 await onlineScores.edit();

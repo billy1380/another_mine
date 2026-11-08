@@ -6,7 +6,13 @@ import "package:willshex_online_player/willshex_online_player.dart";
 import "package:willshex_space_cloud/willshex_space_cloud.dart";
 
 export "package:willshex_online_player/willshex_online_player.dart"
-    show OnlinePlayer, OnlineScores;
+    show
+        OnlinePlayer,
+        OnlineScores,
+        countryName,
+        flagOf,
+        serviceImage,
+        serviceName;
 
 /// The online player, kept in [Pref].
 class PrefOnlinePlayerStore implements OnlinePlayerStore {

@@ -1,7 +1,15 @@
+import "dart:async";
+import "dart:convert";
+import "dart:typed_data";
+
 import "package:another_mine_common/bloc/game/game_bloc.dart";
 import "package:another_mine_common/model/game_state_type.dart";
+import "package:another_mine_common/model/tile_model.dart";
 import "package:another_mine_common/scores/local_score.dart";
 import "package:another_mine_common/scores/local_scores.dart";
+import "package:another_mine_common/scores/online_board.dart";
+import "package:another_mine_common/scores/score_row.dart";
+import "package:another_mine_common/scores/score_submitter.dart";
 import "package:another_mine_common/scores/score_category.dart";
 import "package:another_mine_common/services/pref.dart";
 import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
@@ -15,6 +23,11 @@ class WonGame {
   final ScoreCategory category;
   final Solver solver;
 
+  /// The mines as a base64 bitset (one bit a tile, 1 for a mine) and what the
+  /// player did, for the recording sent online.
+  final String layout;
+  final List<List<Object>> events;
+
   const WonGame({
     required this.seconds,
     required this.width,
@@ -22,10 +35,17 @@ class WonGame {
     required this.mines,
     required this.category,
     required this.solver,
+    this.layout = "",
+    this.events = const [],
   });
 
-  /// The won game in [state], or null if the game was not won.
-  static WonGame? from(GameState state, Pref pref) {
+  /// The won game in [state], or null if the game was not won. [events] is what
+  /// the player did, from the game's recorder.
+  static WonGame? from(
+    GameState state,
+    Pref pref, {
+    List<List<Object>> events = const [],
+  }) {
     if (state.status != GameStateType.won) return null;
 
     return WonGame(
@@ -39,7 +59,19 @@ class WonGame {
           : pref.autoSolverType.name == Solver.probability.name
           ? Solver.probability
           : Solver.simple,
+      layout: _layoutOf(state),
+      events: events,
     );
+  }
+
+  static String _layoutOf(GameState state) {
+    final Uint8List bits = Uint8List((state.tiles.length + 7) ~/ 8);
+
+    for (final TileModel tile in state.tiles) {
+      if (tile.hasMine) bits[tile.index >> 3] |= 1 << (tile.index & 7);
+    }
+
+    return base64.encode(bits);
   }
 
   LocalScore toScore(String name, DateTime when) => LocalScore(
@@ -62,6 +94,9 @@ class ScoreKeeper extends BasicService {
   final String? path;
   final Pref _pref;
 
+  final OnlineBoard _online = OnlineBoard();
+  late final ScoreSubmitter _submitter = ScoreSubmitter(_pref);
+
   LocalScores? _local;
 
   ScoreKeeper(this.path, this._pref);
@@ -73,6 +108,9 @@ class ScoreKeeper extends BasicService {
     if (path != null) {
       _local = LocalScores(path!, retained: _pref.scoresRetained);
     }
+
+    // anything that could not be sent last time
+    unawaited(_submitter.flush());
   }
 
   @override
@@ -83,8 +121,14 @@ class ScoreKeeper extends BasicService {
   /// The won game in [state], or null if there is none to keep: the game was
   /// not won, the auto solver played any of it (its times would crowd out the
   /// player's), or this host keeps no scores.
-  WonGame? wonGame(GameState state) =>
-      isEnabled && !state.solverUsed ? WonGame.from(state, _pref) : null;
+  WonGame? wonGame(GameState state, {List<List<Object>> events = const []}) =>
+      isEnabled && !state.solverUsed
+      ? WonGame.from(state, _pref, events: events)
+      : null;
+
+  /// Sends [game] online if online scores are on and it is one to send, else
+  /// does nothing. Never throws.
+  Future<void> submitOnline(WonGame game) => _submitter.submit(game);
 
   /// Where [game] would place, or null if it would not be kept.
   Future<int?> rankOf(WonGame game) async =>
@@ -99,6 +143,46 @@ class ScoreKeeper extends BasicService {
 
     return _local?.add(game.toScore(trimmed, when ?? DateTime.now()));
   }
+
+  /// Whether the scores page lists the online scores rather than this
+  /// device's.
+  bool get showsOnline => _pref.remoteScoresEnabled;
+
+  /// Stops saving and listing scores online.
+  Future<void> switchToLocal() =>
+      _pref.setBool(Pref.keyRemoteScoresEnabled, false);
+
+  /// The categories the scores page has a tab for: those kept online when it
+  /// lists the online scores, else all.
+  List<ScoreCategory> get categories => [
+    for (final ScoreCategory c in ScoreCategory.values)
+      if (!showsOnline || c.isOnline) c,
+  ];
+
+  /// The lines of the scores table for [category], best first: the online
+  /// scores or this device's, as [showsOnline] says.
+  Future<List<ScoreRow>> rows(ScoreCategory category) async => showsOnline
+      ? [
+          for (final OnlineScore s in await _online.top(category))
+            ScoreRow(
+              name: s.name,
+              detail: s.board,
+              country: s.country,
+              flag: s.flag,
+              seconds: s.seconds,
+              when: s.when,
+            ),
+        ]
+      : [
+          for (final LocalScore s in await top(category))
+            ScoreRow(
+              name: s.name,
+              detail: s.board,
+              seconds: s.seconds,
+              when: s.when,
+              local: s,
+            ),
+        ];
 
   /// The best scores of [category], best first.
   Future<List<LocalScore>> top(ScoreCategory category) async =>

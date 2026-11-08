@@ -38,6 +38,12 @@ abstract class Strings {
   static const String save = "Save";
   static const String skip = "Skip";
   static const String noScoresYet = "No scores yet.";
+  static const String scoresNotLoaded = "The scores were not loaded.";
+  static const String scoresFailedTitle = "Can't load scores";
+  static const String scoresFailedMessage =
+      "The online scores could not be loaded. Check your connection and try again.";
+  static const String retry = "Retry";
+  static const String switchToLocal = "Switch to local";
   static const String bestTime = "A new best time!";
 
   /// "42 seconds on Beginner".

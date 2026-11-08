@@ -45,7 +45,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
 
 **Win with online scores on:** same congratulations dialog, plus a "Share online" tick (default on) and a progress/failed state. A failed submit is queued and retried (see requirements).
 
-**Scores page:** two tabs, Local and Online. Online lists top scores for the chosen difficulty with flag, name, time, board and date, paged. Custom games appear under Medium and Hard (Easy is local only), and each row shows its board.
+**Scores page:** the same category tabs. With online scores off they list this device's scores; with them on, the online ones (top 20 of the category; flag, name service icon and paging to come), and the Custom Easy tab is hidden because those games are local only. Each row shows country, board and date. The online tabs have no delete.
 
 ## Requirements
 
@@ -58,7 +58,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
 ### Remote scores
 - Scores and SpaceCloud clients come from shared packages (see Packages), not from copies in this repo.
 - Session access code is the Willshex publisher key, as before. It is committed and not secret, so no build define (the same decision as the SpaceCloud admin key).
-- **Game and categories:** an `Application` "Another Mine" under the Willshex publisher in SpaceCloud, with five scores categories: **Beginner, Intermediate, Expert, Medium and Hard** (Easy custom games are not sent; the local store keeps all six), matched by name and game, not by the legacy ids 1 to 4. Scores service does not create categories on submit, so these must exist before release (a step in the rollout).
+- **Game and categories:** an `Application` "Another Mine" under the Willshex publisher in SpaceCloud, with five scores categories: **Beginner, Intermediate, Expert, Custom Medium and Custom Hard** (Easy custom games are not sent; the local store keeps all six), matched by name and game, not by the legacy ids 1 to 4. Scores service does not create categories on submit, so these must exist before release (a step in the rollout).
 - **Legacy data (decided: migrate):** the old app's scores in categories 1 to 4 are moved to the new categories by a script the user runs (it needs the admin session). Beginner, Intermediate and Expert map one to one. Old Custom (4) scores carry their board only in the description (`Custom (40 in 16 x 16)`), so the script parses it, works out the density and files each under Easy, Medium or Hard; any it cannot parse go to a report and stay put. The script prints what it will do and asks before changing anything.
 - **User (decided, as in Delta-V Hosted):** the player types a **username** and picks a **system** (the same list as Delta-V Hosted's Service box); SpaceCloud finds or creates the user from that name and system type, which is `name@system` in Delta-V Hosted. Country is added to the same user.
   - **When the platform knows the player's id** (Game Center on Apple devices, Google, and so on), it is sent as the `externalSystemId`. SpaceCloud finds the user by that id and **updates the username** (and country) to what was entered, so a rename keeps the same player and the same account on two devices is one player.
@@ -66,18 +66,19 @@ The dialog says that scores are saved outside the device and for which games. Ca
   - Usernames follow Delta-V Hosted's rule of more than three characters, trimmed and sanitised.
   - The Willshex user id is not involved.
 - **Score:** `value` seconds, `unit` seconds, `description` the board (`Expert`, or `Custom 40 mines on 16 x 16`; the same wording for every custom game so the legacy migration and new scores read alike), `attempt`, `when`, `additionalData`.
-- **Additional data** (JSON, gzip then base64, the same encoding Delta-V uses so the admin has one decoder):
+- **Additional data** (JSON, gzip then base64, the same encoding Delta-V uses so the admin has one decoder). It is a recording of the game, so the admin (or the game) can show what the player did and replay it at any speed:
   ```
-  { "game": "anothermine", "version": 1,
+  { "game": "anothermine", "version": 2,
     "difficulty": "expert", "width": 30, "height": 16, "mines": 99,
-    "solver": "human", "seed": <int?>,
-    "board": ["1 1 . . ", "F 2 1 ...", ...] }   // one string per row
+    "solver": "human",
+    "layout": "<base64 bitset, one bit per tile, 1 = mine>",
+    "events": [ [0, "p", 212], [830, "f", 40], [1500, "prob", 1], [4210, "pause"], ... ] }
   ```
-  - **The board is text, not an image.** One character per tile, one string per row, taken at the moment of the win:
-    `0` to `8` an opened tile with that many neighbouring mines (`0` shown as a space in the admin), `F` a flagged mine, `*` a mine that was not flagged, `?` a tile marked as a guess. Colours are left out: the board is drawn in the player's palette, which the admin does not need, and the admin draws it in its own.
-  - **Size:** Expert (30 by 16, 480 tiles) is about 0.5 KB as text. The biggest custom board the game allows (50 by 50, 2,500 tiles) is about 2.5 KB before compression. That is hundreds of times under the 1 MB row limit, where a screenshot (tens of KB at best) is what would make rows heavy. An image can be drawn from the text later, in the admin or by the game, so nothing is lost by not storing one.
-  - The text board is sent with every online win, because it is so small. `seed` is included only if the board builder can reproduce a game from it, so the admin could later offer a replay.
-  - `seed` is included only if the board builder can reproduce a game from it; it lets the admin offer a replay later.
+  - **`events`** are `[ms, code, argument]`, in order, `ms` since the first move: `p` reveal tile, `f` flag or unflag tile (the argument is the tile index, `y * width + x`), `pause` and `resume`, `prob` and `focus` when probability mode or focus mode is turned on (`1`) or off (`0`). Both modes are off when a game begins. A replay feeds the events to the same game logic from `layout`, so it needs no stored board and runs at 1x, or faster or slower by scaling `ms`. Paused time is visible from `pause` and `resume`.
+  - **`layout`** is the mines as they stand at the win, which is after the first-move protection has moved a mine away from the first tile.
+  - **Size:** about 14 bytes an event as JSON, a few hundred events for Expert, so a few KB compressed. The biggest custom board (50 by 50) with a long game stays well under 100 KB, hundreds of times under the 1 MB row limit.
+  - **Never sent for solver games:** a game the auto solver played any part of is not kept or sent at all, so its events are never recorded either. Probability and focus mode are the player's own aids and are recorded, not blocked.
+  - The final board as a text grid is not stored: a replay to the last event gives it.
 - **Custom games (decided):** a custom board is ranked by mine density, `mines / (width x height)`, against the three presets (Beginner 10 in 9 x 9 is 0.123, Intermediate 40 in 16 x 16 is 0.156, Expert 99 in 30 x 16 is 0.206):
   - a board that is exactly a preset counts as that preset;
   - otherwise, density below Beginner is **Easy**, below Intermediate is **Medium**, and everything else is **Hard**. A custom board that is denser than Expert is Hard, since there is no category beyond it;
@@ -131,7 +132,7 @@ Done: local scores and Scores page, the online player dialog and the settings sw
 Left, in order:
 
 1. Create the WillShex Limited publisher, the Another Mine application and the five categories under it (rollout step 1). The server's `AddPublisher` and `AddApplication` calls are empty stubs, so they need implementing in `javaspacecloud` first (or the entities added to the datastore directly). The old game's own key is not registered anywhere I could find, so its scores probably never arrived and a legacy migration is likely not needed (to confirm).
-2. Make a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above), map the stored country to `Country`, send the score with the density rule above, skipping Easy and solver games and anything under the minimum time for the board.
+2. Make a `GameRecorder` (events above, fed from `GameBloc.onEvent`) and a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above; verified 2026-11-08: `SubmitScore` rejects a player SpaceCloud does not know, with "Nonexistent or deleted user", so call `AddUser` first, tolerating a failure when the player already exists; a player is matched by external system id and type, then by name and type, so send a name as well), map the stored country to `Country`, send the score with the density rule above, skipping Easy and solver games and anything under the minimum time for the board.
 3. Offer a "Share online" tick on the win dialog when online is on, and a failed-send queue kept in prefs (retry on launch and next win).
 4. Online tab on the Scores page (top 20 per category, paging, board). Each row shows the country flag, the name and the service icon, using `flagOf(country)` and `serviceImage(service)` from `willshex_online_player` (flags are the 16 by 11 images from the Objective-C game; a few countries have none and show no flag).
 5. Text board and additional data (gzip + base64) on each send.

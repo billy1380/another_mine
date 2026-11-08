@@ -1,6 +1,8 @@
 import "package:another_mine_common/dialogs/another_mine_dialogs.dart";
 import "package:another_mine_common/scores/local_score.dart";
+import "package:another_mine_common/scores/score_category.dart";
 import "package:another_mine_common/scores/score_keeper.dart";
+import "package:another_mine_common/scores/score_row.dart";
 import "package:another_mine_common/strings.dart";
 import "package:mine_images/mine_images.dart";
 import "package:willshex_embedding/willshex_embedding.dart";
@@ -59,6 +61,47 @@ abstract class ScoreDialogs {
     final String name = result?.values[nameField] ?? "";
 
     return result?.actionId == "save" && name.isNotEmpty ? name : null;
+  }
+
+  static const String retryId = "retry";
+  static const String localId = "local";
+
+  /// The lines of the table for [category]. When the online scores cannot be
+  /// read, asks whether to try again, give up or switch to local scores, and
+  /// answers `null` for the last two (after a switch, [ScoreKeeper.showsOnline]
+  /// is false, so the caller shows the local tabs).
+  static Future<List<ScoreRow>?> loadRows(
+    ScoreKeeper keeper,
+    ScoreCategory category,
+  ) async {
+    while (true) {
+      try {
+        return await keeper.rows(category);
+      } catch (_) {
+        if (!keeper.showsOnline) rethrow;
+
+        final DialogResult? result = await AnotherMineDialogs.ask(
+          const DialogRequest(
+            title: Strings.scoresFailedTitle,
+            message: Strings.scoresFailedMessage,
+            actions: [
+              DialogAction.cancel(label: Strings.cancel),
+              DialogAction(id: localId, label: Strings.switchToLocal),
+              DialogAction(
+                id: retryId,
+                label: Strings.retry,
+                variant: ActionVariant.primary,
+              ),
+            ],
+          ),
+        );
+
+        if (result?.actionId == retryId) continue;
+        if (result?.actionId == localId) await keeper.switchToLocal();
+
+        return null;
+      }
+    }
   }
 
   /// Whether the player wants [score] deleted.
