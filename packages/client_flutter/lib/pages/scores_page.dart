@@ -1,4 +1,5 @@
 import "package:another_mine_flutter/pages/parts/app_drawer.dart";
+import "package:another_mine_flutter/widgets/scores_list.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 
@@ -16,6 +17,10 @@ class ScoresPage extends StatefulWidget {
 class _ScoresPageState extends State<ScoresPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(drawer: const AppDrawer(), appBar: AppBar(elevation: 0));
+    return Scaffold(
+      drawer: const AppDrawer(),
+      appBar: AppBar(elevation: 0),
+      body: const ScoresList(),
+    );
   }
 }

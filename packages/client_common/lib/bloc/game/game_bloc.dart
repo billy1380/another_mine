@@ -207,7 +207,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         difficulty,
         Provider.pref.effectiveCustomBgColor,
         gameBuilder,
-      ).copyWith(autoSolverEnabled: state.autoSolverEnabled),
+      ).copyWith(
+        autoSolverEnabled: state.autoSolverEnabled,
+        solverUsed: state.autoSolverEnabled,
+      ),
     );
 
     BoardSize size = BoardSize(
@@ -236,6 +239,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(
       state.copyWith(
         autoSolverEnabled: status,
+        solverUsed: status ? true : state.solverUsed,
         isFocusMode: status ? false : state.isFocusMode,
         autoSolverLookingIndex: status ? state.autoSolverLookingIndex : null,
       ),

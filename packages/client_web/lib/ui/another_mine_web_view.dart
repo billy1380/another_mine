@@ -9,6 +9,7 @@ import "package:another_mine_web/ui/screens/scores_screen.dart";
 import "package:another_mine_web/ui/screens/settings_screen.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
+import "package:willshex_embedding_jaspr/willshex_embedding_jaspr.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 import "package:willshex_embedding/willshex_embedding.dart";
 
@@ -63,12 +64,15 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
   @override
   void initState() {
     super.initState();
+    AnotherMineDialogs.hostSession = component.session;
     _initialise();
   }
 
   @override
   void didUpdateComponent(AnotherMineWebView oldComponent) {
     super.didUpdateComponent(oldComponent);
+
+    AnotherMineDialogs.hostSession = component.session;
 
     if (_plays(component.section) &&
         (!_plays(oldComponent.section) ||
@@ -130,6 +134,9 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
 
   @override
   void dispose() {
+    if (AnotherMineDialogs.hostSession == component.session) {
+      AnotherMineDialogs.hostSession = null;
+    }
     _subscription?.cancel();
     _bloc?.close();
     super.dispose();
@@ -149,21 +156,25 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
       ]);
     }
 
-    return BlocProvider<GameBloc>(
-      bloc: bloc,
-      child: switch (component.section) {
-        AnotherMineSection.game => const GameView(),
-        AnotherMineSection.custom => Component.fragment([
-          const GameView(),
-          CustomGameDialog(
-            onStart: (difficulty) =>
-                component.onCustomGameStarted?.call(difficulty),
-            onCancel: () => component.onCustomGameCancelled?.call(),
-          ),
-        ]),
-        AnotherMineSection.scores => const ScoresView(),
-        AnotherMineSection.settings => const SettingsView(),
-      },
-    );
+    return Component.fragment([
+      BlocProvider<GameBloc>(
+        bloc: bloc,
+        child: switch (component.section) {
+          AnotherMineSection.game => const GameView(),
+          AnotherMineSection.custom => Component.fragment([
+            const GameView(),
+            CustomGameLauncher(
+              onStart: (difficulty) =>
+                  component.onCustomGameStarted?.call(difficulty),
+              onCancel: () => component.onCustomGameCancelled?.call(),
+            ),
+          ]),
+          AnotherMineSection.scores => const ScoresView(),
+          AnotherMineSection.settings => const SettingsView(),
+        },
+      ),
+      // the game's own dialogs, for when the host draws none
+      EmbeddingDialogSlot(controller: AnotherMineDialogs.local),
+    ]);
   }
 }

@@ -11,6 +11,10 @@ export "ai/simple_guesser.dart";
 
 export "bloc/game/game_bloc.dart";
 
+export "dialogs/another_mine_dialogs.dart";
+export "dialogs/custom_game_form.dart";
+export "dialogs/score_dialogs.dart";
+
 export "logic/game_builder.dart";
 export "logic/pattern_game_builder.dart";
 export "logic/probability_calculator.dart";
@@ -23,6 +27,11 @@ export "model/game_difficulty.dart";
 export "model/game_state_type.dart";
 export "model/tile_model.dart";
 export "model/tile_state_type.dart";
+
+export "scores/clock_format.dart";
+export "scores/local_score.dart";
+export "scores/score_category.dart";
+export "scores/score_keeper.dart";
 
 export "services/pref.dart";
 export "services/pref_storage.dart";

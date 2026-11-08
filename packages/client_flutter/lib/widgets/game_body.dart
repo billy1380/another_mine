@@ -5,6 +5,8 @@ import "package:another_mine_flutter/assets.dart";
 import "package:another_mine_flutter/extensions/colour_ex.dart";
 import "package:another_mine_flutter/widgets/game_action_bar.dart";
 import "package:another_mine_flutter/widgets/mine_field.dart";
+import "package:another_mine_flutter/widgets/offer_to_keep_score.dart";
+import "package:another_mine_common/model/game_state_type.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
@@ -27,6 +29,7 @@ class _GameBodyState extends State<GameBody> with WidgetsBindingObserver {
   final ValueNotifier<int?> _focusIndexNotifier = ValueNotifier<int?>(null);
   final FocusNode _focusNode = FocusNode();
   bool _pausedBySystem = false;
+  GameStateType? _lastStatus;
 
   @override
   void initState() {
@@ -112,6 +115,13 @@ class _GameBodyState extends State<GameBody> with WidgetsBindingObserver {
   }
 
   void _onStateChanged(BuildContext context, GameState state) {
+    // the board is revealed after a win, which changes the state again, so
+    // only the move into the won state offers to keep the score
+    if (state.status == GameStateType.won && _lastStatus != GameStateType.won) {
+      offerToKeepScore(context, state);
+    }
+    _lastStatus = state.status;
+
     if (state.autoSolverEnabled &&
         !state.autoSolverPaused &&
         state.lastInteractedIndex != null) {

@@ -30,4 +30,40 @@ abstract class Strings {
   static const String difficulty = "Difficulty";
   static const String scores = "Scores";
   static const String start = "Start";
+
+  static const String wonTitle = "You won!";
+  static const String nameLabel = "Name";
+  static const String save = "Save";
+  static const String skip = "Skip";
+  static const String noScoresYet = "No scores yet.";
+  static const String bestTime = "A new best time!";
+
+  /// "42 seconds on Beginner".
+  static String timeOnBoard(int seconds, String board) =>
+      "$seconds ${seconds == 1 ? "second" : "seconds"} on $board";
+
+  /// "Place 3 in Beginner".
+  static String placeIn(int place, String category) =>
+      "Place $place in $category";
+
+  static const String delete = "Delete";
+  static const String deleteScoreTooltip = "Delete this score";
+  static const String deleteScoreTitle = "Delete score?";
+
+  /// "billy's 37 s on Beginner will be deleted."
+  static String deleteScoreQuestion(String name, int seconds, String board) =>
+      "$name's $seconds s on $board will be deleted.";
+
+  /// "Delete all Beginner scores".
+  static String deleteAll(String category) => "Delete all $category scores";
+  static const String deleteAllTitle = "Delete scores?";
+
+  /// "Every Beginner score on this device will be deleted."
+  static String deleteAllQuestion(String category) =>
+      "Every $category score on this device will be deleted.";
+
+  static const String customGameTitle = "Custom game";
+  static const String customWidth = "Width";
+  static const String customHeight = "Height";
+  static const String customMines = "Mines";
 }

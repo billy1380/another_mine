@@ -1,3 +1,4 @@
+import "package:another_mine_flutter/services/scores_path.dart";
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/services/shared_preferences_pref_storage.dart";
 import "package:bloc/bloc.dart";
@@ -32,7 +33,10 @@ class StartupBloc extends Bloc<StartupEvent, StartupState> {
         await BrowserContextMenu.disableContextMenu();
       }
 
-      await initServices(SharedPreferencesPrefStorage());
+      await initServices(
+        SharedPreferencesPrefStorage(),
+        scoresPath: await scoresStorePath(),
+      );
 
       emit(state.copyWith(status: StartupStatus.complete));
     } catch (e, st) {

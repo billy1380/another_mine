@@ -17,6 +17,7 @@ class Pref extends BasicService {
   static const String keyScoresRetained = "scoresRetained";
   static const String keyRemoteScoresEnabled = "remoteHighScoresEnabled";
   static const String keyDefaultCountry = "defaultCountry";
+  static const String keyPlayerName = "playerName";
   static const String keyCustomBgEnabled = "customBackgroundColourEnabled";
   static const String keyCustomBgColor = "customBackgroundColour";
   static const String keyAutoSolverSettingName = "autoSolver";
@@ -78,6 +79,7 @@ class Pref extends BasicService {
   bool get animate => getBool(keyAnimate) ?? true;
   int get scoresRetained => getInt(keyScoresRetained) ?? 20;
   bool get remoteScoresEnabled => getBool(keyRemoteScoresEnabled) ?? false;
+  String get playerName => getString(keyPlayerName) ?? "";
   String get defaultCountry => getString(keyDefaultCountry) ?? "United Kingdom";
   bool get customBgEnabled => getBool(keyCustomBgEnabled) ?? false;
   int get customBgColor =>

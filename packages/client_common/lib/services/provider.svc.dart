@@ -13,4 +13,6 @@ abstract class Provider {
   Provider._();
 
   static Pref get pref => ServiceDiscovery.instance.resolve<Pref>();
+  static ScoreKeeper get scoreKeeper =>
+      ServiceDiscovery.instance.resolve<ScoreKeeper>();
 }

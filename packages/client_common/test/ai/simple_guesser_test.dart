@@ -90,8 +90,9 @@ void main() {
         gameState.status,
       );
 
+      // it probes the unrevealed neighbour, index 2, not the numbered tile
       expect(move.type, InteractionType.probe);
-      expect(move.x, 0);
+      expect(move.x, 2);
       expect(move.y, 0);
     });
 

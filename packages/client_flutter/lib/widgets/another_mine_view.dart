@@ -2,10 +2,12 @@ import "dart:async";
 
 import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/pages/settings_page.dart";
+import "package:another_mine_flutter/services/scores_path.dart";
 import "package:another_mine_flutter/services/shared_preferences_pref_storage.dart";
-import "package:another_mine_flutter/widgets/custom_game_dialog.dart";
 import "package:another_mine_flutter/widgets/game_body.dart";
 import "package:another_mine_flutter/widgets/game_tools_menu.dart";
+import "package:another_mine_flutter/widgets/local_dialog_host.dart";
+import "package:another_mine_flutter/widgets/scores_list.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -61,16 +63,20 @@ class _AnotherMineViewState extends State<AnotherMineView> {
   GameSessionPublisher? _publisher;
   StreamSubscription<GameState>? _subscription;
   Object? _error;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
+    AnotherMineDialogs.hostSession = widget.session;
     _initialise();
   }
 
   @override
   void didUpdateWidget(AnotherMineView oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    AnotherMineDialogs.hostSession = widget.session;
 
     if (_plays(widget.section) &&
         (!_plays(oldWidget.section) ||
@@ -124,7 +130,10 @@ class _AnotherMineViewState extends State<AnotherMineView> {
 
   Future<void> _initialise() async {
     try {
-      await initServices(SharedPreferencesPrefStorage());
+      await initServices(
+        SharedPreferencesPrefStorage(),
+        scoresPath: await scoresStorePath(),
+      );
 
       // Flags are set with a secondary click.
       await _setContextMenu(enabled: false);
@@ -149,6 +158,9 @@ class _AnotherMineViewState extends State<AnotherMineView> {
 
   @override
   void dispose() {
+    if (AnotherMineDialogs.hostSession == widget.session) {
+      AnotherMineDialogs.hostSession = null;
+    }
     _setContextMenu(enabled: true);
     _subscription?.cancel();
     _bloc?.close();
@@ -158,12 +170,16 @@ class _AnotherMineViewState extends State<AnotherMineView> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: "Another Mine",
       theme: (widget.theme ?? Theme.of(context)).copyWith(
         scaffoldBackgroundColor: Colors.transparent,
       ),
-      home: Scaffold(body: _buildBody()),
+      home: LocalDialogHost(
+        navigatorKey: _navigatorKey,
+        child: Scaffold(body: _buildBody()),
+      ),
     );
   }
 
@@ -200,9 +216,7 @@ class _AnotherMineViewState extends State<AnotherMineView> {
             ),
           ],
         ),
-        AnotherMineSection.scores => const Center(
-          child: Text("Scores are not available yet."),
-        ),
+        AnotherMineSection.scores => const ScoresList(),
         AnotherMineSection.settings => const SettingsPage.embedded(),
       },
     );
@@ -258,7 +272,7 @@ class _CustomGameLauncherState extends State<_CustomGameLauncher> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final GameDifficulty? difficulty = await showCustomGameDialog(context);
+      final GameDifficulty? difficulty = await CustomGameForm.ask();
       if (!mounted) return;
 
       if (difficulty == null) {

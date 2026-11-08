@@ -1,9 +1,7 @@
+import "package:another_mine_common/dialogs/custom_game_form.dart";
 import "package:another_mine_common/model/game_difficulty.dart";
-import "package:another_mine_common/services/provider.dart";
 import "package:another_mine_common/strings.dart";
 import "package:another_mine_flutter/pages/game_page.dart";
-import "package:another_mine_flutter/pages/parts/custom_game_body.dart";
-import "package:another_mine_flutter/pages/parts/custom_game_title.dart";
 import "package:another_mine_flutter/pages/scores_page.dart";
 import "package:another_mine_flutter/pages/settings_page.dart";
 import "package:flutter/material.dart";
@@ -73,103 +71,15 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _showCustomDifficultyDialog(BuildContext context) async {
-    final difficulty = Provider.pref.difficulty;
-    int width = difficulty.width;
-    int height = difficulty.height;
-    int mines = difficulty.mines;
-    int maxMines = (width * height) - 9;
+    final GameDifficulty? difficulty = await CustomGameForm.ask();
 
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            void updateMaxMines() {
-              int newMax = (width * height) - 9;
-              if (newMax < 0) newMax = 0;
-              if (mines > newMax) {
-                mines = newMax;
-              }
-              maxMines = newMax;
-              if (mines < 1) mines = 1;
-              if (maxMines < 1) maxMines = 1;
-            }
+    if (!context.mounted) return;
 
-            return AlertDialog(
-              title: CustomGameTitle(
-                width: width,
-                height: height,
-                mines: mines,
-                onDifficultySelected: (value) {
-                  setState(() {
-                    width = value.width;
-                    height = value.height;
-                    mines = value.mines;
-                    updateMaxMines();
-                  });
-                },
-              ),
-              content: CustomGameBody(
-                width: width,
-                height: height,
-                mines: mines,
-                maxMines: maxMines,
-                onWidthChanged: (value) {
-                  setState(() {
-                    width = value;
-                    updateMaxMines();
-                  });
-                },
-                onHeightChanged: (value) {
-                  setState(() {
-                    height = value;
-                    updateMaxMines();
-                  });
-                },
-                onMinesChanged: (value) {
-                  setState(() {
-                    mines = value;
-                  });
-                },
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(Strings.cancel),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Provider.pref.setInt("width", width);
-                    Provider.pref.setInt("height", height);
-                    Provider.pref.setInt("mines", mines);
+    // the drawer closes whether or not a board was chosen
+    Navigator.pop(context);
 
-                    if (context.mounted) {
-                      Navigator.pop(context);
-
-                      GoRouter.of(context).go(
-                        GamePage.buildRoute(
-                          GameDifficulty.custom(
-                            width: width,
-                            height: height,
-                            mines: mines,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text(Strings.start),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    if (context.mounted) {
-      Navigator.pop(context);
+    if (difficulty != null) {
+      GoRouter.of(context).go(GamePage.buildRoute(difficulty));
     }
   }
 

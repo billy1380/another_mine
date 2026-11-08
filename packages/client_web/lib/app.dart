@@ -4,6 +4,7 @@ import "package:another_mine_web/services/local_storage_pref_storage.dart";
 import "package:another_mine_web/ui/bloc_provider.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
+import "package:willshex_embedding_jaspr/willshex_embedding_jaspr.dart";
 import "package:jaspr_router/jaspr_router.dart";
 import "package:main_thread_processor/main_thread_processor.dart";
 
@@ -61,6 +62,10 @@ class _AppState extends State<App> {
       ]);
     }
 
-    return BlocProvider<GameBloc>(bloc: bloc, child: router);
+    return Component.fragment([
+      BlocProvider<GameBloc>(bloc: bloc, child: router),
+      // the game on its own is its own host for dialogs
+      EmbeddingDialogSlot(controller: AnotherMineDialogs.local),
+    ]);
   }
 }

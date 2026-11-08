@@ -23,6 +23,8 @@ dependencies:
     path: ../../../willshex_dart_service_discovery
   willshex_embedding:
     path: ../../../willshex_embedding
+  willshex_embedding_jaspr:
+    path: ../../../willshex_embedding/jaspr
   main_thread_processor:
     path: ../../../main_thread_processor
 

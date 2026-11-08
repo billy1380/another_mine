@@ -424,6 +424,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  fs_shim:
+    dependency: transitive
+    description:
+      name: fs_shim
+      sha256: "58640f883972ec24a2679466943d60a58f2008009fe101700554454e8f74befd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   glob:
     dependency: transitive
     description:
@@ -496,6 +504,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  idb_shim:
+    dependency: transitive
+    description:
+      name: idb_shim
+      sha256: "60965b556624f7018ec26205283e32670bc78c6fe1388d4b90bdfe6b2311b87b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.11.2"
   io:
     dependency: transitive
     description:
@@ -552,6 +568,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  jni_flutter:
+    dependency: transitive
+    description:
+      name: jni_flutter
+      sha256: "0dd33d67797560f66e961a6053882d4df54bd345bf063b8fe7ea133f7ad8b191"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4+1"
   jni_util:
     dependency: transitive
     description:
@@ -727,6 +751,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
+  path_provider:
+    dependency: transitive
+    description:
+      name: path_provider
+      sha256: a7f4874f987173da295a61c181b8ee71dab59b332a486b391babf26a1b884825
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.6"
+  path_provider_android:
+    dependency: transitive
+    description:
+      name: path_provider_android
+      sha256: "69cbd515a62b94d32a7944f086b2f82b4ac40a1d45bebfc00813a430ab2dabcd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.1"
+  path_provider_foundation:
+    dependency: transitive
+    description:
+      name: path_provider_foundation
+      sha256: "2a376b7d6392d80cd3705782d2caa734ca4727776db0b6ec36ef3f1855197699"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.6.0"
   path_provider_linux:
     dependency: transitive
     description:
@@ -847,6 +895,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.2"
+  sembast:
+    dependency: transitive
+    description:
+      name: sembast
+      sha256: "35775a26edbdf0d891bab304929a712e103c9d9a6e2fb5ebbd8437bb3139615a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.10.0"
   shared_preferences:
     dependency: transitive
     description:
@@ -1028,6 +1084,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  synchronized:
+    dependency: transitive
+    description:
+      name: synchronized
+      sha256: "0ce4712bd3be1fccfab14458059baebb400ba6c6239b65398e3464945fabbae7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.6.1"
   term_glyph:
     dependency: transitive
     description:
@@ -1185,6 +1249,41 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  willshex_embedding_flutter:
+    dependency: transitive
+    description:
+      path: "../willshex_embedding/flutter"
+      relative: true
+    source: path
+    version: "0.1.0"
+  willshex_embedding_jaspr:
+    dependency: transitive
+    description:
+      path: "../willshex_embedding/jaspr"
+      relative: true
+    source: path
+    version: "0.1.0"
+  willshex_scores:
+    dependency: transitive
+    description:
+      path: "../willshex_scores"
+      relative: true
+    source: path
+    version: "0.0.1"
+  willshex_space_cloud:
+    dependency: transitive
+    description:
+      path: "../willshex_space_cloud"
+      relative: true
+    source: path
+    version: "0.0.1"
+  willshex_storage:
+    dependency: transitive
+    description:
+      path: "../willshex-dart-storage"
+      relative: true
+    source: path
+    version: "0.1.1"
   win32:
     dependency: transitive
     description:

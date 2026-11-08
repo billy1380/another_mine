@@ -11,6 +11,10 @@ final class GameState extends Equatable {
   final int revealedTiles;
   final Colour colour;
   final bool autoSolverEnabled;
+
+  /// True once the auto solver has played any part of this game, so a win
+  /// is not credited to the player.
+  final bool solverUsed;
   final int refresh;
   final bool autoSolverPaused;
   final BoardSize gameSize;
@@ -35,6 +39,7 @@ final class GameState extends Equatable {
     required this.revealedTiles,
     required this.colour,
     required this.autoSolverEnabled,
+    required this.solverUsed,
     required this.refresh,
     required this.autoSolverPaused,
     required this.gameSize,
@@ -59,6 +64,7 @@ final class GameState extends Equatable {
         difficulty.height * mineDim,
       ),
       autoSolverEnabled: false,
+      solverUsed: false,
       difficulty: difficulty,
       colour: colour,
       end: null,
@@ -97,6 +103,7 @@ final class GameState extends Equatable {
     int? revealedTiles,
     Colour? colour,
     bool? autoSolverEnabled,
+    bool? solverUsed,
     int? refresh,
     bool? autoSolverPaused,
     BoardSize? gameSize,
@@ -120,6 +127,7 @@ final class GameState extends Equatable {
     revealedTiles: revealedTiles ?? this.revealedTiles,
     colour: colour ?? this.colour,
     autoSolverEnabled: autoSolverEnabled ?? this.autoSolverEnabled,
+    solverUsed: solverUsed ?? this.solverUsed,
     refresh: refresh ?? this.refresh,
     autoSolverPaused: autoSolverPaused ?? this.autoSolverPaused,
     gameSize: gameSize ?? this.gameSize,
@@ -149,6 +157,7 @@ final class GameState extends Equatable {
     revealedTiles,
     colour,
     autoSolverEnabled,
+    solverUsed,
     refresh,
     autoSolverPaused,
     accumulatedDuration,

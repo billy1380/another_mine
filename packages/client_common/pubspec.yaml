@@ -23,6 +23,12 @@ dependencies:
     path: ../../../main_thread_processor
   willshex_embedding:
     path: ../../../willshex_embedding
+  willshex_scores:
+    path: ../../../willshex_scores
+  willshex_space_cloud:
+    path: ../../../willshex_space_cloud
+  willshex_storage:
+    path: ../../../willshex-dart-storage
 
 dev_dependencies:
   lints: ^6.0.0
