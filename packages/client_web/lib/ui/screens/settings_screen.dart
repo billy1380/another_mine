@@ -37,7 +37,6 @@ class _SettingsViewState extends State<SettingsView> {
   late bool _animate;
   late int _scoresRetained;
   late bool _remoteScoresEnabled;
-  late String _defaultCountry;
   late bool _customBgEnabled;
   late int _customBgColor;
   late AutoSolverType _autoSolverType;
@@ -49,7 +48,6 @@ class _SettingsViewState extends State<SettingsView> {
     _animate = pref.animate;
     _scoresRetained = pref.scoresRetained;
     _remoteScoresEnabled = pref.remoteScoresEnabled;
-    _defaultCountry = pref.defaultCountry;
     _customBgEnabled = pref.customBgEnabled;
     _customBgColor = pref.customBgColor;
     _autoSolverType = pref.autoSolverType;
@@ -182,51 +180,40 @@ class _SettingsViewState extends State<SettingsView> {
           title: Strings.onlineHighScoresTitle,
           subtitle: Strings.onlineHighScoresSubtitle,
           value: _remoteScoresEnabled,
-          onChanged: (v) {
-            if (v) {
+          onChanged: (v) async {
+            final bool changed = v
+                ? await onlineScores.turnOn()
+                : await onlineScores.turnOff();
+
+            if (changed) {
+              setState(() => _remoteScoresEnabled = v);
+            } else {
               (web.document.getElementById(
                 "remoteScores",
-              ) as web.HTMLInputElement).checked = false;
-              ScoreDialogs.onlineComingSoon();
-
-              return;
+              ) as web.HTMLInputElement).checked = _remoteScoresEnabled;
             }
-            setState(() => _remoteScoresEnabled = v);
-            pref.setBool(Pref.keyRemoteScoresEnabled, v);
           },
         ),
-        div(classes: "my-3", [
-          label(
-            classes: "form-label fw-medium",
-            attributes: const {"for": "country"},
-            [Component.text(Strings.defaultCountryTitle)],
-          ),
-          select(
-            classes: "form-select",
-            id: "country",
-            disabled: !_remoteScoresEnabled,
+        if (_remoteScoresEnabled)
+          button(
+            classes:
+                "btn btn-link text-start text-decoration-none p-0 my-3 d-block",
+            attributes: const {"type": "button"},
             events: {
-              "change": (e) {
-                final String country =
-                    (e.target as web.HTMLSelectElement).value;
-                setState(() => _defaultCountry = country);
-                pref.setString(Pref.keyDefaultCountry, country);
+              "click": (e) async {
+                await onlineScores.edit();
+                setState(() {});
               },
             },
             [
-              for (final String country in settingsCountries)
-                option(
-                  value: country,
-                  selected:
-                      country ==
-                      (settingsCountries.contains(_defaultCountry)
-                          ? _defaultCountry
-                          : settingsCountries.first),
-                  [Component.text(country)],
-                ),
+              div(classes: "fw-medium", [
+                Component.text(Strings.onlinePlayerTitle),
+              ]),
+              div(classes: "small text-secondary", [
+                Component.text(onlineScores.player.summary),
+              ]),
             ],
           ),
-        ]),
         _heading(Strings.appearanceSection),
         _switch(
           id: "customBg",

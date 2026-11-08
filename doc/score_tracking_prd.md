@@ -31,15 +31,17 @@ The macOS Objective-C Another Mine (`/Users/billy1380/git/anothermine`) had loca
 
 **First win with online scores off:** congratulations dialog shows time, rank and name; saved locally; Scores page lists them.
 
-**Turning online scores on:** the settings switch opens the **player dialog**. It follows the Delta-V Hosted user page (Username, Service) with a country added:
+**Turning online scores on:** the settings switch opens the **online player dialog** (done). It follows the Delta-V Hosted user page (Name, Service) with a country added:
 
 | Field | Notes |
 | --- | --- |
-| Username | required, sanitised and trimmed; default the previous value. For an outside system it is a display name that gets updated (below) |
-| Country | searchable list with flags, default from the `defaultCountry` pref; SpaceCloud `Country` enum |
-| System | Where the player's identity comes from, as in Delta-V Hosted's Service list. Default **Another Mine** (no outside account). Others are the user types SpaceCloud already has, such as Game Center, Google Plus and Scoreloop. The player does not type an id; the platform supplies one where it can |
+| Name | required, more than three characters, trimmed; kept as the player name used for local scores too. For an outside system it is a display name that gets updated (below) |
+| Service | The list Delta-V Hosted's Compare Scores uses (`UserTypeType`, named as there). Default **Willshex Scores**, meaning no outside account. The player does not type an id; the platform supplies one where it can |
+| Country | A drop down of `settingsCountries` (12 so far). Stored as the name; mapped to the SpaceCloud `Country` enum when a score is sent |
 
-The dialog can be reopened from Settings to change name or country, and from the congratulations dialog.
+The dialog says that scores are saved outside the device and for which games. Cancelling leaves online scores off.
+
+**Settings once online is on:** the old "Default country" row is gone. A row "Online player" shows `name · service · country` and opens the same dialog to edit. Turning the switch off asks for confirmation ("Stop saving online?"); on yes the row is hidden and nothing is sent. The name, service and country are kept, so turning it back on starts from them.
 
 **Win with online scores on:** same congratulations dialog, plus a "Share online" tick (default on) and a progress/failed state. A failed submit is queued and retried (see requirements).
 
@@ -85,7 +87,7 @@ The dialog can be reopened from Settings to change name or country, and from the
 - Reading: top 20 by value ascending for a category, with player and country filled (`GetScores` already does this), plus paging.
 
 ### Settings
-- Online scores switch, the player dialog, country default, scores retained, "clear local scores" with confirmation.
+- Online scores switch (opens the online player dialog, off asks first), the online player row to edit it, scores retained, "clear local scores" with confirmation.
 
 ## Packages
 
@@ -117,6 +119,23 @@ Decided with the owner:
 4. **Evidence of the win:** a text board (with the mine, flag and number values above), not an image. Colours are omitted.
 5. **Same player on two devices (decided):** by system and name as in Delta-V Hosted, and by the platform's id where there is one. No ids are typed or copied.
 6. **Custom board limits:** none beyond the custom dialog's sliders. If the sliders allow it, it is fine online.
+
+7. **Which games go online (decided 2026-11-08):** to keep easy custom games from flooding the tables, only Beginner, Intermediate, Expert, custom Medium and custom Hard are sent. Custom Easy games are kept locally only. Local scores keep all six categories.
+8. **Turning online off** hides the player row after a confirmation; it does not delete what was saved online or the stored player.
+
+## Status and what is left
+
+Done: local scores and Scores page, the online player dialog and the settings switch/row (Flutter and Jaspr), in the shared `willshex_online_player` package (Another Mine keeps only its `Pref` store and wording), stored in `Pref` (`playerName`, `playerService`, `defaultCountry`, `remoteHighScoresEnabled`).
+
+Left, in order:
+
+1. Create the Another Mine application and the categories in SpaceCloud (rollout step 1), and the legacy migration script.
+2. Make a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above), map the stored country to `Country`, send the score with the six-category rule above, skipping Easy and solver games and anything under the minimum time for the board.
+3. Offer a "Share online" tick on the win dialog when online is on, and a failed-send queue kept in prefs (retry on launch and next win).
+4. Online tab on the Scores page (top 20 per category, paging, flag, board).
+5. Text board and additional data (gzip + base64) on each send.
+6. Full searchable country list with flags in place of the 12 (in `willshex_online_player`, so Delta-V gets it too).
+7. Move Delta-V Hosted and flame Delta-V onto `willshex_online_player` (it already has `asksNameAndService: false` for Game Center and Google Play, which leaves only the country).
 
 ## Acceptance
 

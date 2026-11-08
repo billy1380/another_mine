@@ -6,6 +6,7 @@ import "package:another_mine_common/model/game_difficulty.dart";
 import "package:another_mine_common/services/pref_storage.dart";
 import "package:logging/logging.dart";
 import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
+import "package:willshex_space_cloud/willshex_space_cloud.dart";
 
 class Pref extends BasicService {
   static final Logger _log = Logger("Perf");
@@ -18,6 +19,7 @@ class Pref extends BasicService {
   static const String keyRemoteScoresEnabled = "remoteHighScoresEnabled";
   static const String keyDefaultCountry = "defaultCountry";
   static const String keyPlayerName = "playerName";
+  static const String keyPlayerService = "playerService";
   static const String keyCustomBgEnabled = "customBackgroundColourEnabled";
   static const String keyCustomBgColor = "customBackgroundColour";
   static const String keyAutoSolverSettingName = "autoSolver";
@@ -80,6 +82,10 @@ class Pref extends BasicService {
   int get scoresRetained => getInt(keyScoresRetained) ?? 20;
   bool get remoteScoresEnabled => getBool(keyRemoteScoresEnabled) ?? false;
   String get playerName => getString(keyPlayerName) ?? "";
+  UserTypeType get playerService => UserTypeType.values.firstWhere(
+    (e) => e.name == getString(keyPlayerService),
+    orElse: () => UserTypeType.scores,
+  );
   String get defaultCountry => getString(keyDefaultCountry) ?? "United Kingdom";
   bool get customBgEnabled => getBool(keyCustomBgEnabled) ?? false;
   int get customBgColor =>

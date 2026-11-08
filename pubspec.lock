@@ -1263,6 +1263,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  willshex_online_player:
+    dependency: transitive
+    description:
+      path: "../willshex_online_player"
+      relative: true
+    source: path
+    version: "0.0.1"
   willshex_scores:
     dependency: transitive
     description:

@@ -64,9 +64,10 @@ class _AppState extends State<App> {
 
     return Component.fragment([
       // in a real element: a fragment beside the slot cannot be placed by Jaspr
-      div(attributes: const {"style": "display: contents;"}, [
-        BlocProvider<GameBloc>(bloc: bloc, child: router),
-      ]),
+      div(
+        attributes: const {"style": "display: contents;"},
+        [BlocProvider<GameBloc>(bloc: bloc, child: router)],
+      ),
       // the game on its own is its own host for dialogs
       EmbeddingDialogSlot(controller: AnotherMineDialogs.local),
     ]);

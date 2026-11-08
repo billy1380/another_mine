@@ -23,6 +23,8 @@ dependencies:
     path: ../../../main_thread_processor
   willshex_embedding:
     path: ../../../willshex_embedding
+  willshex_online_player:
+    path: ../../../willshex_online_player
   willshex_scores:
     path: ../../../willshex_scores
   willshex_space_cloud:

@@ -1,7 +1,6 @@
 import "package:another_mine_common/bloc/game/game_bloc.dart";
-import "package:another_mine_common/dialogs/score_dialogs.dart";
 import "package:another_mine_common/model/auto_solver_type.dart";
-import "package:another_mine_common/presentation/settings_options.dart";
+import "package:another_mine_common/scores/online_scores.dart";
 import "package:another_mine_common/services/pref.dart";
 import "package:another_mine_common/services/provider.dart";
 import "package:another_mine_common/strings.dart";
@@ -31,12 +30,9 @@ class _SettingsPageState extends State<SettingsPage> {
   late bool _animate;
   late int _scoresRetained;
   late bool _remoteScoresEnabled;
-  late String _defaultCountry;
   late bool _customBgEnabled;
   int? _customBgColor;
   late AutoSolverType _autoSolverType;
-
-  final List<String> _countries = settingsCountries;
 
   @override
   void initState() {
@@ -49,7 +45,6 @@ class _SettingsPageState extends State<SettingsPage> {
       _animate = Provider.pref.animate;
       _scoresRetained = Provider.pref.scoresRetained;
       _remoteScoresEnabled = Provider.pref.remoteScoresEnabled;
-      _defaultCountry = Provider.pref.defaultCountry;
       _customBgEnabled = Provider.pref.customBgEnabled;
       _customBgColor = Provider.pref.customBgColor;
       _autoSolverType = Provider.pref.autoSolverType;
@@ -142,46 +137,25 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text(Strings.onlineHighScoresSubtitle),
             value: _remoteScoresEnabled,
             onChanged: (value) async {
-              if (value) {
-                await ScoreDialogs.onlineComingSoon();
+              final bool changed = value
+                  ? await onlineScores.turnOn()
+                  : await onlineScores.turnOff();
 
-                return;
+              if (changed && mounted) {
+                setState(() => _remoteScoresEnabled = value);
               }
-              setState(() {
-                _remoteScoresEnabled = value;
-              });
-              await Provider.pref.setBool(Pref.keyRemoteScoresEnabled, value);
             },
           ),
-          ListTile(
-            title: const Text(Strings.defaultCountryTitle),
-            subtitle: Text(_defaultCountry),
-            enabled: _remoteScoresEnabled,
-            trailing: DropdownButton<String>(
-              value: _countries.contains(_defaultCountry)
-                  ? _defaultCountry
-                  : _countries.first,
-              onChanged: _remoteScoresEnabled
-                  ? (String? value) async {
-                      if (value != null) {
-                        setState(() {
-                          _defaultCountry = value;
-                        });
-                        await Provider.pref.setString(
-                          Pref.keyDefaultCountry,
-                          value,
-                        );
-                      }
-                    }
-                  : null,
-              items: _countries.map((String country) {
-                return DropdownMenuItem<String>(
-                  value: country,
-                  child: Text(country),
-                );
-              }).toList(),
+          if (_remoteScoresEnabled)
+            ListTile(
+              title: const Text(Strings.onlinePlayerTitle),
+              subtitle: Text(onlineScores.player.summary),
+              trailing: const Icon(Icons.edit),
+              onTap: () async {
+                await onlineScores.edit();
+                if (mounted) setState(() {});
+              },
             ),
-          ),
           const Divider(),
           ListTile(
             title: Text(

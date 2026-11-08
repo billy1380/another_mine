@@ -30,6 +30,7 @@ export "model/tile_state_type.dart";
 
 export "scores/clock_format.dart";
 export "scores/local_score.dart";
+export "scores/online_scores.dart";
 export "scores/score_category.dart";
 export "scores/score_keeper.dart";
 
