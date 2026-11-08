@@ -1,9 +1,9 @@
 import "package:another_mine_common/dialogs/another_mine_dialogs.dart";
-import "package:another_mine_common/presentation/settings_options.dart";
 import "package:another_mine_common/services/pref.dart";
 import "package:another_mine_common/services/provider.dart";
 import "package:another_mine_common/strings.dart";
 import "package:willshex_online_player/willshex_online_player.dart";
+import "package:willshex_space_cloud/willshex_space_cloud.dart";
 
 export "package:willshex_online_player/willshex_online_player.dart"
     show OnlinePlayer, OnlineScores;
@@ -31,7 +31,10 @@ class PrefOnlinePlayerStore implements OnlinePlayerStore {
     final Pref pref = Provider.pref;
     await pref.setString(Pref.keyPlayerName, player.name);
     await pref.setString(Pref.keyPlayerService, player.service.name);
-    await pref.setString(Pref.keyDefaultCountry, player.country);
+    await pref.setString(
+      Pref.keyDefaultCountry,
+      fromCountryToString(player.country),
+    );
   }
 
   @override
@@ -44,8 +47,5 @@ class PrefOnlinePlayerStore implements OnlinePlayerStore {
 OnlineScores get onlineScores => OnlineScores(
   store: const PrefOnlinePlayerStore(),
   ask: AnotherMineDialogs.ask,
-  options: const OnlinePlayerOptions(
-    message: Strings.onlinePlayerMessage,
-    countries: settingsCountries,
-  ),
+  options: const OnlinePlayerOptions(message: Strings.onlinePlayerMessage),
 );

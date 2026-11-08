@@ -37,7 +37,7 @@ The macOS Objective-C Another Mine (`/Users/billy1380/git/anothermine`) had loca
 | --- | --- |
 | Name | required, more than three characters, trimmed; kept as the player name used for local scores too. For an outside system it is a display name that gets updated (below) |
 | Service | The list Delta-V Hosted's Compare Scores uses (`UserTypeType`, named as there). Default **Willshex Scores**, meaning no outside account. The player does not type an id; the platform supplies one where it can |
-| Country | A drop down of `settingsCountries` (12 so far). Stored as the name; mapped to the SpaceCloud `Country` enum when a score is sent |
+| Country | A drop down of every SpaceCloud `Country`, by name. Stored as its code, such as `GB` |
 
 The dialog says that scores are saved outside the device and for which games. Cancelling leaves online scores off.
 
@@ -134,7 +134,7 @@ Left, in order:
 3. Offer a "Share online" tick on the win dialog when online is on, and a failed-send queue kept in prefs (retry on launch and next win).
 4. Online tab on the Scores page (top 20 per category, paging, flag, board).
 5. Text board and additional data (gzip + base64) on each send.
-6. Full searchable country list with flags in place of the 12 (in `willshex_online_player`, so Delta-V gets it too).
+6. Flags beside the countries, and a searchable list (all SpaceCloud countries are listed now, in `willshex_online_player`).
 7. Move Delta-V Hosted and flame Delta-V onto `willshex_online_player` (it already has `asksNameAndService: false` for Game Center and Google Play, which leaves only the country).
 
 ## Acceptance

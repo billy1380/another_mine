@@ -46,4 +46,3 @@ export "embedding/another_mine_section.dart";
 export "embedding/game_session_publisher.dart";
 export "presentation/custom_game.dart";
 export "presentation/game_routes.dart";
-export "presentation/settings_options.dart";

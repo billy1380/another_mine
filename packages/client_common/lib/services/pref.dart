@@ -86,7 +86,8 @@ class Pref extends BasicService {
     (e) => e.name == getString(keyPlayerService),
     orElse: () => UserTypeType.scores,
   );
-  String get defaultCountry => getString(keyDefaultCountry) ?? "United Kingdom";
+  Country get defaultCountry =>
+      fromStringToCountry(getString(keyDefaultCountry) ?? "") ?? Country.gb;
   bool get customBgEnabled => getBool(keyCustomBgEnabled) ?? false;
   int get customBgColor =>
       getInt(keyCustomBgColor) ?? defaultBackgroundColour.argb;
