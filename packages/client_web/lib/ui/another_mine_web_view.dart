@@ -156,22 +156,32 @@ class _AnotherMineWebViewState extends State<AnotherMineWebView> {
       ]);
     }
 
+    // real elements around the content: Jaspr cannot place a fragment beside
+    // the dialog slot
     return Component.fragment([
-      BlocProvider<GameBloc>(
-        bloc: bloc,
-        child: switch (component.section) {
-          AnotherMineSection.game => const GameView(),
-          AnotherMineSection.custom => Component.fragment([
-            const GameView(),
-            CustomGameLauncher(
-              onStart: (difficulty) =>
-                  component.onCustomGameStarted?.call(difficulty),
-              onCancel: () => component.onCustomGameCancelled?.call(),
-            ),
-          ]),
-          AnotherMineSection.scores => const ScoresView(),
-          AnotherMineSection.settings => const SettingsView(),
-        },
+      div(
+        attributes: const {"style": "display: contents;"},
+        [
+          BlocProvider<GameBloc>(
+            bloc: bloc,
+            child: switch (component.section) {
+              AnotherMineSection.game => const GameView(),
+              AnotherMineSection.custom => div(
+                attributes: const {"style": "display: contents;"},
+                [
+                  const GameView(),
+                  CustomGameLauncher(
+                    onStart: (difficulty) =>
+                        component.onCustomGameStarted?.call(difficulty),
+                    onCancel: () => component.onCustomGameCancelled?.call(),
+                  ),
+                ],
+              ),
+              AnotherMineSection.scores => const ScoresView(),
+              AnotherMineSection.settings => const SettingsView(),
+            },
+          ),
+        ],
       ),
       // the game's own dialogs, for when the host draws none
       EmbeddingDialogSlot(controller: AnotherMineDialogs.local),
