@@ -132,9 +132,9 @@ Left, in order:
 1. Create the Another Mine application and the categories in SpaceCloud (rollout step 1), and the legacy migration script.
 2. Make a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above), map the stored country to `Country`, send the score with the six-category rule above, skipping Easy and solver games and anything under the minimum time for the board.
 3. Offer a "Share online" tick on the win dialog when online is on, and a failed-send queue kept in prefs (retry on launch and next win).
-4. Online tab on the Scores page (top 20 per category, paging, flag, board).
+4. Online tab on the Scores page (top 20 per category, paging, board). Each row shows the country flag, the name and the service icon, using `flagOf(country)` and `serviceImage(service)` from `willshex_online_player` (flags are the 16 by 11 images from the Objective-C game; a few countries have none and show no flag).
 5. Text board and additional data (gzip + base64) on each send.
-6. Flags beside the countries, and a searchable list (all SpaceCloud countries are listed now, in `willshex_online_player`).
+6. A searchable country list (all SpaceCloud countries are listed now, with flags, in `willshex_online_player`).
 7. Move Delta-V Hosted and flame Delta-V onto `willshex_online_player` (it already has `asksNameAndService: false` for Game Center and Google Play, which leaves only the country).
 
 ## Acceptance
