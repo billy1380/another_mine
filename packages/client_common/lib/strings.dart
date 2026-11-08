@@ -11,6 +11,10 @@ abstract class Strings {
   static const String keepUpToScores = "Keep up to %s scores";
   static const String onlineHighScoresTitle = "Online High Scores";
   static const String onlineHighScoresSubtitle = "Enable online leaderboards";
+  static const String onlineComingSoonTitle = "Coming soon";
+  static const String onlineComingSoonMessage =
+      "Online high scores are not ready yet. Your scores are kept on this device.";
+  static const String ok = "OK";
   static const String defaultCountryTitle = "Default Country";
   static const String appearanceSection = "Appearance";
   static const String customBgColorEnabledTitle = "Custom Background Color";

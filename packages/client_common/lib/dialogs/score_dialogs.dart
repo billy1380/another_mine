@@ -88,4 +88,13 @@ abstract class ScoreDialogs {
         ),
       ))?.actionId ==
       "confirm";
+
+  /// Tells the player that online scores are not available yet.
+  static Future<void> onlineComingSoon() => AnotherMineDialogs.ask(
+    DialogRequest(
+      title: Strings.onlineComingSoonTitle,
+      message: Strings.onlineComingSoonMessage,
+      actions: const [DialogAction.cancel(label: Strings.ok)],
+    ),
+  );
 }

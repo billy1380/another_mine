@@ -183,6 +183,14 @@ class _SettingsViewState extends State<SettingsView> {
           subtitle: Strings.onlineHighScoresSubtitle,
           value: _remoteScoresEnabled,
           onChanged: (v) {
+            if (v) {
+              (web.document.getElementById(
+                "remoteScores",
+              ) as web.HTMLInputElement).checked = false;
+              ScoreDialogs.onlineComingSoon();
+
+              return;
+            }
             setState(() => _remoteScoresEnabled = v);
             pref.setBool(Pref.keyRemoteScoresEnabled, v);
           },

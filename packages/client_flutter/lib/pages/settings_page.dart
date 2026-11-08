@@ -1,4 +1,5 @@
 import "package:another_mine_common/bloc/game/game_bloc.dart";
+import "package:another_mine_common/dialogs/score_dialogs.dart";
 import "package:another_mine_common/model/auto_solver_type.dart";
 import "package:another_mine_common/presentation/settings_options.dart";
 import "package:another_mine_common/services/pref.dart";
@@ -141,6 +142,11 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text(Strings.onlineHighScoresSubtitle),
             value: _remoteScoresEnabled,
             onChanged: (value) async {
+              if (value) {
+                await ScoreDialogs.onlineComingSoon();
+
+                return;
+              }
               setState(() {
                 _remoteScoresEnabled = value;
               });
