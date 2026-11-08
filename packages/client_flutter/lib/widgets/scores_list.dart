@@ -208,7 +208,15 @@ class _ScoreTile extends StatelessWidget {
               )
             : AnotherMineAssets.image(medal, height: 40),
       ),
-      title: Text(score.name),
+      title: Row(
+        children: [
+          Flexible(child: Text(score.name)),
+          if (score.service != null) ...[
+            const SizedBox(width: 8),
+            SmallPicture(score.service!),
+          ],
+        ],
+      ),
       // hovering, or pressing and holding, shows the moment to the second
       subtitle: Row(
         children: [

@@ -235,7 +235,10 @@ class _ScoresViewState extends State<ScoresView> {
           classes: "flex-grow-1",
           attributes: const {"style": "min-width: 0;"},
           [
-            div(classes: "text-truncate", [Component.text(score.name)]),
+            div(classes: "d-flex align-items-center gap-2", [
+              div(classes: "text-truncate", [Component.text(score.name)]),
+              if (score.service != null) smallPicture(score.service!),
+            ]),
             div(classes: "d-flex align-items-center gap-2 small text-secondary", [
               if (score.flag != null)
                 smallPicture(score.flag!)

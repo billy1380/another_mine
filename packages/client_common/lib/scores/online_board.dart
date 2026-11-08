@@ -13,6 +13,9 @@ class OnlineScore {
 
   /// The country's flag, or null if there is none.
   final DialogImage? flag;
+
+  /// The icon of the service the player is on.
+  final DialogImage? service;
   final int seconds;
   final String board;
   final DateTime when;
@@ -21,6 +24,7 @@ class OnlineScore {
     required this.name,
     required this.country,
     required this.flag,
+    required this.service,
     required this.seconds,
     required this.board,
     required this.when,
@@ -59,6 +63,9 @@ class OnlineBoard {
       for (final scores.Score s in response.scores ?? <scores.Score>[])
         OnlineScore(
           name: s.player?.name ?? "",
+          service: s.player?.type == null
+              ? null
+              : serviceImage(s.player!.type!),
           flag: s.player?.country == null ? null : flagOf(s.player!.country!),
           country: s.player?.country == null
               ? null

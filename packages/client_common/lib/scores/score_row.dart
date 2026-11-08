@@ -9,6 +9,9 @@ class ScoreRow {
   /// The player's country, and its flag if it has one; online scores only.
   final String? country;
   final DialogImage? flag;
+
+  /// The icon of the player's service; online scores only.
+  final DialogImage? service;
   final int seconds;
   final DateTime when;
 
@@ -20,6 +23,7 @@ class ScoreRow {
     required this.detail,
     this.country,
     this.flag,
+    this.service,
     required this.seconds,
     required this.when,
     this.local,

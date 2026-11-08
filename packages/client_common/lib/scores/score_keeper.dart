@@ -169,6 +169,7 @@ class ScoreKeeper extends BasicService {
               detail: s.board,
               country: s.country,
               flag: s.flag,
+              service: s.service,
               seconds: s.seconds,
               when: s.when,
             ),

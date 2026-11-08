@@ -43,7 +43,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
 
 **Settings once online is on:** the old "Default country" row is gone. A row "Online player" shows `name · service · country` and opens the same dialog to edit. Turning the switch off asks for confirmation ("Stop saving online?"); on yes the row is hidden and nothing is sent. The name, service and country are kept, so turning it back on starts from them.
 
-**Win with online scores on:** same congratulations dialog, plus a "Share online" tick (default on) and a progress/failed state. A failed submit is queued and retried (see requirements).
+**Win with online scores on:** same congratulations dialog as with them off. The score is sent without asking, under the online player's name, whether or not it places locally; a failed send is queued and retried silently (see requirements).
 
 **Scores page:** the same category tabs. With online scores off they list this device's scores; with them on, the online ones (top 20 of the category; flag, name service icon and paging to come), and the Custom Easy tab is hidden because those games are local only. Each row shows country, board and date. The online tabs have no delete.
 
@@ -133,7 +133,7 @@ Left, in order:
 
 1. Create the WillShex Limited publisher, the Another Mine application and the five categories under it (rollout step 1). The server's `AddPublisher` and `AddApplication` calls are empty stubs, so they need implementing in `javaspacecloud` first (or the entities added to the datastore directly). The old game's own key is not registered anywhere I could find, so its scores probably never arrived and a legacy migration is likely not needed (to confirm).
 2. Make a `GameRecorder` (events above, fed from `GameBloc.onEvent`) and a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above; verified 2026-11-08: `SubmitScore` rejects a player SpaceCloud does not know, with "Nonexistent or deleted user", so call `AddUser` first, tolerating a failure when the player already exists; a player is matched by external system id and type, then by name and type, so send a name as well), map the stored country to `Country`, send the score with the density rule above, skipping Easy and solver games and anything under the minimum time for the board.
-3. Offer a "Share online" tick on the win dialog when online is on, and a failed-send queue kept in prefs (retry on launch and next win).
+3. (Done: online wins are sent automatically, with a failed-send queue.) A replay viewer for the recorded games.
 4. Online tab on the Scores page (top 20 per category, paging, board). Each row shows the country flag, the name and the service icon, using `flagOf(country)` and `serviceImage(service)` from `willshex_online_player` (flags are the 16 by 11 images from the Objective-C game; a few countries have none and show no flag).
 5. Text board and additional data (gzip + base64) on each send.
 6. A searchable country list (all SpaceCloud countries are listed now, with flags, in `willshex_online_player`).
