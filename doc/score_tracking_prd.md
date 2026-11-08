@@ -45,7 +45,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
 
 **Win with online scores on:** same congratulations dialog, plus a "Share online" tick (default on) and a progress/failed state. A failed submit is queued and retried (see requirements).
 
-**Scores page:** two tabs, Local and Online. Online lists top scores for the chosen difficulty with flag, name, time, board and date, paged. Custom games appear under Easy, Medium and Hard, and each row shows its board.
+**Scores page:** two tabs, Local and Online. Online lists top scores for the chosen difficulty with flag, name, time, board and date, paged. Custom games appear under Medium and Hard (Easy is local only), and each row shows its board.
 
 ## Requirements
 
@@ -58,7 +58,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
 ### Remote scores
 - Scores and SpaceCloud clients come from shared packages (see Packages), not from copies in this repo.
 - Session access code is the Willshex publisher key, as before. It is committed and not secret, so no build define (the same decision as the SpaceCloud admin key).
-- **Game and categories:** an `Application` "Another Mine" under the Willshex publisher in SpaceCloud, with six scores categories: **Beginner, Intermediate, Expert, Easy, Medium and Hard**, matched by name and game, not by the legacy ids 1 to 4. Scores service does not create categories on submit, so these must exist before release (a step in the rollout).
+- **Game and categories:** an `Application` "Another Mine" under the Willshex publisher in SpaceCloud, with five scores categories: **Beginner, Intermediate, Expert, Medium and Hard** (Easy custom games are not sent; the local store keeps all six), matched by name and game, not by the legacy ids 1 to 4. Scores service does not create categories on submit, so these must exist before release (a step in the rollout).
 - **Legacy data (decided: migrate):** the old app's scores in categories 1 to 4 are moved to the new categories by a script the user runs (it needs the admin session). Beginner, Intermediate and Expert map one to one. Old Custom (4) scores carry their board only in the description (`Custom (40 in 16 x 16)`), so the script parses it, works out the density and files each under Easy, Medium or Hard; any it cannot parse go to a report and stay put. The script prints what it will do and asks before changing anything.
 - **User (decided, as in Delta-V Hosted):** the player types a **username** and picks a **system** (the same list as Delta-V Hosted's Service box); SpaceCloud finds or creates the user from that name and system type, which is `name@system` in Delta-V Hosted. Country is added to the same user.
   - **When the platform knows the player's id** (Game Center on Apple devices, Google, and so on), it is sent as the `externalSystemId`. SpaceCloud finds the user by that id and **updates the username** (and country) to what was entered, so a rename keeps the same player and the same account on two devices is one player.
@@ -104,7 +104,7 @@ Everything shared is a package picked up by path, as `willshex`, `willshex_stora
 ## Rollout
 
 0. Extract `willshex_scores` and `willshex_space_cloud` from `flame_delta_v` and switch Delta-V to them (it must still build and its tests pass).
-1. Create the Another Mine application and the six categories on the live SpaceCloud/scores, then run the migration of the old scores (scripts the user runs, because they need the admin session).
+1. Create the Another Mine application and the five categories on the live SpaceCloud/scores (the old-score migration is probably not needed, see Status).
 2. Local scores and the congratulations/Scores page, behind no flag.
 3. Player dialog and submit, online off by default.
 4. Text board and the other additional data.
@@ -121,7 +121,8 @@ Decided with the owner:
 6. **Custom board limits:** none beyond the custom dialog's sliders. If the sliders allow it, it is fine online.
 
 7. **Which games go online (decided 2026-11-08):** to keep easy custom games from flooding the tables, only Beginner, Intermediate, Expert, custom Medium and custom Hard are sent. Custom Easy games are kept locally only. Local scores keep all six categories.
-8. **Turning online off** hides the player row after a confirmation; it does not delete what was saved online or the stored player.
+8. **No scores backfill (decided 2026-11-08):** a score belongs to a category and a category has a game (application) key, so scores need no application column and Delta-V's existing rows need no migration. Another Mine's categories are created under its application.
+9. **Turning online off** hides the player row after a confirmation; it does not delete what was saved online or the stored player.
 
 ## Status and what is left
 
@@ -129,8 +130,8 @@ Done: local scores and Scores page, the online player dialog and the settings sw
 
 Left, in order:
 
-1. Create the Another Mine application and the categories in SpaceCloud (rollout step 1), and the legacy migration script.
-2. Make a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above), map the stored country to `Country`, send the score with the six-category rule above, skipping Easy and solver games and anything under the minimum time for the board.
+1. Create the WillShex Limited publisher, the Another Mine application and the five categories under it (rollout step 1). The server's `AddPublisher` and `AddApplication` calls are empty stubs, so they need implementing in `javaspacecloud` first (or the entities added to the datastore directly). The old game's own key is not registered anywhere I could find, so its scores probably never arrived and a legacy migration is likely not needed (to confirm).
+2. Make a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above), map the stored country to `Country`, send the score with the density rule above, skipping Easy and solver games and anything under the minimum time for the board.
 3. Offer a "Share online" tick on the win dialog when online is on, and a failed-send queue kept in prefs (retry on launch and next win).
 4. Online tab on the Scores page (top 20 per category, paging, board). Each row shows the country flag, the name and the service icon, using `flagOf(country)` and `serviceImage(service)` from `willshex_online_player` (flags are the 16 by 11 images from the Objective-C game; a few countries have none and show no flag).
 5. Text board and additional data (gzip + base64) on each send.
