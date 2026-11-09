@@ -45,7 +45,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
 
 **Win with online scores on:** same congratulations dialog as with them off, but without the name field (the online player is known, and keeps the local score too). The score is sent without asking, under the online player's name, whether or not it places locally; a failed send is queued and retried silently (see requirements).
 
-**Scores page:** the same category tabs. With online scores off they list this device's scores; with them on, the online ones (top 20 of the category; flag, name service icon and paging to come), and the Custom Easy tab is hidden because those games are local only. Each row shows country, board and date. The online tabs have no delete.
+**Scores page:** the same category tabs. With online scores off they list this device's scores; with them on, the online ones (a window of the category's board chosen as in Leaderboard window below; flag, name and service icon), and the Custom Easy tab is hidden because those games are local only. Each row shows country, board and date. The online tabs have no delete.
 
 ## Requirements
 
@@ -85,7 +85,7 @@ The dialog says that scores are saved outside the device and for which games. Ca
   - the board is recorded on the score (in `description` and in the additional data as `width`, `height`, `mines`), so the admin can still show or filter by it.
   - Density ignores size, and the custom dialog's sliders allow boards from 5 by 5 with a single mine. Whatever the sliders allow is a valid online game: there is no extra minimum board size for online scores. A tiny board is just a very easy Easy game, and the minimum-time guard below covers cheating.
 - Failures never block the game: store the submission in prefs, retry on next launch or next win, give up after N attempts.
-- Reading: top 20 by value ascending for a category, with player and country filled (`GetScores` already does this), plus paging.
+- Reading: a window of the board by value ascending, chosen as in Leaderboard window below, with player and country filled (`GetScores` already does this), plus paging both ways.
 
 ### Settings
 - Online scores switch (opens the online player dialog, off asks first), the online player row to edit it, scores retained, "clear local scores" with confirmation.
@@ -124,6 +124,13 @@ Decided with the owner:
 7. **Which games go online (decided 2026-11-08):** to keep easy custom games from flooding the tables, only Beginner, Intermediate, Expert, custom Medium and custom Hard are sent. Custom Easy games are kept locally only. Local scores keep all six categories.
 8. **No scores backfill (decided 2026-11-08):** a score belongs to a category and a category has a game (application) key, so scores need no application column and Delta-V's existing rows need no migration. Another Mine's categories are created under its application.
 9. **Turning online off** hides the player row after a confirmation; it does not delete what was saved online or the stored player.
+10. **Leaderboard window (decided 2026-11-09, as in Delta-V):** the online table does not always start at the top.
+    - **A player with no score in the category** sees the top of the board, from first place.
+    - **A player with scores** sees the board around their best time in that category: some places above it and some below, with their own row marked, so they see who they are chasing and who is behind them. The window is about ten places each way, fewer at either end of the board (a player in first place sees first place and the ten below).
+    - **Paging** goes up and down from the window, and there is a way back to the top.
+    - A player is the online player (name and service), so the window follows who is set in the online player dialog, and changes when that changes.
+    - **How it is read** is chosen when it is built. The scores service has `GetScores` (one category, paged, optionally for one player, so a player's best is `GetScores` for them sorted by value, count 1), `GetSimilarScores` (the scores within a margin of a value, one per player) and `GetRankings`. A window by place needs the player's rank first; if that is not cheap, a window by value (`GetSimilarScores`, or `GetScores` after working the rank out) is the fallback. Delta-V's own comparison uses `GetCompetingStatusCategories` and `GetTopScores`, which are the model for who counts as above and below.
+
 
 ## Status and what is left
 
@@ -134,7 +141,7 @@ Left, in order:
 1. Create the WillShex Limited publisher, the Another Mine application and the five categories under it (rollout step 1). The server's `AddPublisher` and `AddApplication` calls are empty stubs, so they need implementing in `javaspacecloud` first (or the entities added to the datastore directly). The old game's own key is not registered anywhere I could find, so its scores probably never arrived and a legacy migration is likely not needed (to confirm).
 2. Make a `GameRecorder` (events above, fed from `GameBloc.onEvent`) and a `ScoreSubmitter` in `client_common` using `willshex_scores`: find or create the user from name and service (see User above; verified 2026-11-08: `SubmitScore` rejects a player SpaceCloud does not know, with "Nonexistent or deleted user", so call `AddUser` first, tolerating a failure when the player already exists; a player is matched by external system id and type, then by name and type, so send a name as well), map the stored country to `Country`, send the score with the density rule above, skipping Easy and solver games and anything under the minimum time for the board.
 3. (Done: online wins are sent automatically, with a failed-send queue.) The replay viewer is done: an online row with a recording has a play button that opens the game played back from its mines and events (`Recording`, `ReplayCubit`), with a speed control and markers for probability, focus and pause (Flutter `ReplayPage`, Jaspr through `EmbeddedReplay`).
-4. Online tab on the Scores page (top 20 per category, paging, board). Each row shows the country flag, the name and the service icon, using `flagOf(country)` and `serviceImage(service)` from `willshex_online_player` (flags are the 16 by 11 images from the Objective-C game; a few countries have none and show no flag).
+4. Online tab on the Scores page (the leaderboard window per category, paging, board). Each row shows the country flag, the name and the service icon, using `flagOf(country)` and `serviceImage(service)` from `willshex_online_player` (flags are the 16 by 11 images from the Objective-C game; a few countries have none and show no flag).
 5. Text board and additional data (gzip + base64) on each send.
 6. A searchable country list (all SpaceCloud countries are listed now, with flags, in `willshex_online_player`).
 7. Move Delta-V Hosted and flame Delta-V onto `willshex_online_player` (it already has `asksNameAndService: false` for Game Center and Google Play, which leaves only the country).

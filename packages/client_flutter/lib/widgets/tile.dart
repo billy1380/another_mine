@@ -4,7 +4,9 @@ import "package:another_mine_common/model/tile_state_type.dart";
 import "package:another_mine_common/presentation/presentation.dart";
 import "package:another_mine_flutter/assets.dart";
 import "package:another_mine_flutter/extensions/colour_ex.dart";
+import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:mine_images/mine_images.dart";
 
@@ -25,6 +27,8 @@ class Tile extends StatefulWidget {
 }
 
 class _TileState extends State<Tile> {
+  static const Duration _flagHold = Duration(milliseconds: 250);
+
   bool _isValidTap = false;
 
   @override
@@ -66,12 +70,24 @@ class _TileState extends State<Tile> {
                       ..add(const DonePlaying());
                   }
                 },
-                onLongPress: () {
-                  if (state.isNotFinished) {
-                    bloc.add(Speculate(model: widget.model));
-                  }
-                },
-                child: _tile(),
+                child: RawGestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  gestures: {
+                    LongPressGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          LongPressGestureRecognizer
+                        >(
+                          () => LongPressGestureRecognizer(duration: _flagHold),
+                          (r) => r.onLongPress = () {
+                            if (state.isNotFinished) {
+                              HapticFeedback.mediumImpact();
+                              bloc.add(Speculate(model: widget.model));
+                            }
+                          },
+                        ),
+                  },
+                  child: _tile(),
+                ),
               );
       },
     );

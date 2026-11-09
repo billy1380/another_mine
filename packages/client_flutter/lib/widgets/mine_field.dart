@@ -7,7 +7,7 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 
-class Minefield extends StatelessWidget {
+class Minefield extends StatefulWidget {
   final ValueNotifier<int?>? focusIndexNotifier;
   final bool isFocusMode;
   final bool showProbabilities;
@@ -20,6 +20,18 @@ class Minefield extends StatelessWidget {
   });
 
   @override
+  State<Minefield> createState() => _MinefieldState();
+}
+
+class _MinefieldState extends State<Minefield> {
+  Offset? _touchDown;
+  bool _touchMoved = false;
+
+  ValueNotifier<int?>? get focusIndexNotifier => widget.focusIndexNotifier;
+  bool get isFocusMode => widget.isFocusMode;
+  bool get showProbabilities => widget.showProbabilities;
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<GameBloc, GameState>(
       builder: (context, state) {
@@ -27,17 +39,23 @@ class Minefield extends StatelessWidget {
 
         return MouseRegion(
           onHover: focusIndexNotifier != null
-              ? (event) => _onHover(event, state)
+              ? (event) => _focusAt(event.localPosition, state)
               : null,
           onExit: focusIndexNotifier != null
               ? (_) => focusIndexNotifier!.value = null
               : null,
-          child: Stack(
-            children: [
-              _buildGrid(state),
-              if (focusIndexNotifier != null) _buildFocusOverlay(state),
-              const AutoSolverHighlightOverlay(),
-            ],
+          child: Listener(
+            onPointerDown: _onPointerDown,
+            onPointerMove: _onPointerMove,
+            onPointerUp: (e) => _onPointerUp(e, state),
+            onPointerCancel: (_) => _touchDown = null,
+            child: Stack(
+              children: [
+                _buildGrid(state),
+                if (focusIndexNotifier != null) _buildFocusOverlay(state),
+                const AutoSolverHighlightOverlay(),
+              ],
+            ),
           ),
         );
       },
@@ -83,15 +101,35 @@ class Minefield extends StatelessWidget {
     );
   }
 
-  void _onHover(PointerHoverEvent event, GameState state) {
+  // focus follows a press that stays put, so panning a big board leaves it be
+  void _onPointerDown(PointerDownEvent e) {
+    _touchDown = e.kind == PointerDeviceKind.touch ? e.localPosition : null;
+    _touchMoved = false;
+  }
+
+  void _onPointerMove(PointerMoveEvent e) {
+    final Offset? down = _touchDown;
+    if (down != null && (e.localPosition - down).distance > kTouchSlop) {
+      _touchMoved = true;
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent e, GameState state) {
+    if (_touchDown != null && !_touchMoved && focusIndexNotifier != null) {
+      _focusAt(e.localPosition, state);
+    }
+    _touchDown = null;
+  }
+
+  void _focusAt(Offset position, GameState state) {
     final double tileWidth = state.gameSize.width / state.difficulty.width;
     final double tileHeight = state.gameSize.height / state.difficulty.height;
 
-    final int col = (event.localPosition.dx / tileWidth).floor().clamp(
+    final int col = (position.dx / tileWidth).floor().clamp(
       0,
       state.difficulty.width - 1,
     );
-    final int row = (event.localPosition.dy / tileHeight).floor().clamp(
+    final int row = (position.dy / tileHeight).floor().clamp(
       0,
       state.difficulty.height - 1,
     );
