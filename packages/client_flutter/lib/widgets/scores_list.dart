@@ -13,14 +13,26 @@ import "package:mine_images/mine_images.dart";
 /// Brings its own [DefaultTabController] and needs only a [Material] above it,
 /// which both the game's page and the embeddable view have, so it works with or
 /// without a router, scaffold or drawer around it. The tab starting selected is
-/// the category of the game last played.
+/// [initialCategory], beginner if there is none or it has no tab.
 class ScoresList extends StatefulWidget {
   /// Called with the id of an online score the player wants to replay; a host
   /// that has a page for it goes there. Without one the game's own router, or
   /// its own navigator, opens it.
   final ValueChanged<int>? onOpenScore;
 
-  const ScoresList({super.key, this.onOpenScore});
+  /// The tab to start on.
+  final ScoreCategory? initialCategory;
+
+  /// Called with the category of the tab the player moved to, so a host can
+  /// keep it in its address.
+  final ValueChanged<ScoreCategory>? onCategoryChanged;
+
+  const ScoresList({
+    super.key,
+    this.onOpenScore,
+    this.initialCategory,
+    this.onCategoryChanged,
+  });
 
   @override
   State<ScoresList> createState() => _ScoresListState();
@@ -30,42 +42,93 @@ class _ScoresListState extends State<ScoresList> {
   @override
   Widget build(BuildContext context) {
     final List<ScoreCategory> categories = Provider.scoreKeeper.categories;
-    final ScoreCategory current = ScoreCategory.forDifficulty(
-      Provider.pref.difficulty,
-    );
 
     return DefaultTabController(
       length: categories.length,
-      initialIndex: max(0, categories.indexOf(current)),
-      child: Column(
-        children: [
-          TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            tabs: [
-              for (final ScoreCategory category in categories)
-                Tab(text: category.label),
-            ],
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
+      initialIndex: max(
+        0,
+        categories.indexOf(widget.initialCategory ?? ScoreCategory.beginner),
+      ),
+      child: _TabWatch(
+        onChanged: (index) => widget.onCategoryChanged?.call(categories[index]),
+        child: Column(
+          children: [
+            TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              tabs: [
                 for (final ScoreCategory category in categories)
-                  _CategoryScores(
-                    key: ValueKey(
-                      "${category.localId}-${Provider.scoreKeeper.showsOnline}",
-                    ),
-                    category: category,
-                    onOpenScore: widget.onOpenScore,
-                    onSwitchedToLocal: () => setState(() {}),
-                  ),
+                  Tab(text: category.label),
               ],
             ),
-          ),
-        ],
+            Expanded(
+              child: TabBarView(
+                children: [
+                  for (final ScoreCategory category in categories)
+                    _CategoryScores(
+                      key: ValueKey(
+                        "${category.localId}-${Provider.scoreKeeper.showsOnline}",
+                      ),
+                      category: category,
+                      onOpenScore: widget.onOpenScore,
+                      onSwitchedToLocal: () => setState(() {}),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Tells [onChanged] the index of the tab the player has moved to, once it has
+/// settled there (for a tap, after the animation; for a swipe, when it ends).
+class _TabWatch extends StatefulWidget {
+  final ValueChanged<int> onChanged;
+  final Widget child;
+
+  const _TabWatch({required this.onChanged, required this.child});
+
+  @override
+  State<_TabWatch> createState() => _TabWatchState();
+}
+
+class _TabWatchState extends State<_TabWatch> {
+  TabController? _controller;
+  int? _last;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final TabController controller = DefaultTabController.of(context);
+
+    if (controller != _controller) {
+      _controller?.removeListener(_changed);
+      _controller = controller..addListener(_changed);
+      _last = controller.index;
+    }
+  }
+
+  void _changed() {
+    final TabController controller = _controller!;
+
+    if (!controller.indexIsChanging && controller.index != _last) {
+      _last = controller.index;
+      widget.onChanged(controller.index);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_changed);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// The best scores of one category, read when its tab is first shown and kept

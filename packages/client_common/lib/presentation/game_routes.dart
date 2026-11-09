@@ -1,4 +1,5 @@
 import "package:another_mine_common/model/game_difficulty.dart";
+import "package:another_mine_common/scores/score_category.dart";
 
 /// The URL of a game, shared by the clients so a link opens the same board in
 /// either: `/game/<width>/<height>/<mines>`.
@@ -15,6 +16,18 @@ abstract class GameRoutes {
   static const String settings = "/settings";
   static const String scores = "/scores";
   static const String custom = "/custom";
+
+  /// The optional query parameter of [scores] that picks the tab: `?tab=expert`.
+  static const String tabParam = "tab";
+
+  /// The path of the scores page on [category]'s tab.
+  static String scoresPath(ScoreCategory category) =>
+      "$scores?$tabParam=${category.slug}";
+
+  /// The tab named by the query [parameters], beginner if there is none or it
+  /// is not one.
+  static ScoreCategory tabFrom(Map<String, String> parameters) =>
+      ScoreCategory.fromSlug(parameters[tabParam]) ?? ScoreCategory.beginner;
 
   static const String scoreParam = "id";
 

@@ -27,6 +27,18 @@ enum ScoreCategory {
   /// Whether scores of this category go online. Custom Easy games are local only.
   bool get isOnline => this != easy;
 
+  /// The name of the category in a URL: `custom-medium`.
+  String get slug => label.toLowerCase().replaceAll(" ", "-");
+
+  /// The category named by [slug], or null for anything else.
+  static ScoreCategory? fromSlug(String? slug) {
+    for (final ScoreCategory category in values) {
+      if (category.slug == slug) return category;
+    }
+
+    return null;
+  }
+
   static ScoreCategory forDifficulty(GameDifficulty difficulty) {
     switch (difficulty.name) {
       case beginnerName:

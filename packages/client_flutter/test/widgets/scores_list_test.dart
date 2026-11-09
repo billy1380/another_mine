@@ -42,25 +42,39 @@ void main() {
     expect(find.text("Custom Hard"), findsOneWidget);
   });
 
-  testWidgets("starts on the category of the game last played", (tester) async {
-    await Provider.pref.setInt("width", GameDifficulty.expert.width);
-    await Provider.pref.setInt("height", GameDifficulty.expert.height);
-    await Provider.pref.setInt("mines", GameDifficulty.expert.mines);
+  testWidgets(
+    "starts on the given tab, else beginner, and says when it moves",
+    (tester) async {
+      ScoreCategory? moved;
 
-    await show(tester);
-    await tester.pumpAndSettle();
+      Future<void> showAt(ScoreCategory? initial) => tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ScoresList(
+              key: UniqueKey(),
+              initialCategory: initial,
+              onCategoryChanged: (c) => moved = c,
+            ),
+          ),
+        ),
+      );
 
-    final TabBar bar = tester.widget(find.byType(TabBar));
-    expect(
-      bar.controller ??
-          DefaultTabController.of(tester.element(find.byType(TabBar))),
-      isA<TabController>().having(
-        (c) => c.index,
-        "index",
-        ScoreCategory.expert.index,
-      ),
-    );
-  });
+      int index() =>
+          DefaultTabController.of(tester.element(find.byType(TabBar))).index;
+
+      await showAt(null);
+      await tester.pumpAndSettle();
+      expect(index(), ScoreCategory.beginner.index);
+
+      await showAt(ScoreCategory.expert);
+      await tester.pumpAndSettle();
+      expect(index(), ScoreCategory.expert.index);
+
+      await tester.tap(find.text("Custom Medium"));
+      await tester.pumpAndSettle();
+      expect(moved, ScoreCategory.medium);
+    },
+  );
 
   testWidgets("a tab can be picked and shows its own scores", (tester) async {
     await show(tester);

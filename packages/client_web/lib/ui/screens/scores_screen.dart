@@ -11,18 +11,28 @@ import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.
 class ScoresScreen extends StatelessComponent {
   final bool useLayout;
   final String basePath;
+  final ScoreCategory? initialCategory;
+  final void Function(ScoreCategory category)? onCategoryChanged;
 
-  const ScoresScreen({super.key, this.useLayout = true, this.basePath = ""});
+  const ScoresScreen({
+    super.key,
+    this.useLayout = true,
+    this.basePath = "",
+    this.initialCategory,
+    this.onCategoryChanged,
+  });
 
   @override
   Component build(BuildContext context) {
-    if (!useLayout) return ScoresView(basePath: basePath);
-
-    return AppLayout(
-      title: Strings.scores,
+    final ScoresView view = ScoresView(
       basePath: basePath,
-      child: ScoresView(basePath: basePath),
+      initialCategory: initialCategory,
+      onCategoryChanged: onCategoryChanged,
     );
+
+    if (!useLayout) return view;
+
+    return AppLayout(title: Strings.scores, basePath: basePath, child: view);
   }
 }
 
@@ -35,7 +45,20 @@ class ScoresView extends StatefulComponent {
   /// under [basePath] is used.
   final void Function(int id)? onScoreSelected;
 
-  const ScoresView({super.key, this.basePath = "", this.onScoreSelected});
+  /// The tab to start on; beginner if null or it has no tab.
+  final ScoreCategory? initialCategory;
+
+  /// Called with the tab the player moves to, so a host can keep it in its
+  /// address.
+  final void Function(ScoreCategory category)? onCategoryChanged;
+
+  const ScoresView({
+    super.key,
+    this.basePath = "",
+    this.onScoreSelected,
+    this.initialCategory,
+    this.onCategoryChanged,
+  });
 
   @override
   State<ScoresView> createState() => _ScoresViewState();
@@ -57,11 +80,10 @@ class _ScoresViewState extends State<ScoresView> {
   @override
   void initState() {
     super.initState();
-    final ScoreCategory current = ScoreCategory.forDifficulty(
-      Provider.pref.difficulty,
-    );
+    final ScoreCategory start =
+        component.initialCategory ?? ScoreCategory.beginner;
     final List<ScoreCategory> shown = Provider.scoreKeeper.categories;
-    _category = shown.contains(current) ? current : shown.first;
+    _category = shown.contains(start) ? start : shown.first;
     _load();
   }
 
@@ -127,6 +149,7 @@ class _ScoresViewState extends State<ScoresView> {
   }
 
   void _select(ScoreCategory category) {
+    component.onCategoryChanged?.call(category);
     setState(() {
       _category = category;
       _scores = null;

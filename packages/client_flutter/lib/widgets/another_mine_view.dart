@@ -32,6 +32,8 @@ class AnotherMineView extends StatefulWidget {
     this.onCustomGameCancelled,
     this.scoreId,
     this.onScoreSelected,
+    this.scoresTab,
+    this.onScoresTabChanged,
     this.session,
     this.theme,
   });
@@ -56,6 +58,13 @@ class AnotherMineView extends StatefulWidget {
   /// Called with the id of a score the player wants to replay, so that the
   /// host can go to [AnotherMineSection.score] for it.
   final ValueChanged<int>? onScoreSelected;
+
+  /// The tab to start on in [AnotherMineSection.scores]; beginner if null.
+  final ScoreCategory? scoresTab;
+
+  /// Called with the tab the player moves to in [AnotherMineSection.scores], so
+  /// that the host can keep it in its address.
+  final ValueChanged<ScoreCategory>? onScoresTabChanged;
 
   /// Where the title and actions of the game are published, for the host to
   /// show in its header. Without one the game shows its own header.
@@ -228,6 +237,8 @@ class _AnotherMineViewState extends State<AnotherMineView> {
         ),
         AnotherMineSection.scores => ScoresList(
           onOpenScore: widget.onScoreSelected,
+          initialCategory: widget.scoresTab,
+          onCategoryChanged: widget.onScoresTabChanged,
         ),
         AnotherMineSection.score => ScoreReplay(id: widget.scoreId),
         AnotherMineSection.settings => const SettingsPage.embedded(),

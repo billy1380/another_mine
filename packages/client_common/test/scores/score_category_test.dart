@@ -1,3 +1,4 @@
+import "package:another_mine_common/presentation/game_routes.dart";
 import "package:another_mine_common/model/game_difficulty.dart";
 import "package:another_mine_common/scores/score_category.dart";
 import "package:test/test.dart";
@@ -69,5 +70,15 @@ void main() {
       }
       expect(ScoreCategory.forLocalId(99), isNull);
     });
+  });
+
+  test("a tab parameter names a category, and beginner is the fallback", () {
+    expect(GameRoutes.tabFrom({"tab": "custom-medium"}), ScoreCategory.medium);
+    expect(GameRoutes.tabFrom({}), ScoreCategory.beginner);
+    expect(GameRoutes.tabFrom({"tab": "nonsense"}), ScoreCategory.beginner);
+    expect(
+      GameRoutes.scoresPath(ScoreCategory.hard),
+      "/scores?tab=custom-hard",
+    );
   });
 }

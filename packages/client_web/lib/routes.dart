@@ -65,8 +65,14 @@ class AnotherMineWebRoutes {
       ),
       Route(
         path: path(GameRoutes.scores),
-        builder: (context, state) =>
-            ScoresScreen(useLayout: useLayout, basePath: prefix),
+        builder: (context, state) => ScoresScreen(
+          useLayout: useLayout,
+          basePath: prefix,
+          initialCategory: GameRoutes.tabFrom(state.queryParams),
+          onCategoryChanged: (category) =>
+              Router.of(context)
+                  .replace("$prefix${GameRoutes.scoresPath(category)}"),
+        ),
       ),
     ];
   }

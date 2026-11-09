@@ -9,6 +9,8 @@ export "package:another_mine_common/model/game_difficulty.dart"
     show GameDifficulty;
 export "package:another_mine_common/presentation/game_routes.dart"
     show GameRoutes;
+export "package:another_mine_common/scores/score_category.dart"
+    show ScoreCategory;
 
 export "ui/another_mine_web_view.dart" show AnotherMineWebView;
 export "ui/screens/custom_game_screen.dart"
