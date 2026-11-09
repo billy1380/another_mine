@@ -7,6 +7,7 @@ import "package:another_mine_flutter/widgets/game_action_bar.dart";
 import "package:another_mine_flutter/widgets/mine_field.dart";
 import "package:another_mine_flutter/widgets/offer_to_keep_score.dart";
 import "package:another_mine_common/model/game_state_type.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
@@ -248,6 +249,13 @@ class GameScrollable extends StatelessWidget {
     );
   }
 
+  static bool get _isTouch => switch (defaultTargetPlatform) {
+    TargetPlatform.android ||
+    TargetPlatform.iOS ||
+    TargetPlatform.fuchsia => true,
+    _ => false,
+  };
+
   Widget _buildScrollbar({
     required ScrollController controller,
     required int depth,
@@ -256,6 +264,9 @@ class GameScrollable extends StatelessWidget {
     return RawScrollbar(
       controller: controller,
       thumbVisibility: true,
+      // on touch, a press held on the track pages the map, so a long press on a
+      // tile along an edge flagged it and scrolled; the map itself is dragged
+      interactive: !_isTouch,
       padding: EdgeInsets.zero,
       mainAxisMargin: 0,
       crossAxisMargin: 0,
