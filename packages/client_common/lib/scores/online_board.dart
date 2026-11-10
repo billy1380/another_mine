@@ -73,53 +73,35 @@ class OnlineBoard {
 
     return [
       for (final scores.Score s in response.scores ?? <scores.Score>[])
-        OnlineScore(
-          id: s.id,
-          name: s.player?.name ?? "",
-          service: s.player?.type == null
-              ? null
-              : serviceImage(s.player!.type!),
-          serviceName: s.player?.type == null
-              ? null
-              : serviceName(s.player!.type!),
-          flag: s.player?.country == null ? null : flagOf(s.player!.country!),
-          country: s.player?.country == null
-              ? null
-              : countryName(s.player!.country!),
-          seconds: s.value ?? 0,
-          board: s.description ?? category.label,
-          when: s.when ?? DateTime.fromMillisecondsSinceEpoch(0),
-          recording: s.additionalData,
-        ),
+        convert(s, board: category.label),
     ];
   }
 
-  /// The score with [id], or null if it is not among the best [depth] of any
-  /// category kept online. The scores service has no lookup by id yet, so the
-  /// categories are read, [pageSize] at a time.
-  Future<OnlineScore?> find(
-    int id, {
-    int depth = 200,
-    int pageSize = 50,
-  }) async {
-    for (final ScoreCategory category in ScoreCategory.values) {
-      if (!category.isOnline) continue;
+  /// [s] as an online score; [board] is its board if it names none.
+  static OnlineScore convert(scores.Score s, {String? board}) => OnlineScore(
+    id: s.id,
+    name: s.player?.name ?? "",
+    service: s.player?.type == null ? null : serviceImage(s.player!.type!),
+    serviceName: s.player?.type == null ? null : serviceName(s.player!.type!),
+    flag: s.player?.country == null ? null : flagOf(s.player!.country!),
+    country: s.player?.country == null ? null : countryName(s.player!.country!),
+    seconds: s.value ?? 0,
+    board: s.description ?? board ?? s.category?.name ?? "",
+    when: s.when ?? DateTime.fromMillisecondsSinceEpoch(0),
+    recording: s.additionalData,
+  );
 
-      for (int start = 0; start < depth; start += pageSize) {
-        final List<OnlineScore> page = await top(
-          category,
-          count: pageSize,
-          start: start,
-        );
+  /// The score with [id], or null if there is none.
+  Future<OnlineScore?> find(int id) async {
+    final scores.GetScoreResponse response = await _client.getScore(
+      scores.GetScoreRequest(
+        session: Session(accessCode: OnlineConfig.publisherKey),
+        score: scores.Score(id: id),
+      ),
+    );
 
-        for (final OnlineScore score in page) {
-          if (score.id == id) return score;
-        }
+    final scores.Score? s = response.score;
 
-        if (page.length < pageSize) break;
-      }
-    }
-
-    return null;
+    return s == null ? null : convert(s);
   }
 }

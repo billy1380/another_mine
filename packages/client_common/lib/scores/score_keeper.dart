@@ -13,6 +13,7 @@ import "package:another_mine_common/scores/score_submitter.dart";
 import "package:another_mine_common/scores/score_category.dart";
 import "package:another_mine_common/services/pref.dart";
 import "package:willshex_dart_service_discovery/willshex_dart_service_discovery.dart";
+import "package:willshex_scores/willshex_scores.dart" as scores;
 
 /// A game the player has just won, before it is given a name and kept.
 class WonGame {
@@ -162,7 +163,10 @@ class ScoreKeeper extends BasicService {
   /// The lines of the scores table for [category], best first: the online
   /// scores or this device's, as [showsOnline] says.
   Future<List<ScoreRow>> rows(ScoreCategory category) async => showsOnline
-      ? [for (final OnlineScore s in await _online.top(category)) _row(s)]
+      ? [
+          for (final OnlineScore s in await _online.top(category))
+            _remember(_row(s)),
+        ]
       : [
           for (final LocalScore s in await top(category))
             ScoreRow(
@@ -174,11 +178,32 @@ class ScoreKeeper extends BasicService {
             ),
         ];
 
-  /// The online score with [id], or null if it is not found.
+  static final Map<int, ScoreRow> _known = {};
+
+  /// Remembers an online score a host already has, so that its replay does not
+  /// ask the server for it again.
+  static void know(scores.Score score) {
+    final int? id = score.id;
+
+    if (id != null) _known[id] = _row(OnlineBoard.convert(score));
+  }
+
+  /// The online score with [id], or null if it is not found. One already seen
+  /// is not fetched again.
   Future<ScoreRow?> onlineScore(int id) async {
+    final ScoreRow? seen = _known[id];
+
+    if (seen != null) return seen;
+
     final OnlineScore? score = await _online.find(id);
 
     return score == null ? null : _row(score);
+  }
+
+  static ScoreRow _remember(ScoreRow row) {
+    if (row.id != null) _known[row.id!] = row;
+
+    return row;
   }
 
   static ScoreRow _row(OnlineScore s) => ScoreRow(
