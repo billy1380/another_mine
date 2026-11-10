@@ -27,7 +27,11 @@ class GameSessionPublisher {
         section != AnotherMineSection.custom) {
       if (_publishedFor != section) {
         _publishedFor = section;
-        session.clearTitle();
+        if (section == AnotherMineSection.score) {
+          session.setTitle(Strings.playbackTitle, subtitle: "Another Mine");
+        } else {
+          session.clearTitle();
+        }
         session.setActions(const []);
       }
       return;

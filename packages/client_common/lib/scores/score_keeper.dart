@@ -188,6 +188,7 @@ class ScoreKeeper extends BasicService {
     country: s.country,
     flag: s.flag,
     service: s.service,
+    serviceName: s.serviceName,
     seconds: s.seconds,
     when: s.when,
     recording: s.recording,

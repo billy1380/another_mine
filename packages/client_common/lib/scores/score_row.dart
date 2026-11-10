@@ -15,6 +15,9 @@ class ScoreRow {
 
   /// The icon of the player's service; online scores only.
   final DialogImage? service;
+
+  /// The name of the player's service; online scores only.
+  final String? serviceName;
   final int seconds;
   final DateTime when;
 
@@ -32,6 +35,7 @@ class ScoreRow {
     this.country,
     this.flag,
     this.service,
+    this.serviceName,
     required this.seconds,
     required this.when,
     this.local,

@@ -18,6 +18,9 @@ class OnlineScore {
 
   /// The icon of the service the player is on.
   final DialogImage? service;
+
+  /// The name of the service the player is on.
+  final String? serviceName;
   final int seconds;
   final String board;
   final DateTime when;
@@ -31,6 +34,7 @@ class OnlineScore {
     required this.country,
     required this.flag,
     required this.service,
+    this.serviceName,
     required this.seconds,
     required this.board,
     required this.when,
@@ -75,6 +79,9 @@ class OnlineBoard {
           service: s.player?.type == null
               ? null
               : serviceImage(s.player!.type!),
+          serviceName: s.player?.type == null
+              ? null
+              : serviceName(s.player!.type!),
           flag: s.player?.country == null ? null : flagOf(s.player!.country!),
           country: s.player?.country == null
               ? null

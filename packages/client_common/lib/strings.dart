@@ -59,6 +59,7 @@ abstract class Strings {
   static const String deleteScoreTooltip = "Delete this score";
   static const String replayTooltip = "Watch the replay";
   static const String replayTitle = "Replay";
+  static const String playbackTitle = "Playback";
   static const String replayUnreadableTitle = "Can't replay this game";
   static const String replayUnreadableMessage =
       "The recording of this game could not be read.";

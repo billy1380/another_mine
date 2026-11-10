@@ -2,6 +2,7 @@ import "package:another_mine_common/another_mine_common.dart";
 import "package:another_mine_flutter/another_mine_flutter.dart"
     show EmbeddedReplay;
 import "package:another_mine_web/ui/layout.dart";
+import "package:another_mine_web/ui/parts/small_picture.dart";
 import "package:jaspr/dom.dart";
 import "package:jaspr/jaspr.dart";
 import "package:jaspr_flutter_embed/jaspr_flutter_embed.dart";
@@ -99,7 +100,16 @@ class _ScoreViewState extends State<ScoreView> {
     }
 
     return div(classes: "d-flex flex-column gap-2", [
-      div([Component.text(Strings.replayOf(score.name, score.detail))]),
+      div(classes: "text-center", [
+        div([Component.text(Strings.replayOf(score.name, score.detail))]),
+        div(classes: "d-flex justify-content-center align-items-center gap-2", [
+          if (score.service != null) smallPicture(score.service!, height: 20),
+          if (score.serviceName != null)
+            Component.text("${score.serviceName} ·"),
+          if (score.flag != null) smallPicture(score.flag!),
+          if (score.country != null) Component.text(score.country!),
+        ]),
+      ]),
       div(
         attributes: const {"style": "height: 70vh; min-height: 0;"},
         events: {"contextmenu": (e) => e.preventDefault()},
